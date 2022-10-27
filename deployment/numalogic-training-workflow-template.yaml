@@ -1,0 +1,71 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: numalogic-argocd-workflow-template
+spec:
+  entrypoint: whalesay-template
+  podMetadata:
+    annotations:
+      iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
+  ttlStrategy:
+    secondsAfterSuccess: 5
+    secondsAfterFailure: 60
+  templates:
+  - name: whalesay-template
+    inputs:
+      parameters:
+      - name: payload
+    container:
+      env:
+      - name: TRACKING_URI
+        value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+      - name: TRAINER
+        value: "argo_cd"
+      - name: WIN_SIZE
+        value: "12"
+      - name: THRESHOLD_MIN
+        value: "0.1"
+      - name: MODEL_NAME
+        value: "ae_sparse"
+      - name: PROMETHEUS_SERVER
+        value: "http://prometheus-service.monitoring.svc.cluster.local:8080"
+      image: <NUMALOGIC_PROMETHEUS_IMAGE>
+      command: [python, trainer.py]
+      args:
+        - "{{inputs.parameters.payload}}"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: numalogic-rollouts-workflow-template
+spec:
+  entrypoint: whalesay-template
+  podMetadata:
+    annotations:
+      iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
+  ttlStrategy:
+    secondsAfterSuccess: 5
+    secondsAfterFailure: 60
+  templates:
+  - name: whalesay-template
+    inputs:
+      parameters:
+      - name: payload
+    container:
+      env:
+      - name: TRACKING_URI
+        value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+      - name: TRAINER
+        value: "argo_rollouts"
+      - name: ROLLOUT_WIN_SIZE
+        value: "8"
+      - name: ROLLOUT_THRESHOLD_MIN
+        value: "0.001"
+      - name: ROLLOUT_MODEL_NAME
+        value: "ae_sparse"
+      - name: PROMETHEUS_SERVER
+        value: <PROMETHEUS_SERVER>
+      image: <NUMALOGIC_PROMETHEUS_IMAGE>
+      command: [python, trainer.py]
+      args:
+        - "{{inputs.parameters.payload}}"
