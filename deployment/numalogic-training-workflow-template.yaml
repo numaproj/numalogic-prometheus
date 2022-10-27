@@ -28,8 +28,8 @@ spec:
       - name: MODEL_NAME
         value: "ae_sparse"
       - name: PROMETHEUS_SERVER
-        value: "http://prometheus-service.monitoring.svc.cluster.local:8080"
-      image: <NUMALOGIC_PROMETHEUS_IMAGE>
+        value: <PROMETHEUS_SERVER>
+      image: docker.io/library/numalogic-prometheus
       command: [python, trainer.py]
       args:
         - "{{inputs.parameters.payload}}"
@@ -65,7 +65,7 @@ spec:
         value: "ae_sparse"
       - name: PROMETHEUS_SERVER
         value: <PROMETHEUS_SERVER>
-      image: <NUMALOGIC_PROMETHEUS_IMAGE>
+      image: docker.io/library/numalogic-prometheus
       command: [python, trainer.py]
       args:
         - "{{inputs.parameters.payload}}"

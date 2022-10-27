@@ -20,7 +20,7 @@ spec:
         persistentVolumeClaim:
           claimName: mlflow-pvc
       containers:
-        - image: docker.io/library/simple-numalogic-pipeline
+        - image: docker.io/library/mlflow
           name: mlflow
           args:
           - server

@@ -27,7 +27,7 @@ spec:
       max: 1
     udf:
      container:
-       image: <NUMALOGIC_PROMETHEUS_IMAGE>
+       image: docker.io/library/numalogic-prometheus
        args:
        - python
        - starter.py
@@ -38,7 +38,7 @@ spec:
       max: 1
     udf:
       container:
-         image: <NUMALOGIC_PROMETHEUS_IMAGE>
+         image: docker.io/library/numalogic-prometheus
          args:
          - python
          - starter.py
@@ -49,7 +49,7 @@ spec:
       max: 1
     udf:
       container:
-         image: <NUMALOGIC_PROMETHEUS_IMAGE>
+         image: docker.io/library/numalogic-prometheus
          args:
          - python
          - starter.py
@@ -68,7 +68,7 @@ spec:
       min: 1
     udf:
       container:
-        image: <NUMALOGIC_PROMETHEUS_IMAGE>
+        image: docker.io/library/numalogic-prometheus
         args:
         - python
         - starter.py
@@ -98,7 +98,7 @@ spec:
       min: 1
     udf:
       container:
-        image: <NUMALOGIC_PROMETHEUS_IMAGE>
+        image: docker.io/library/numalogic-prometheus
         args:
         - python
         - starter.py
