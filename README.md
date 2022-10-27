@@ -141,6 +141,7 @@ kubectl apply -f https://raw.githubusercontent.com/numaproj/numaflow/stable/exam
     Note: 
     1. Replace `<PROMETHEUS_SERVER>` with your prometheus pushgateway server endpoint, example: http://prometheus-pushgateway.monitoring.svc:9091
     2. Replace `<MLFLOW_S3_ROLE_ARN>` with the AWS role arn created in MLflow setup.
+    3. Replace `<REDIS_AUTH>` with the password copied while doing Redis setup.  
 ```
 kubectl apply -f numalogic-prometheus-pipeline.yaml
 ```
