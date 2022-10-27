@@ -1,0 +1,10 @@
+FROM python:3.9.12-slim
+
+WORKDIR $PYSETUP_PATH
+ADD . $PYSETUP_PATH
+WORKDIR $PYSETUP_PATH
+RUN pip install mlflow
+ADD . /app
+WORKDIR /app
+
+EXPOSE 5000
