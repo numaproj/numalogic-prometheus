@@ -115,7 +115,9 @@ kubectl apply -f workflow-rolebinding.yaml
 
 6. Create argo workflow template. 
    
-    Note: replace `<PROMETHEUS_SERVER>` with your prometheus server endpoint, example: http://prometheus.monitoring.svc.cluster.local:9090
+    Note:
+     1. Replace `<PROMETHEUS_SERVER>` with your prometheus server endpoint, example: http://prometheus.monitoring.svc.cluster.local:9090
+     2. Replace `<NUMALOGIC_PROMETHEUS_IMAGE>` with the numalogic-prometheus image created in step 1.
 ```
 kubectl apply -f numalogic-training-workflow-template.yaml
 ```
@@ -123,8 +125,9 @@ kubectl apply -f numalogic-training-workflow-template.yaml
 7. Create numalogic-prometheus pipeline, 
    
     Note: 
-    1. Replace `<PROMETHEUS_SERVER>` with your prometheus pushgateway server endpoint, example: http://prometheus-pushgateway.monitoring.svc:9091
-    2. Replace `<MLFLOW_S3_ROLE_ARN>` with the role arn created in step 3.
+    1. Replace `<NUMALOGIC_PROMETHEUS_IMAGE>` with the numalogic-prometheus image created in step 1.
+    2. Replace `<PROMETHEUS_SERVER>` with your prometheus pushgateway server endpoint, example: http://prometheus-pushgateway.monitoring.svc:9091
+    3. Replace `<MLFLOW_S3_ROLE_ARN>` with the role arn created in step 3.
 ```
 kubectl apply -f numalogic-prometheus-pipeline.yaml
 ```
