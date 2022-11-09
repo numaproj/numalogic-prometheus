@@ -29,7 +29,7 @@ spec:
         value: "ae_sparse"
       - name: PROMETHEUS_SERVER
         value: <PROMETHEUS_SERVER>
-      image: docker.io/library/numalogic-prometheus
+      image: quay.io/numaio/numalogic-prometheus
       command: [python, trainer.py]
       args:
         - "{{inputs.parameters.payload}}"
@@ -65,7 +65,7 @@ spec:
         value: "ae_sparse"
       - name: PROMETHEUS_SERVER
         value: <PROMETHEUS_SERVER>
-      image: docker.io/library/numalogic-prometheus
+      image: quay.io/numaio/numalogic-prometheus
       command: [python, trainer.py]
       args:
         - "{{inputs.parameters.payload}}"
