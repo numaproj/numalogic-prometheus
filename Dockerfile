@@ -14,7 +14,13 @@ ENV PYTHONFAULTHANDLER=1 \
   VENV_PATH="/opt/pysetup/.venv"
 
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
-
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        curl \
+        wget \
+        build-essential
+RUN apt-get install -y git
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 WORKDIR $PYSETUP_PATH
 ADD . $PYSETUP_PATH
@@ -29,7 +35,6 @@ RUN chmod +x /dumb-init
 
 WORKDIR /app
 RUN chmod +x entry.sh
-RUN find numalogic -delete
 
 ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/app/entry.sh"]

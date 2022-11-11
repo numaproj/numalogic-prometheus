@@ -3,11 +3,11 @@
 ## Prerequisites
 - [Numaflow](https://numaflow.numaproj.io/quick-start/#installation)
 - [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)
-- [AWS](https://aws.amazon.com/)
+- [Argo Workflows](https://argoproj.github.io/argo-workflows/quick-start/)
 
-## Instructions
+## Building Locally
 
-- Fork and clone the repository to your local and build numalogic-prometheus docker image.
+Fork and clone the repository to your local and build numalogic-prometheus docker image.
 
 ```shell
 git@github.com:numaproj/numalogic-prometheus.git
@@ -15,6 +15,10 @@ git@github.com:numaproj/numalogic-prometheus.git
 docker build -t numalogic-prometheus . && k3d image import docker.io/library/numalogic-prometheus
 ```
 
+
+## Running Numalogic Prometheus Pipeline:
+
+### Namespace Setup
 - Create numalogic-prometheus namespace.
 ```shell
 kubectl create namespace numalogic-prometheus
@@ -22,8 +26,7 @@ kubectl create namespace numalogic-prometheus
 kubectl config set-context --current --namespace=numalogic-prometheus
 ```
 
-
-## Redis Setup
+### Redis Setup
 Install redis in `numalogic-prometheus` namespace and copy the password to notepad.
 
 ```shell
@@ -32,9 +35,22 @@ helm install numalogic bitnami/redis-cluster
 echo $(kubectl get secret --namespace "numalogic-prometheus" numalogic-redis-cluster -o jsonpath="{.data.redis-password}" | base64 -d)
 ```
 
-## MLflow Setup
+### MLflow Setup
 
-### AWS S3 Bucket Setup:
+#### Using Local Storage:
+
+Build Mlflow docker image and install MLflow server in the `numalogic-prometheus` namespace.
+```shell
+cd numalogic-prometheus/deployment
+
+docker build -t mlflow:v1 . && k3d image import docker.io/library/mlflow:v1
+
+kubectl apply -f mlflow-deployment-local.yaml
+```
+
+
+#### Using AWS S3:
+1. AWS S3 Bucket Setup:
 - Create an [AWS S3 bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 - Create an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create.html), with the following policy. 
  
@@ -97,7 +113,7 @@ Note: Replace the `BUKET_NAME`, `ACCOUNT_NUMBER`, `ROLE_NAME` with your S3 bucke
 ```
 - Create an [AWS IAM User](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console) for the role created, by adding the role under permissions.
 
-### MLflow Server Setup:
+2. MLflow Server Setup:
 Build Mlflow docker image and install MLflow server in the `numalogic-prometheus` namespace.
 
 Note: 
@@ -112,7 +128,7 @@ docker build -t mlflow . && k3d image import docker.io/library/mlflow
 kubectl apply -f mlflow-deployment.yaml
 ```
 
-## Training Workflow Setup
+### Training Workflow Setup
 - Create Role and Rolebinding, for argo workflows used for ML training.
 ```
 cd numalogic-prometheus/deployment
@@ -124,13 +140,14 @@ kubectl apply -f workflow-rolebinding.yaml
 
 - Create argo workflow template. 
    
-  Note: Replace `<PROMETHEUS_SERVER>` with your prometheus server endpoint, example: http://prometheus.monitoring.svc.cluster.local:9090
+  Note: 
+  1. Replace `<PROMETHEUS_SERVER>` with your prometheus server endpoint, example: http://prometheus.monitoring.svc.cluster.local:9090
+  2. If using AWS S3 storage, replace the `<MLFLOW_S3_ROLE_ARN>` with the AWS S3 role created for MLflow. If using local storage for MLFlow, remove the aws role from annotations.
 ```
 kubectl apply -f numalogic-training-workflow-template.yaml
 ```
 
-## Numalogic Prometheus Pipeline Setup
-
+### Pipeline Setup:
 - Create [Inter-Step Buffer](https://numaflow.numaproj.io/inter-step-buffer/) server.
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/numaproj/numaflow/stable/examples/0-isbsvc-jetstream.yaml
@@ -140,7 +157,7 @@ kubectl apply -f https://raw.githubusercontent.com/numaproj/numaflow/stable/exam
    
     Note: 
     1. Replace `<PROMETHEUS_SERVER>` with your prometheus pushgateway server endpoint, example: http://prometheus-pushgateway.monitoring.svc:9091
-    2. Replace `<MLFLOW_S3_ROLE_ARN>` with the AWS role arn created in MLflow setup.
+    2. If using AWS S3 storage, replace the `<MLFLOW_S3_ROLE_ARN>` with the AWS S3 role created for MLflow. If using local storage for MLFlow, remove the aws role from annotations.
     3. Replace `<REDIS_AUTH>` with the password copied while doing Redis setup.  
 ```
 kubectl apply -f numalogic-prometheus-pipeline.yaml
