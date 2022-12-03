@@ -60,7 +60,7 @@ FROM builder AS udf
 
 WORKDIR $PYSETUP_PATH
 COPY ./pyproject.toml ./poetry.lock ./
-RUN poetry install --without dev,mlflowserver --no-cache --no-root && \
+RUN poetry install --no-cache --no-root && \
     rm -rf ~/.cache/pypoetry/
 
 ADD . /app

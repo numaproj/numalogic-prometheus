@@ -1,8 +1,8 @@
 import unittest
 
-from nlogicprom.factory import HandlerFactory
+from numaprom.factory import HandlerFactory
 
-from nlogicprom.udf import metric_filter, preprocess, postprocess, inference
+from numaprom.udf import metric_filter, preprocess, postprocess, inference
 
 
 class TestFactory(unittest.TestCase):

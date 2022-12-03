@@ -18,7 +18,7 @@ clean:
 	@find . -type f -name "*.py[co]" -exec rm -rf {} +
 
 format: clean
-	@POETRY run black nlogicprom/
+	@POETRY run black numaprom/
 	@POETRY run black trainer.py
 
 # install all dependencies

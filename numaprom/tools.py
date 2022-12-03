@@ -9,7 +9,7 @@ from typing import List, Optional, Any, Dict
 
 from pynumaflow.function import Messages, Message
 
-from nlogicprom.entities import Payload, Metric, MetricType, Status
+from numaprom.entities import Payload, Metric, MetricType, Status
 
 LOGGER = logging.getLogger(__name__)
 

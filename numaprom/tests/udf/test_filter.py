@@ -1,10 +1,10 @@
 import os
 import unittest
 
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.tests.tools import get_datum
-from nlogicprom.tools import get_data
-from nlogicprom.udf import metric_filter
+from numaprom.constants import TESTS_DIR
+from numaprom.tests.tools import get_datum
+from numaprom.tools import get_data
+from numaprom.udf import metric_filter
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 LATENCY = os.path.join(DATA_DIR, "latency.txt")

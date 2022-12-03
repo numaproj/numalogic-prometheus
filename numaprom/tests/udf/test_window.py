@@ -4,10 +4,10 @@ import unittest
 from unittest.mock import patch
 from pynumaflow.function._dtypes import DROP
 
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.tests import *
-from nlogicprom.tests.tools import get_datum
-from nlogicprom.tools import decode_msg
+from numaprom.constants import TESTS_DIR
+from numaprom.tests import *
+from numaprom.tests.tools import get_datum
+from numaprom.tools import decode_msg
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")

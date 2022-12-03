@@ -9,11 +9,11 @@ from mlflow.entities.model_registry import ModelVersion
 from pynumaflow.function import Datum
 from numalogic.models.autoencoder.variants import VanillaAE
 
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.factory import HandlerFactory
-from nlogicprom.tests import *
+from numaprom.constants import TESTS_DIR
+from numaprom.factory import HandlerFactory
+from numaprom.tests import *
 
-sys.modules["nlogicprom.mlflow"] = MagicMock()
+sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
 
 

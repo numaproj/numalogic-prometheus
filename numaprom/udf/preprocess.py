@@ -5,9 +5,9 @@ import pandas as pd
 from numalogic.preprocess.transformer import LogTransformer
 from pynumaflow.function import Messages, Datum
 
-from nlogicprom.entities import Status, Payload
-from nlogicprom.pipeline import PrometheusPipeline
-from nlogicprom.tools import catch_exception, msg_forward, get_metrics
+from numaprom.entities import Status, Payload
+from numaprom.pipeline import PrometheusPipeline
+from numaprom.tools import catch_exception, msg_forward, get_metrics
 
 LOGGER = logging.getLogger(__name__)
 

@@ -2,10 +2,10 @@ import os
 import unittest
 from unittest.mock import patch
 
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.entities import Payload, Status
-from nlogicprom.tests.tools import get_prepoc_input
-from nlogicprom.udf.preprocess import preprocess
+from numaprom.constants import TESTS_DIR
+from numaprom.entities import Payload, Status
+from numaprom.tests.tools import get_prepoc_input
+from numaprom.udf.preprocess import preprocess
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")

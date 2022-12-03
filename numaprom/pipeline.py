@@ -11,8 +11,8 @@ from typing import Sequence, Callable, Optional, Union, BinaryIO
 
 from numalogic.models.autoencoder.factory import ModelPlFactory
 
-from nlogicprom.constants import DEFAULT_PROMETHEUS_SERVER
-from nlogicprom.prometheus import Prometheus
+from numaprom.constants import DEFAULT_PROMETHEUS_SERVER
+from numaprom.prometheus import Prometheus
 
 LOGGER = logging.getLogger(__name__)
 

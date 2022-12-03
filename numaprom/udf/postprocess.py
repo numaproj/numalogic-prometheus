@@ -5,10 +5,10 @@ from numalogic.scores import tanh_norm
 from pynumaflow.function import Messages, Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from nlogicprom.constants import ARGOCD_METRICS_LIST, ROLLOUTS_METRICS_LIST
-from nlogicprom.entities import Payload, Status, PrometheusPayload
-from nlogicprom.redis import get_redis_client
-from nlogicprom.tools import catch_exception, msgs_forward
+from numaprom.constants import ARGOCD_METRICS_LIST, ROLLOUTS_METRICS_LIST
+from numaprom.entities import Payload, Status, PrometheusPayload
+from numaprom.redis import get_redis_client
+from numaprom.tools import catch_exception, msgs_forward
 
 LOGGER = logging.getLogger(__name__)
 

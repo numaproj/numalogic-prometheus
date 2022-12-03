@@ -12,7 +12,7 @@ from numalogic.models.autoencoder.variants import VanillaAE, Conv1dAE, LSTMAE
 from numalogic.preprocess.transformer import LogTransformer
 from numalogic.registry import MLflowRegistrar
 
-from nlogicprom.constants import (
+from numaprom.constants import (
     DEFAULT_WIN_SIZE,
     DEFAULT_THRESHOLD_MIN,
     DEFAULT_TRACKING_URI,
@@ -26,8 +26,8 @@ from nlogicprom.constants import (
     ROLLOUTS_METRICS_LIST,
     DEFAULT_RESUME_TRAINING,
 )
-from nlogicprom.entities import MetricType
-from nlogicprom.pipeline import PrometheusPipeline
+from numaprom.entities import MetricType
+from numaprom.pipeline import PrometheusPipeline
 
 LOGGER = logging.getLogger(__name__)
 

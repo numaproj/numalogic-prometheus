@@ -2,14 +2,14 @@ import os
 import unittest
 from unittest.mock import patch
 
-from nlogicprom.constants import TESTS_DIR, ARGOCD_METRICS_LIST
-from nlogicprom.entities import PrometheusPayload, Payload
-from nlogicprom.tests import *
-from nlogicprom.tests.tools import (
+from numaprom.constants import TESTS_DIR, ARGOCD_METRICS_LIST
+from numaprom.entities import PrometheusPayload, Payload
+from numaprom.tests import *
+from numaprom.tests.tools import (
     get_postproc_input,
     return_mock_cpu_load,
 )
-from nlogicprom.udf.postprocess import postprocess, save_to_redis
+from numaprom.udf.postprocess import postprocess, save_to_redis
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")

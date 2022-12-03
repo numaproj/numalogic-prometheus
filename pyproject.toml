@@ -3,7 +3,7 @@ name = "numalogic-prometheus"
 version = "0.0.1"
 description = "ML inference on numaflow using numalogic on Prometheus metrics"
 authors = ["Numalogic developers"]
-packages = [{ include = "nlogicprom" }]
+packages = [{ include = "numaprom" }]
 maintainers = [
     "Avik Basu <avikbasu93@gmail.com>",
     "Nandita Koppisetty <nandita.iitkgp@gmail.com>",
@@ -27,8 +27,14 @@ pynumaflow = "~0.2.6"
 numalogic = {version = "0.2.8", extras = ["mlflow"]}
 boto3 = "^1.25.2"
 
+[tool.poetry.group.mlflowserver]
+optional = true
+
 [tool.poetry.group.mlflowserver.dependencies]
 mlflow = "^1.30.0"
+
+[tool.poetry.group.dev]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^6.3"
