@@ -1,3 +1,12 @@
+# Check Python
+PYTHON:=$(shell command -v python 2> /dev/null)
+ifndef PYTHON
+PYTHON:=$(shell command -v python3 2> /dev/null)
+endif
+ifndef PYTHON
+$(error "Python is not available, please install.")
+endif
+
 POETRY := $${HOME}/.poetry/bin/poetry
 
 clean:
@@ -9,7 +18,7 @@ clean:
 	@find . -type f -name "*.py[co]" -exec rm -rf {} +
 
 format: clean
-	@POETRY run black nlogicprom/
+	@POETRY run black numaprom/
 	@POETRY run black trainer.py
 
 # install all dependencies
@@ -18,3 +27,6 @@ setup:
 
 test:
 	@POETRY run python -m unittest discover
+
+requirements:
+	poetry export -f requirements.txt --output requirements.txt --without-hashes

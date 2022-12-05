@@ -1,10 +1,10 @@
 import os
 
-NLOGICPROM_DIR = os.path.dirname(__file__)
-ROOT_DIR = os.path.split(NLOGICPROM_DIR)[0]
-TESTS_DIR = os.path.join(NLOGICPROM_DIR, "tests")
-MODEL_PATH = os.path.join(ROOT_DIR, "nlogicprom/udf/models")
-DATA_DIR = os.path.join(NLOGICPROM_DIR, "data")
+NUMAPROM_DIR = os.path.dirname(__file__)
+ROOT_DIR = os.path.split(NUMAPROM_DIR)[0]
+TESTS_DIR = os.path.join(NUMAPROM_DIR, "tests")
+MODEL_PATH = os.path.join(ROOT_DIR, "numaprom/udf/models")
+DATA_DIR = os.path.join(NUMAPROM_DIR, "data")
 DEFAULT_WIN_SIZE = 12
 DEFAULT_THRESHOLD_MIN = 0.1
 DEFAULT_MODEL_NAME = "ae_sparse"

@@ -8,11 +8,11 @@ from mlflow.entities.model_registry import ModelVersion
 from numalogic.models.autoencoder.variants import VanillaAE
 from numalogic.registry import MLflowRegistrar
 
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.entities import Payload, Status, MetricType
-from nlogicprom.tests.tools import get_inference_input, return_mock_cpu_load
-from nlogicprom.udf.inference import inference
-from nlogicprom.tests import *
+from numaprom.constants import TESTS_DIR
+from numaprom.entities import Payload, Status, MetricType
+from numaprom.tests.tools import get_inference_input, return_mock_cpu_load
+from numaprom.udf.inference import inference
+from numaprom.tests import *
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")

@@ -2,7 +2,7 @@ import json
 import logging
 from redis.cluster import RedisCluster
 
-from nlogicprom.tools import is_host_reachable
+from numaprom.tools import is_host_reachable
 
 _LOGGER = logging.getLogger(__name__)
 redis_client: RedisCluster = None

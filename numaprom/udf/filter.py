@@ -4,8 +4,8 @@ from typing import Optional
 
 from pynumaflow.function import Messages, Datum
 
-from nlogicprom.constants import METRICS
-from nlogicprom.tools import catch_exception, msg_forward
+from numaprom.constants import METRICS
+from numaprom.tools import catch_exception, msg_forward
 
 LOGGER = logging.getLogger(__name__)
 

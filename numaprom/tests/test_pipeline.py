@@ -10,9 +10,9 @@ from numalogic.models.autoencoder.variants import VanillaAE
 from numpy.testing import assert_array_equal
 from sklearn.preprocessing import StandardScaler
 
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.pipeline import PrometheusPipeline
-from nlogicprom.prometheus import Prometheus
+from numaprom.constants import TESTS_DIR
+from numaprom.pipeline import PrometheusPipeline
+from numaprom.prometheus import Prometheus
 
 WIN_LEN = 12
 

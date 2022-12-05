@@ -2,7 +2,7 @@ from typing import Callable
 
 from pynumaflow.function import Messages
 
-from nlogicprom.udf import preprocess, postprocess, window, metric_filter, inference
+from numaprom.udf import preprocess, postprocess, window, metric_filter, inference
 
 
 class HandlerFactory:

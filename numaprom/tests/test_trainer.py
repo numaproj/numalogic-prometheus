@@ -10,9 +10,9 @@ from numalogic.models.autoencoder.variants import LSTMAE
 from numalogic.registry import MLflowRegistrar
 
 import trainer
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.prometheus import Prometheus
-from nlogicprom.tests.tools import MODEL_DIR
+from numaprom.constants import TESTS_DIR
+from numaprom.prometheus import Prometheus
+from numaprom.tests.tools import MODEL_DIR
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")

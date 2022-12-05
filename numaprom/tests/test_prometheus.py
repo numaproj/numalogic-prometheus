@@ -4,8 +4,8 @@ import datetime
 import unittest
 from unittest.mock import patch, Mock, MagicMock
 
-from nlogicprom.constants import TESTS_DIR
-from nlogicprom.prometheus import Prometheus
+from numaprom.constants import TESTS_DIR
+from numaprom.prometheus import Prometheus
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")

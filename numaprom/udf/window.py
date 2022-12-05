@@ -4,10 +4,10 @@ from typing import List, Tuple
 from pynumaflow.function import Messages, Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from nlogicprom.entities import Metric
-from nlogicprom.redis import get_redis_client
-from nlogicprom.constants import DEFAULT_WIN_SIZE, ARGOCD_METRICS_LIST
-from nlogicprom.tools import decode_msg, msg_forward, catch_exception, extract, get_metric_type
+from numaprom.entities import Metric
+from numaprom.redis import get_redis_client
+from numaprom.constants import DEFAULT_WIN_SIZE, ARGOCD_METRICS_LIST
+from numaprom.tools import decode_msg, msg_forward, catch_exception, extract, get_metric_type
 
 _LOGGER = logging.getLogger(__name__)
 

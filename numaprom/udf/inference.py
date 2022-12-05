@@ -10,7 +10,7 @@ from typing import Optional, Tuple, Dict
 from numalogic.registry import MLflowRegistrar
 from pynumaflow.function import Messages, Datum
 
-from nlogicprom.constants import (
+from numaprom.constants import (
     DEFAULT_WIN_SIZE,
     DEFAULT_THRESHOLD_MIN,
     DEFAULT_TRACKING_URI,
@@ -21,9 +21,9 @@ from nlogicprom.constants import (
     DEFAULT_ROLLOUT_THRESHOLD_MIN,
     DEFAULT_ROLLOUT_WIN_SIZE,
 )
-from nlogicprom.entities import Payload, Status
-from nlogicprom.pipeline import PrometheusPipeline
-from nlogicprom.tools import catch_exception, get_metrics, conditional_forward
+from numaprom.entities import Payload, Status
+from numaprom.pipeline import PrometheusPipeline
+from numaprom.tools import catch_exception, get_metrics, conditional_forward
 
 LOGGER = logging.getLogger(__name__)
 
