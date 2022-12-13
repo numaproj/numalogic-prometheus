@@ -5,7 +5,7 @@ from numalogic.scores import tanh_norm
 from pynumaflow.function import Messages, Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from numaprom.constants import ARGOCD_METRICS_LIST, ROLLOUTS_METRICS_LIST
+from numaprom.constants import METRIC_CONFIG
 from numaprom.entities import Payload, Status, PrometheusPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import catch_exception, msgs_forward
@@ -19,18 +19,16 @@ AUTH = os.getenv("REDIS_AUTH")
 
 def save_to_redis(payload: Payload, recreate: bool):
     r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
+    model_config = METRIC_CONFIG[payload.metric_name]["model_config"]
 
-    if payload.metric in ARGOCD_METRICS_LIST:
-        key = f"{payload.namespace}:{payload.endTS}"
-        metrics_list = ARGOCD_METRICS_LIST
-    else:
-        key = f"{payload.namespace}:{payload.hash_id}:{payload.endTS}"
-        metrics_list = ROLLOUTS_METRICS_LIST
+    metrics_list = model_config["metrics"]
+    key = ":".join(METRIC_CONFIG[payload.metric_name]["keys"])
+    key = f"{key}:{payload.endTS}"
 
     if np.isnan(payload.anomaly):
-        r.hset(key, mapping={payload.metric: -1})
+        r.hset(key, mapping={payload.metric_name: -1})
     else:
-        r.hset(key, mapping={payload.metric: payload.anomaly})
+        r.hset(key, mapping={payload.metric_name: payload.anomaly})
 
     for m in metrics_list:
         if not r.hexists(name=key, key=m):
@@ -48,35 +46,36 @@ def save_to_redis(payload: Payload, recreate: bool):
     return max_anomaly, anomalies
 
 
-def get_publisher_format(payload: Payload) -> PrometheusPayload:
-    if payload.metric in ARGOCD_METRICS_LIST:
-        name = f"namespace_app_pod_{payload.metric}_anomaly"
-    else:
-        name = f"namespace_rollout_{payload.metric}_anomaly"
+def get_labels(payload: Payload):
+    keys = METRIC_CONFIG[payload.metric_name]["keys"]
+    labels = {
+        "model_version": str(payload.model_version)
+    }
+    for key in keys:
+        if key != "name":
+            labels[key] = payload.src_labels[key]
 
+    return labels
+
+
+def get_publisher_format(payload: Payload) -> PrometheusPayload:
+    name = f"{payload.metric_name}_anomaly"
     prometheus_payload = PrometheusPayload(
         timestamp_ms=int(payload.endTS),
         name=name,
-        namespace=payload.namespace,
-        subsystem=str(payload.hash_id),
+        namespace=payload.src_labels["namespace"],
+        subsystem=None,
         type="Gauge",
         value=payload.anomaly,
-        labels={
-            "numalogic": "true",
-            "namespace": payload.namespace,
-            "model_version": str(payload.model_version),
-            "hash_id": str(payload.hash_id),
-        },
+        labels=get_labels(payload)
     )
 
     return prometheus_payload
 
 
 def get_unified_format(payload: Payload, max_anomaly: float) -> PrometheusPayload:
-    if payload.metric in ARGOCD_METRICS_LIST:
-        name = f"namespace_app_pod_unified_anomaly"
-    else:
-        name = f"namespace_rollout_hash_unified_anomaly"
+    model_config = METRIC_CONFIG[payload.metric_name]["model_config"]
+    name = f"namespace_{model_config['name']}_unified_anomaly"
 
     prometheus_payload = PrometheusPayload(
         timestamp_ms=int(payload.endTS),
@@ -85,11 +84,7 @@ def get_unified_format(payload: Payload, max_anomaly: float) -> PrometheusPayloa
         subsystem=str(payload.hash_id),
         type="Gauge",
         value=max_anomaly,
-        labels={
-            "numalogic": "true",
-            "namespace": payload.namespace,
-            "hash_id": str(payload.hash_id),
-        },
+        labels=get_labels(payload),
     )
 
     return prometheus_payload

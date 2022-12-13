@@ -1,16 +1,17 @@
+import json
 import os
 import logging
 from typing import List, Tuple
-from pynumaflow.function import Messages, Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
+
+from pynumaflow.function import Messages, Datum
 
 from numaprom.entities import Metric
 from numaprom.redis import get_redis_client
-from numaprom.constants import DEFAULT_WIN_SIZE, ARGOCD_METRICS_LIST
-from numaprom.tools import decode_msg, msg_forward, catch_exception, extract, get_metric_type
+from numaprom.constants import METRIC_CONFIG
+from numaprom.tools import decode_msg, msg_forward, catch_exception, extract
 
 _LOGGER = logging.getLogger(__name__)
-
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -29,41 +30,44 @@ def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tu
     return _window
 
 
+def get_keys(msg: dict) -> List[str]:
+    labels = msg.get("labels")
+    metric_name = msg["name"]
+
+    keys = METRIC_CONFIG[metric_name]["keys"]
+    values = []
+    for k in keys:
+        if k in msg:
+            values.append(msg[k])
+        if k in labels:
+            values.append(labels[k])
+    return values
+
+
 @catch_exception
 @msg_forward
 def window(key: str, datum: Datum) -> Messages:
     msg = decode_msg(datum.value)
-    labels = msg.get("labels")
-    win_size = int(os.getenv("WIN_SIZE", DEFAULT_WIN_SIZE))
+    metric_name = msg["name"]
+
+    win_size = METRIC_CONFIG[metric_name]["model_config"]["win_size"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 
     if buff_size < win_size:
-        raise ValueError(
-            f"Redis list buffer size: {buff_size} is less than window length: {win_size}"
-        )
+        raise ValueError(f"Redis list buffer size: {buff_size} is less than window length: {win_size}")
 
-    metric = msg["name"]
-    namespace = labels.get("namespace")
+    keys = get_keys(msg)
+    unique_key = ":".join(keys)
     value = float(msg["value"])
-    metric_type = get_metric_type(metric).value
-
-    if metric_type in ARGOCD_METRICS_LIST:
-        key = f"{namespace}:{metric}"
-    else:
-        if "pod_template_hash" in labels:
-            hash_id = str(labels.get("pod_template_hash"))
-        else:
-            hash_id = str(labels.get("rollouts_pod_template_hash"))
-        key = f"{namespace}:{hash_id}:{metric}"
 
     try:
         elements = __aggregate_window(
-            key, msg["timestamp"], value, win_size, buff_size, recreate=False
+            unique_key, msg["timestamp"], value, win_size, buff_size, recreate=False
         )
     except RedisConnectionError:
         _LOGGER.warning("Redis connection failed, recreating the redis client")
         elements = __aggregate_window(
-            key, msg["timestamp"], value, win_size, buff_size, recreate=True
+            unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
 
     if len(elements) < win_size:
@@ -72,7 +76,7 @@ def window(key: str, datum: Datum) -> Messages:
     ts_window = [Metric(timestamp=str(_ts), value=float(_val)).to_dict() for _val, _ts in elements]
     msg["window"] = ts_window
 
-    payload = extract(msg)
+    payload = extract(msg, keys)
     payload_json = payload.to_json()
     _LOGGER.info("%s - Extracted payload: %s", payload.uuid, payload_json)
     return payload_json

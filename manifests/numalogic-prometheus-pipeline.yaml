@@ -199,12 +199,12 @@ spec:
     to: training-workflow
     conditions:
       keyIn:
-        - train
+        - argo-cd
   - from: inference
     to: training-output
     conditions:
       keyIn:
-        - train
+        - argo-cd
   - from: inference
     to: postprocess
     conditions:
@@ -214,12 +214,12 @@ spec:
     to: rollouts-workflow
     conditions:
       keyIn:
-       - rollout-train
+       - argo-rollouts
   - from: inference
     to: rollouts-output
     conditions:
       keyIn:
-        - rollout-train
+        - argo-rollouts
   - from: postprocess
     to: output
   - from: postprocess

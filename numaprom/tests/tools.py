@@ -1,6 +1,8 @@
 import os
 import sys
 import json
+from unittest import mock
+
 import torch
 import datetime
 from unittest.mock import MagicMock
@@ -9,12 +11,16 @@ from mlflow.entities.model_registry import ModelVersion
 from pynumaflow.function import Datum
 from numalogic.models.autoencoder.variants import VanillaAE
 
-from numaprom.constants import TESTS_DIR
+from numaprom.constants import TESTS_DIR, ARGO_CD, ARGO_ROLLOUTS, METRIC_CONFIG
 from numaprom.factory import HandlerFactory
 from numaprom.tests import *
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
+
+
+def mockenv(**envvars):
+    return mock.patch.dict(os.environ, envvars, clear=True)
 
 
 def get_datum(data: str or bytes) -> Datum:
@@ -24,12 +30,17 @@ def get_datum(data: str or bytes) -> Datum:
     return Datum(value=data, event_time=datetime.datetime.now(), watermark=datetime.datetime.now())
 
 
-def get_prepoc_input(data_path: str) -> Datum:
+def get_stream_data(data_path: str):
     with open(data_path) as fp:
         data = json.load(fp)
+    return data
+
+
+def get_prepoc_input(data_path: str) -> Datum:
+    data = get_stream_data(data_path)
     output_ = None
     for obj in data:
-        output_ = window(None, get_datum(obj))
+        output_ = window("", get_datum(obj))
     return get_datum(output_.items()[0].value) if output_ else None
 
 
@@ -66,4 +77,41 @@ def return_mock_cpu_load(*_, **__):
             user_id="",
             version="125",
         ),
+    }
+
+
+def return_mock_metric_config():
+    return {
+        "metric_1": {
+            "keys": ["namespace", "name"],
+            "model_config": {
+                "name": ARGO_CD,
+                "win_size": 12,
+                "threshold_min": 0.1,
+                "model_name": "ae_sparse",
+                "retrain_freq_hr": 8,
+                "resume_training": "True",
+                "keys": ["namespace", "name"],
+                "metrics": [
+                    "metric_1",
+                ]
+            }
+
+        },
+        "metric_2": {
+            "keys": ["namespace", "name", "hash_id"],
+            "model_config": {
+                "name": ARGO_ROLLOUTS,
+                "win_size": 12,
+                "threshold_min": 0.001,
+                "model_name": "ae_sparse",
+                "retrain_freq_hr": 8,
+                "resume_training": "True",
+                "keys": ["namespace", "name"],
+                "metrics": [
+                    "metric_2",
+                ]
+            }
+
+        }
     }

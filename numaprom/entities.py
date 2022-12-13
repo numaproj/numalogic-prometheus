@@ -6,16 +6,6 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
 
 
-class MetricType(Enum):
-    LATENCY = "latency"
-    CPU = "cpu"
-    MEMORY = "memory"
-    ERROR_RATE = "error_rate"
-    ERROR_COUNT = "error_count"
-    HASH_ERROR_RATE = "hash_error_rate"
-    HASH_LATENCY = "hash_latency"
-
-
 class Status(str, Enum):
     RAW = "raw"
     EXTRACTED = "extracted"
@@ -35,15 +25,13 @@ class Metric:
 @dataclass
 class Payload:
     uuid: str
-    namespace: str
-    metric: str
+    metric_name: str
+    keys: List[str]
     src_labels: Dict[str, str]
-    inputMetrics: List[Metric]
     processedMetrics: List[Metric]
     startTS: str
     endTS: str
     status: Status = Status.RAW
-    hash_id: str = None
     win_score: Optional[List[float]] = None
     steps: Optional[Dict[str, str]] = None
     std: Optional[float] = None

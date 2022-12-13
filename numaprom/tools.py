@@ -9,7 +9,7 @@ from typing import List, Optional, Any, Dict
 
 from pynumaflow.function import Messages, Message
 
-from numaprom.entities import Payload, Metric, MetricType, Status
+from numaprom.entities import Payload, Metric, Status
 
 LOGGER = logging.getLogger(__name__)
 
@@ -69,53 +69,20 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def get_metric_type(metric: str) -> MetricType:
-    if metric == "namespace_app_pod_http_server_requests_errors":
-        return MetricType.ERROR_COUNT
-    if metric == "namespace_app_pod_http_server_requests_error_rate":
-        return MetricType.ERROR_RATE
-    elif metric == "namespace_app_pod_http_server_requests_latency":
-        return MetricType.LATENCY
-    elif metric == "namespace_asset_pod_cpu_utilization":
-        return MetricType.CPU
-    elif metric == "namespace_asset_pod_memory_utilization":
-        return MetricType.MEMORY
-    elif metric == "namespace_hash_pod_http_server_requests_error_rate":
-        return MetricType.HASH_ERROR_RATE
-    elif metric == "namespace_hash_pod_http_server_requests_latency":
-        return MetricType.HASH_LATENCY
-    else:
-        raise NotImplementedError(f"Unsupported metric type: {metric}")
-
-
-def extract(data: Dict[str, Any]) -> Optional[Payload]:
+def extract(data: Dict[str, Any], keys: List[str]) -> Optional[Payload]:
     input_metrics = [Metric(**_item) for _item in data["window"]]
-    if "pod_template_hash" in data["labels"]:
-        hash_id = str(data["labels"]["pod_template_hash"])
-    elif "rollouts_pod_template_hash" in data["labels"]:
-        hash_id = str(data["labels"]["rollouts_pod_template_hash"])
-    else:
-        hash_id = ""
 
     payload = Payload(
         uuid=str(uuid.uuid4()),
-        namespace=data["labels"]["namespace"],
-        metric=get_metric_type(data["name"]).value,
-        hash_id=hash_id,
+        metric_name=data["name"],
+        keys=keys,
         src_labels=data["labels"],
-        inputMetrics=input_metrics,
         processedMetrics=input_metrics,
         startTS=data["timestamp"],
         endTS=data["timestamp"],
         status=Status.EXTRACTED,
     )
-    LOGGER.info(
-        "%s - Extracted Payload: keys: [%s, %s, %s]",
-        payload.uuid,
-        payload.namespace,
-        payload.metric,
-        payload.hash_id,
-    )
+    LOGGER.info("%s - Extracted Payload: keys: %s", payload.uuid, payload.keys)
     return payload
 
 
@@ -131,14 +98,14 @@ def get_data(file_path: str) -> Any:
     return data
 
 
-def decode_msg(msg: bytes) -> Dict[str, Any]:
+def decode_msg(msg: bytes) -> Optional[Dict[str, Any]]:
     msg = msg.decode("utf-8")
 
     try:
         data = json.loads(msg)
     except Exception as ex:
         LOGGER.exception("Error in Json serialization: %r", ex)
-        return ""
+        return None
     return data
 
 

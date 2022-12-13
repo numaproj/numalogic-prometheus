@@ -27,6 +27,7 @@ pynumaflow = "~0.2.6"
 numalogic = {version = "0.2.8", extras = ["mlflow"]}
 boto3 = "^1.25.2"
 
+
 [tool.poetry.group.mlflowserver]
 optional = true
 

@@ -1,23 +1,23 @@
 import os
 import json
-import torch
 import unittest
 from unittest.mock import patch, Mock
 
+import torch
 from mlflow.entities.model_registry import ModelVersion
 from numalogic.models.autoencoder.variants import VanillaAE
 from numalogic.registry import MLflowRegistrar
 
-from numaprom.constants import TESTS_DIR
-from numaprom.entities import Payload, Status, MetricType
-from numaprom.tests.tools import get_inference_input, return_mock_cpu_load
-from numaprom.udf.inference import inference
 from numaprom.tests import *
+from numaprom.constants import TESTS_DIR
+from numaprom.entities import Payload, Status
+from numaprom.tests.tools import get_inference_input, return_mock_cpu_load, mockenv
+from numaprom.udf.inference import inference
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
-ROLLOUTS_STREAM_PATH = os.path.join(DATA_DIR, "rollouts_stream.json")
+
 
 
 def return_stale_model(*_, **__):
@@ -42,40 +42,30 @@ def return_stale_model(*_, **__):
     }
 
 
-@patch.dict("os.environ", {"WIN_SIZE": "12"})
 class TestInference(unittest.TestCase):
+
     @classmethod
+    @mockenv(WIN_SIZE="12")
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)
-        cls.rollouts_inference_input = get_inference_input(ROLLOUTS_STREAM_PATH)
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=return_mock_cpu_load()))
     def test_inference(self):
-        _out = inference(None, self.inference_input)
+        _out = inference("", self.inference_input)
         data = _out.items()[0]._value.decode("utf-8")
         payload = Payload.from_json(data)
         self.assertEqual(payload.status, Status.INFERRED)
-
-    @patch.object(MLflowRegistrar, "load", Mock(return_value=return_mock_cpu_load()))
-    def test_inference_rollouts(self):
-        _out = inference(None, self.rollouts_inference_input)
-        data = _out.items()[0]._value.decode("utf-8")
-        payload = Payload.from_json(data)
-        self.assertEqual(payload.status, Status.INFERRED)
-        self.assertEqual(payload.hash_id, "64f9bb588")
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=None))
     def test_no_model(self):
-        _out = inference(None, self.inference_input)
+        _out = inference("", self.inference_input)
         data = _out.items()[0]._value.decode("utf-8")
         data = json.loads(data)
-        self.assertEqual(data["metric"], MetricType.CPU.value)
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):
-        _out = inference(None, self.inference_input)
+        _out = inference("", self.inference_input)
         train_payload = json.loads(_out.items()[0]._value.decode("utf-8"))
         postprocess_payload = Payload.from_json(_out.items()[1]._value.decode("utf-8"))
-        self.assertEqual(train_payload["metric"], MetricType.CPU.value)
         self.assertEqual(postprocess_payload.status, Status.INFERRED)
