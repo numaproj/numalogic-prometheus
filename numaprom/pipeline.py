@@ -92,7 +92,7 @@ class PrometheusPipeline:
             .drop("_merge", axis=1)
         )
         df.set_index("timestamp", inplace=True)
-        df.drop("hash", axis=1, inplace=True)
+        df.drop("hash_id", axis=1, inplace=True)
         df = df.sort_values(by=["timestamp"], ascending=True)
         if len(df) < (1.5 * 60 * 12):
             LOGGER.exception("Not enough training points to initiate training")
