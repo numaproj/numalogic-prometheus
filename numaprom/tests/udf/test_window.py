@@ -26,8 +26,8 @@ class TestWindow(unittest.TestCase):
     def test_window(self):
         for idx, data in enumerate(self.input_stream):
             _out = window("", get_datum(data))
-            _out = _out._messages[0]._value.decode("utf-8")
-            if _out:
+            if not _out.items()[0].key == DROP:
+                _out = _out.items()[0].value.decode("utf-8")
                 payload = Payload.from_json(_out)
                 keys = list(payload.key_map.values())
                 if "metric_2" in keys:

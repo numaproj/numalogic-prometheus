@@ -20,7 +20,7 @@ class TestFilter(unittest.TestCase):
     def test_filter1(self):
         for data in self.input_stream:
             _out = metric_filter("", get_datum(data))
-            _out = _out._messages[0]._value.decode("utf-8")
+            _out = _out.items()[0].value.decode("utf-8")
             data = json.loads(_out)
             self.assertIn(data["name"], ["metric_1", "metric_2"])
 
@@ -28,7 +28,7 @@ class TestFilter(unittest.TestCase):
     def test_filter2(self):
         for data in self.input_stream:
             _out = metric_filter("", get_datum(data))
-            _out = _out._messages[0]._value.decode("utf-8")
+            _out = _out.items()[0].value.decode("utf-8")
             if _out:
                 data = json.loads(_out)
                 self.assertEqual(data["name"], "metric_1")
@@ -38,7 +38,7 @@ class TestFilter(unittest.TestCase):
     def test_filter3(self):
         for data in self.input_stream:
             _out = metric_filter("", get_datum(data))
-            _out = _out._messages[0]._value.decode("utf-8")
+            _out = _out.items()[0].value.decode("utf-8")
             if _out:
                 data = json.loads(_out)
                 self.assertEqual(data["labels"]["numalogic"], "true")

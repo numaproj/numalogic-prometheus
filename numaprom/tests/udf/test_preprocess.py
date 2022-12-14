@@ -21,7 +21,7 @@ class TestPreprocess(unittest.TestCase):
 
     def test_preprocess1(self):
         _out = preprocess("", self.preproc_input)
-        data = _out.items()[0]._value.decode("utf-8")
+        data = _out.items()[0].value.decode("utf-8")
         payload = Payload.from_json(data)
         self.assertEqual(payload.status, Status.PRE_PROCESSED)
 

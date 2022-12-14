@@ -33,10 +33,10 @@ class TestPostProcess(unittest.TestCase):
     def test_postprocess(self):
         _out = postprocess("", self.postproc_input)
         self.assertEqual(len(_out.items()), 2)
-        data = _out.items()[0]._value.decode("utf-8")
+        data = _out.items()[0].value.decode("utf-8")
         payload = PrometheusPayload.from_json(data)
         self.assertTrue(payload)
-        data = _out.items()[1]._value.decode("utf-8")
+        data = _out.items()[1].value.decode("utf-8")
         payload = PrometheusPayload.from_json(data)
         self.assertEqual(payload.name, "namespace_argo_rollouts_unified_anomaly")
 

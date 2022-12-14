@@ -33,20 +33,20 @@ class TestInference(unittest.TestCase):
     @patch.object(MLflowRegistrar, "load", Mock(return_value=return_mock_lstmae()))
     def test_inference(self):
         _out = inference("", self.inference_input)
-        data = _out.items()[0]._value.decode("utf-8")
+        data = _out.items()[0].value.decode("utf-8")
         payload = Payload.from_json(data)
         self.assertEqual(payload.status, Status.INFERRED)
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=None))
     def test_no_model(self):
         _out = inference("", self.inference_input)
-        train_payload = json.loads(_out.items()[0]._value.decode("utf-8"))
+        train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
         self.assertFalse(train_payload["resume_training"])
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):
         _out = inference("", self.inference_input)
-        train_payload = json.loads(_out.items()[0]._value.decode("utf-8"))
-        postprocess_payload = Payload.from_json(_out.items()[1]._value.decode("utf-8"))
+        train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
+        postprocess_payload = Payload.from_json(_out.items()[1].value.decode("utf-8"))
         self.assertEqual(postprocess_payload.status, Status.INFERRED)
         self.assertTrue(train_payload["resume_training"])
