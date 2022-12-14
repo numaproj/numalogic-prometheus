@@ -1,21 +1,10 @@
-import pandas
 import logging
 import requests
 import numpy as np
 import pandas as pd
+from typing import Dict, List, Optional
 
 LOGGER = logging.getLogger(__name__)
-
-APP_QUERIES = {
-    "error_count": "namespace_app_pod_http_server_requests_errors{namespace='$namespace'}",
-    "error_rate": "namespace_app_pod_http_server_requests_error_rate{namespace='$namespace'}",
-    "latency": "namespace_app_pod_http_server_requests_latency{namespace='$namespace'}",
-    "cpu": "namespace_asset_pod_cpu_utilization{namespace='$namespace'}",
-    "memory": "namespace_asset_pod_memory_utilization{namespace='$namespace'}",
-    "hash_error_rate": "namespace_hash_pod_http_server_requests_error_rate{namespace='$namespace'}",
-    "hash_latency": "namespace_hash_pod_http_server_requests_latency{namespace='$namespace'}",
-    "hash_test_data": "namespace_hash_pod_http_server_requests_error_rate{namespace='$namespace', rollouts_pod_template_hash='7dfdd5f89b'}",
-}
 
 
 class Prometheus:
@@ -23,55 +12,83 @@ class Prometheus:
         self.PROMETHEUS_SERVER = prometheus_server
 
     def query_metric(
-        self,
-        metric: str,
-        namespace: str,
-        start: float,
-        end: float,
-        hash_col: bool = False,
-        step: str = "5s",
+            self,
+            metric_name: str,
+            start: float,
+            end: float,
+            labels_map: Dict = None,
+            return_labels: List[str] = None,
+            step: int = 30,
     ) -> pd.DataFrame:
-        query = APP_QUERIES.get(metric).replace("$namespace", namespace)
-        LOGGER.info("Prometheus Query: %s", query)
+        query = metric_name
+        if labels_map:
+            label_list = [str(key + "=" + "'" + labels_map[key] + "'") for key in labels_map]
+            query = metric_name + "{" + ",".join(label_list) + "}"
 
-        results = self.query_range(query, start, end, step)
-        data_frames = []
-        for result in results:
-            arr = np.array(result["values"])
-            _df = pd.DataFrame(arr, columns=["timestamp", metric])
-            _df = _df.astype(float)
-            if hash_col:
-                data = result["metric"]
-                if "pod_template_hash" in data:
-                    hash_val = str(data["pod_template_hash"])
-                else:
-                    hash_val = str(data["rollouts_pod_template_hash"])
-                _df["hash"] = hash_val
-            data_frames.append(_df)
-        df = pandas.DataFrame()
+        LOGGER.debug("Prometheus Query: %s", query)
 
-        if data_frames:
-            df = pd.concat(data_frames)
+        if end < start:
+            raise ValueError("end_time must not be before start_time")
+
+        result = self.query_range(query, start, end, step)
+
+        arr = np.array(result["values"])
+        df = pd.DataFrame(arr, columns=["timestamp", metric_name])
+        df = df.astype(float)
+
+        data = result["metric"]
+        if return_labels:
+            for label in return_labels:
+                if label in data:
+                    df[label] = data[label]
 
         if not df.empty:
             df.set_index("timestamp", inplace=True)
             df.index = pd.to_datetime(df.index.astype(int), unit="s")
         return df
 
-    def query_range(self, query: str, start: float, end: float, step: str = "5s"):
-        results = []
+    def query_range(self, query: str, start: float, end: float, step: int = 30) -> Optional[Dict]:
+        results = {}
+        data_points = (end - start) / step
+        temp_start = start
+        while data_points > 11000:
+            temp_end = temp_start + 11000*step
+            response = self.query_range_limit(query, temp_start, temp_end, step)
+            if results:
+                results["values"] = results["values"] + response["values"]
+            else:
+                results = response
+            temp_start = temp_end
+            data_points = (end - temp_start) / step
+
+        if data_points > 0:
+            response = self.query_range_limit(query, temp_start, end)
+            if results:
+                results["values"] = results["values"] + response["values"]
+            else:
+                results = response
+
+        return results
+
+    def query_range_limit(self, query: str, start: float, end: float, step: int = 30) -> Optional[Dict]:
+        data_points = (end - start) / step
+
+        if data_points > 11000:
+            LOGGER.info("Limit query only supports 11,000 data points")
+            return None
+
+        results = None
         try:
             response = requests.get(
                 self.PROMETHEUS_SERVER + "/api/v1/query_range",
-                params={"query": query, "start": start, "end": end, "step": step},
+                params={"query": query, "start": start, "end": end, "step": f"{step}s"},
             )
-            print(response)
-            results = response.json()["data"]["result"]
+            results = response.json()["data"]["result"][0]
         except Exception as ex:
             LOGGER.exception("error: %r", ex)
         return results
 
-    def query(self, query: str):
+    def query(self, query: str) -> Optional[Dict]:
         results = []
         response = requests.get(self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query})
         if response:

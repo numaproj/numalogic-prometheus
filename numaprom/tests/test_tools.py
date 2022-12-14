@@ -1,62 +1,42 @@
-import json
 import os
 import socket
 import unittest
 from pprint import pprint
 from unittest.mock import patch
 
-from numaprom.constants import TESTS_DIR, DEFAULT_WIN_SIZE
-from numaprom.entities import MetricType
-from numaprom.tools import extract, get_data, is_host_reachable
+from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.entities import Payload
+from numaprom.tests.tools import get_stream_data, return_mock_metric_config
+from numaprom.tools import extract, is_host_reachable
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 REQ_2xx = os.path.join(DATA_DIR, "2xx.txt")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
-ROLLOUTS_STREAM_PATH = os.path.join(DATA_DIR, "rollouts_stream.json")
 
 
 def mock_resolver(*_, **__):
     raise socket.gaierror
 
 
+@patch.dict(METRIC_CONFIG, return_mock_metric_config())
 class TestTools(unittest.TestCase):
     INFER_OUT = None
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.win_size = DEFAULT_WIN_SIZE
-        with open(STREAM_DATA_PATH) as fp:
-            cls.data = json.load(fp)
-        with open(ROLLOUTS_STREAM_PATH) as fp:
-            cls.rollouts_data = json.load(fp)
-
-    def setUp(self) -> None:
-        window = [
+        cls.input_stream = get_stream_data(STREAM_DATA_PATH)
+        cls.window = [
             {"timestamp": "1654121163989", "value": "2"},
             {"timestamp": "1654121168989", "value": "3"},
             {"timestamp": "1654121173989", "value": "4"},
         ]
-        self.rollout_metric = self.rollouts_data[0]
-        self.metric = self.data[-1]
-        self.rollout_metric["window"] = window
-        self.metric["window"] = window
-        self.data_2xx = get_data(REQ_2xx)
-        self.data_2xx["window"] = window
 
     def test_extract(self):
-        out = extract(self.metric)
-        pprint(out, indent=2)
-        self.assertEqual(out.metric, MetricType.CPU.value)
-
-    def test_extract_rollout_metric(self):
-        out = extract(self.rollout_metric)
-        pprint(out, indent=2)
-        self.assertEqual(out.metric, MetricType.HASH_ERROR_RATE.value)
-        self.assertEqual(out.hash_id, "64f9bb588")
-
-    def test_extract_err(self):
-        with self.assertRaises(NotImplementedError):
-            extract(self.data_2xx)
+        for idx, data in enumerate(self.input_stream):
+            data["window"] = self.window
+            out = extract(data)
+            pprint(out, indent=2)
+            self.assertTrue(type(out), Payload)
 
     def test_is_host_reachable(self):
         self.assertTrue(is_host_reachable("google.com"))

@@ -21,6 +21,8 @@ spec:
       app: mlflow
   template:
     metadata:
+      annotations:
+        iam.amazonaws.com/role: <MLFLOW_S3_USER_ARN>
       labels:
         app: mlflow
     spec:
@@ -29,10 +31,12 @@ spec:
         persistentVolumeClaim:
           claimName: mlflow-pvc
       containers:
-        - image: docker.io/library/mlflow:v1
+        - image: quay.io/numaio/mlflow
           name: mlflow
           args:
           - server
+          - --default-artifact-root
+          - s3://<MLFLOW_BUCKET>/
           - --serve-artifacts
           - --backend-store-uri
           - sqlite:///mlflow.db

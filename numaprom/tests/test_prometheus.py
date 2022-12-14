@@ -12,17 +12,16 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 def mock_query_range(*_, **__):
-    result = [
-        {
-            "metric": {
-                "__name__": "namespace_asset_pod_cpu_utilization",
-                "assetAlias": "sandbox.sandbox.meshdr",
-                "numalogic": "true",
-                "namespace": "sandbox-meshdr-usw2-demo",
-            },
-            "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
-        }
-    ]
+    result = {
+        "metric": {
+            "__name__": "namespace_asset_pod_cpu_utilization",
+            "assetAlias": "sandbox.numalogic.demo",
+            "numalogic": "true",
+            "namespace": "sandbox-numalogic-demo",
+        },
+        "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
+    }
+
     return result
 
 
@@ -38,7 +37,7 @@ def mock_response(*_, **__):
                     "metric": {
                         "__name__": "namespace_asset_pod_cpu_utilization",
                         "numalogic": "true",
-                        "namespace": "sandbox-meshdr-usw2-demo",
+                        "namespace": "sandbox-numalogic-demo",
                     },
                     "value": [1666730247.616, "0.7627805793186443"],
                 }
@@ -62,38 +61,48 @@ class TestPrometheus(unittest.TestCase):
         cls.prom = Prometheus(prometheus_server="http://localhost:8490")
 
     @patch.object(Prometheus, "query_range", Mock(return_value=mock_query_range()))
-    def test_train1(self):
+    def test_query_metric1(self):
         _out = self.prom.query_metric(
-            namespace="sandbox-meshdr-usw2-demo",
-            metric="cpu",
+            metric_name="namespace_app_pod_http_server_requests_errors",
             start=self.start,
             end=self.end,
         )
         self.assertEqual(_out.shape, (2, 1))
 
     @patch.object(Prometheus, "query_range", Mock(return_value=mock_query_range()))
-    def test_train_hash_metric(self):
+    def test_query_metric2(self):
         _out = self.prom.query_metric(
-            namespace="sandbox-meshdr-usw2-demo",
-            metric="hash_error_rate",
+            metric_name="namespace_app_pod_http_server_requests_errors",
+            labels_map={"namespace": "sandbox-rollout-numalogic-demo"},
             start=self.start,
             end=self.end,
         )
         self.assertEqual(_out.shape, (2, 1))
 
-    @patch.object(requests, "get", Mock(return_value=mock_response()))
-    def test_query_range(self):
-        _out = self.prom.query_range(
-            query="namespace_asset_pod_cpu_utilization{" "namespace='sandbox-meshdr-usw2-demo'}",
+    @patch.object(Prometheus, "query_range", Mock(return_value=mock_query_range()))
+    def test_query_metric3(self):
+        _out = self.prom.query_metric(
+            metric_name="namespace_app_pod_http_server_requests_errors",
+            labels_map={"namespace": "sandbox-numalogic-demo"},
+            return_labels=["namespace"],
             start=self.start,
             end=self.end,
         )
-        self.assertEqual(len(_out), 1)
+        self.assertEqual(_out.shape, (2, 2))
+
+    @patch.object(requests, "get", Mock(return_value=mock_response()))
+    def test_query_range(self):
+        _out = self.prom.query_range(
+            query="namespace_asset_pod_cpu_utilization{" "namespace='sandbox-numalogic-demo'}",
+            start=self.start,
+            end=self.end,
+        )
+        self.assertEqual(len(_out), 2)
 
     @patch.object(requests, "get", Mock(return_value=mock_response()))
     def test_query(self):
         _out = self.prom.query(
-            query="namespace_asset_pod_cpu_utilization{" "namespace='sandbox-meshdr-usw2-demo'}"
+            query="namespace_asset_pod_cpu_utilization{" "namespace='sandbox-numalogic-demo'}"
         )
         self.assertEqual(len(_out), 1)
 

@@ -1,7 +1,7 @@
-import logging
 import time
-
+import logging
 import pandas as pd
+
 from numalogic.preprocess.transformer import LogTransformer
 from pynumaflow.function import Messages, Datum
 
@@ -19,8 +19,6 @@ def preprocess(key: str, datum: Datum) -> Messages:
     payload = Payload.from_json(datum.value.decode("utf-8"))
 
     pipeline = PrometheusPipeline(
-        namespace=payload.namespace,
-        metric=payload.metric,
         preprocess_steps=[LogTransformer()],
     )
 
@@ -32,7 +30,7 @@ def preprocess(key: str, datum: Datum) -> Messages:
 
     payload_json = payload.to_json()
     LOGGER.info("%s - Successfully pre-processed payload: %s", payload.uuid, payload_json)
-    LOGGER.info(
+    LOGGER.debug(
         "%s - Total time to preprocess: %s",
         payload.uuid,
         time.time() - start_preprocess,
