@@ -17,7 +17,6 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 class TestWindow(unittest.TestCase):
 
     @classmethod
-    @mockenv(WIN_SIZE="3")
     def setUpClass(cls) -> None:
         cls.input_stream = get_stream_data(STREAM_DATA_PATH)
 
@@ -30,10 +29,11 @@ class TestWindow(unittest.TestCase):
             _out = _out._messages[0]._value.decode("utf-8")
             if _out:
                 payload = Payload.from_json(_out)
-                if "metric_2" in payload.keys:
-                    self.assertEqual(payload.keys, ['namespace_1', 'metric_2', '64f9bb588'])
-                if "metric_1" in payload.keys:
-                    self.assertEqual(payload.keys, ['namespace_1', 'metric_1'])
+                keys = list(payload.key_map.values())
+                if "metric_2" in keys:
+                    self.assertEqual(keys, ['sandbox_numalogic_demo', 'metric_2', '123456789'])
+                if "metric_1" in keys:
+                    self.assertEqual(keys, ['sandbox_numalogic_demo', 'metric_1'])
 
     @mockenv(BUFF_SIZE="2")
     def test_window_err(self):

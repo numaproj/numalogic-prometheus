@@ -26,7 +26,7 @@ class Metric:
 class Payload:
     uuid: str
     metric_name: str
-    keys: List[str]
+    key_map: Dict
     src_labels: Dict[str, str]
     processedMetrics: List[Metric]
     startTS: str

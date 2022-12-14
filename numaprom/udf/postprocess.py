@@ -80,8 +80,8 @@ def get_unified_format(payload: Payload, max_anomaly: float) -> PrometheusPayloa
     prometheus_payload = PrometheusPayload(
         timestamp_ms=int(payload.endTS),
         name=name,
-        namespace=payload.namespace,
-        subsystem=str(payload.hash_id),
+        namespace=payload.src_labels["namespace"],
+        subsystem=payload.src_labels["hash_id"],
         type="Gauge",
         value=max_anomaly,
         labels=get_labels(payload),

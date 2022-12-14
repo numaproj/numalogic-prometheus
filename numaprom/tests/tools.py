@@ -3,15 +3,16 @@ import sys
 import json
 from unittest import mock
 
+import pandas as pd
 import torch
 import datetime
 from unittest.mock import MagicMock
 from mlflow.entities.model_registry import ModelVersion
 
 from pynumaflow.function import Datum
-from numalogic.models.autoencoder.variants import VanillaAE
+from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
 
-from numaprom.constants import TESTS_DIR, ARGO_CD, ARGO_ROLLOUTS, METRIC_CONFIG
+from numaprom.constants import TESTS_DIR
 from numaprom.factory import HandlerFactory
 from numaprom.tests import *
 
@@ -58,15 +59,59 @@ def get_postproc_input(data_path: str) -> Datum:
     return get_datum(out.items()[0].value)
 
 
-def return_mock_cpu_load(*_, **__):
+def return_mock_vanilla(*_, **__):
     return {
-        "primary_artifact": VanillaAE(12),
+        "primary_artifact": VanillaAE(6),
         "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
         "model_properties": ModelVersion(
             creation_timestamp=1656615600000,
             current_stage="Production",
             description="",
             last_updated_timestamp=datetime.datetime.now().timestamp() * 1000,
+            name="sandbox_numalogic_demo:metric_1",
+            run_id="6f1e582fb6194bbdaa4141feb2ce8e27",
+            run_link="",
+            source="mlflow-artifacts:/0/6f1e582fb6194bbdaa4141feb2ce8e27/artifacts/model",
+            status="READY",
+            status_message="",
+            tags={},
+            user_id="",
+            version="125",
+        ),
+    }
+
+
+def return_mock_lstmae(*_, **__):
+    return {
+        "primary_artifact": LSTMAE(seq_len=6, no_features=1, embedding_dim=64),
+        "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
+        "model_properties": ModelVersion(
+            creation_timestamp=1656615600000,
+            current_stage="Production",
+            description="",
+            last_updated_timestamp=datetime.datetime.now().timestamp() * 1000,
+            name="sandbox_numalogic_demo:metric_2:123456789",
+            run_id="6f1e582fb6194bbdaa4141feb2ce8e27",
+            run_link="",
+            source="mlflow-artifacts:/0/6f1e582fb6194bbdaa4141feb2ce8e27/artifacts/model",
+            status="READY",
+            status_message="",
+            tags={},
+            user_id="",
+            version="125",
+        ),
+    }
+
+
+def return_stale_model(*_, **__):
+    return {
+        "primary_artifact": VanillaAE(6),
+        "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
+        "model_properties": ModelVersion(
+            creation_timestamp=1656615600000,
+            current_stage="Production",
+            description="",
+            last_updated_timestamp=1656615600000,
             name="sandbox:lol::demo:lol",
             run_id="6f1e582fb6194bbdaa4141feb2ce8e27",
             run_link="",
@@ -80,38 +125,60 @@ def return_mock_cpu_load(*_, **__):
     }
 
 
+def mock_argocd_query_metric(*_, **__):
+    return pd.read_csv(
+        os.path.join(TESTS_DIR, "resources", "data", "argocd.csv"),
+        index_col="timestamp",
+        parse_dates=["timestamp"],
+        infer_datetime_format=True,
+    )
+
+
+def mock_rollout_query_metric(*_, **__):
+    return pd.read_csv(
+        os.path.join(TESTS_DIR, "resources", "data", "argorollouts.csv"),
+        index_col="timestamp",
+        parse_dates=["timestamp"],
+        infer_datetime_format=True,
+    )
+
+
 def return_mock_metric_config():
     return {
         "metric_1": {
             "keys": ["namespace", "name"],
             "model_config": {
-                "name": ARGO_CD,
-                "win_size": 12,
+                "name": "argo_cd",
+                "win_size": 6,
                 "threshold_min": 0.1,
                 "model_name": "ae_sparse",
                 "retrain_freq_hr": 8,
-                "resume_training": "True",
+                "resume_training": True,
+                "num_epochs": 10,
                 "keys": ["namespace", "name"],
                 "metrics": [
                     "metric_1",
                 ]
-            }
+            },
+            "model": "VanillaAE"
 
         },
         "metric_2": {
             "keys": ["namespace", "name", "hash_id"],
             "model_config": {
-                "name": ARGO_ROLLOUTS,
-                "win_size": 12,
+                "name": "argo_rollouts",
+                "win_size": 6,
                 "threshold_min": 0.001,
                 "model_name": "ae_sparse",
                 "retrain_freq_hr": 8,
-                "resume_training": "True",
+                "resume_training": True,
+                "num_epochs": 10,
                 "keys": ["namespace", "name"],
                 "metrics": [
                     "metric_2",
                 ]
-            }
+            },
+            "model": "VanillaAE"
 
         }
     }

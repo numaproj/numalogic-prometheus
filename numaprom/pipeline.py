@@ -54,7 +54,11 @@ class PrometheusPipeline:
         prometheus_server: str = DEFAULT_PROMETHEUS_SERVER,
     ) -> pd.DataFrame:
         self.datafetcher = Prometheus(prometheus_server)
-        start_time = end_dt or datetime.now(pytz.utc)
+
+        if not end_dt:
+            end_dt = datetime.now(pytz.utc)
+
+        start_time = end_dt
         end_time = end_dt - timedelta(hours=delta_hr)
 
         df = self.datafetcher.query_metric(

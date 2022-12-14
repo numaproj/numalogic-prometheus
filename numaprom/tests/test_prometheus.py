@@ -1,6 +1,4 @@
 import os
-from pprint import pprint
-
 import requests
 import datetime
 import unittest
@@ -14,17 +12,16 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 def mock_query_range(*_, **__):
-    result = [
-        {
-            "metric": {
-                "__name__": "namespace_asset_pod_cpu_utilization",
-                "assetAlias": "sandbox.numalogic.demo",
-                "numalogic": "true",
-                "namespace": "sandbox-numalogic-demo",
-            },
-            "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
-        }
-    ]
+    result = {
+        "metric": {
+            "__name__": "namespace_asset_pod_cpu_utilization",
+            "assetAlias": "sandbox.numalogic.demo",
+            "numalogic": "true",
+            "namespace": "sandbox-numalogic-demo",
+        },
+        "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
+    }
+
     return result
 
 
@@ -70,19 +67,16 @@ class TestPrometheus(unittest.TestCase):
             start=self.start,
             end=self.end,
         )
-        pprint(_out)
         self.assertEqual(_out.shape, (2, 1))
 
-    # @patch.object(Prometheus, "query_range", Mock(return_value=mock_query_range()))
+    @patch.object(Prometheus, "query_range", Mock(return_value=mock_query_range()))
     def test_query_metric2(self):
         _out = self.prom.query_metric(
             metric_name="namespace_app_pod_http_server_requests_errors",
             labels_map={"namespace": "sandbox-rollout-numalogic-demo"},
             start=self.start,
             end=self.end,
-            step=2
         )
-        print(_out)
         self.assertEqual(_out.shape, (2, 1))
 
     @patch.object(Prometheus, "query_range", Mock(return_value=mock_query_range()))
@@ -94,7 +88,6 @@ class TestPrometheus(unittest.TestCase):
             start=self.start,
             end=self.end,
         )
-        print(_out)
         self.assertEqual(_out.shape, (2, 2))
 
     @patch.object(requests, "get", Mock(return_value=mock_response()))
@@ -104,7 +97,7 @@ class TestPrometheus(unittest.TestCase):
             start=self.start,
             end=self.end,
         )
-        self.assertEqual(len(_out), 1)
+        self.assertEqual(len(_out), 2)
 
     @patch.object(requests, "get", Mock(return_value=mock_response()))
     def test_query(self):
