@@ -1,6 +1,7 @@
+import json
 import os
 import logging
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from pynumaflow.function import Messages, Datum
@@ -8,7 +9,7 @@ from pynumaflow.function import Messages, Datum
 from numaprom.entities import Metric
 from numaprom.redis import get_redis_client
 from numaprom.constants import METRIC_CONFIG
-from numaprom.tools import decode_msg, msg_forward, catch_exception, extract, get_key_map
+from numaprom.tools import msg_forward, catch_exception, extract, get_key_map
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +33,14 @@ def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tu
 @catch_exception
 @msg_forward
 def window(key: str, datum: Datum) -> Messages:
-    msg = decode_msg(datum.value)
+    msg = datum.value.decode("utf-8")
+
+    try:
+        msg = json.loads(msg)
+    except Exception as ex:
+        _LOGGER.exception("Error in Json serialization: %r", ex)
+        return None
+
     metric_name = msg["name"]
 
     win_size = METRIC_CONFIG[metric_name]["model_config"]["win_size"]

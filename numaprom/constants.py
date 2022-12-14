@@ -23,6 +23,7 @@ MODEL_CONFIG = {
         "resume_training": "True",
         "num_epochs": 100,
         "keys": ["namespace", "name"],
+        "scrape_interval": 5,
         "metrics": [
             "namespace_app_pod_http_server_requests_errors",
             "namespace_app_pod_http_server_requests_error_rate",
@@ -40,6 +41,7 @@ MODEL_CONFIG = {
         "resume_training": "True",
         "num_epochs": 50,
         "keys": ["namespace", "name"],
+        "scrape_interval": 5,
         "metrics": [
             "namespace_hash_pod_http_server_requests_error_rate",
             "namespace_hash_pod_http_server_requests_latency",
@@ -81,8 +83,7 @@ METRIC_CONFIG = {
     },
     "namespace_hash_pod_http_server_requests_latency": {
         "keys": ["namespace", "name", "hash_id"],
-        "model_config":  MODEL_CONFIG["argo_rollouts"],
+        "model_config": MODEL_CONFIG["argo_rollouts"],
         "model": "VanillaAE"
     }
 }
-

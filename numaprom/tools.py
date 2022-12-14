@@ -118,17 +118,6 @@ def get_data(file_path: str) -> Any:
     return data
 
 
-def decode_msg(msg: bytes) -> Optional[Dict[str, Any]]:
-    msg = msg.decode("utf-8")
-
-    try:
-        data = json.loads(msg)
-    except Exception as ex:
-        LOGGER.exception("Error in Json serialization: %r", ex)
-        return None
-    return data
-
-
 def get_ipv4_by_hostname(hostname: str, port=0) -> list:
     return list(
         idx[4][0]

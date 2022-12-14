@@ -51,7 +51,8 @@ def rollout_trainer(payload: Dict) -> Optional[ModelVersion]:
 
     prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
     df = pipeline.fetch_data(delta_hr=4, prometheus_server=prometheus_server,
-                             metric_name=metric_name, labels_map={"namespace": namespace}, return_labels=["hash_id"])
+                             metric_name=metric_name, labels_map={"namespace": namespace},
+                             return_labels=["hash_id"], step=model_config["scrape_interval"])
     df = pipeline.clean_rollout_data(df)
     LOGGER.info("Time taken to fetch data for rollout: %s", time.time() - start_train)
 
@@ -101,7 +102,8 @@ def argocd_trainer(payload: Dict) -> Optional[ModelVersion]:
 
     prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
     df = pipeline.fetch_data(delta_hr=15, prometheus_server=prometheus_server,
-                             metric_name=metric_name, labels_map={"namespace": namespace})
+                             metric_name=metric_name, labels_map={"namespace": namespace},
+                             step=model_config["scrape_interval"])
     df = pipeline.clean_data(df)
     LOGGER.info("Time taken to fetch data: %s", time.time() - start_train)
 
@@ -126,7 +128,7 @@ def argocd_trainer(payload: Dict) -> Optional[ModelVersion]:
 def train(payload: str) -> Optional[ModelVersion]:
     payload_json = json.loads(payload)
 
-    metric_config = METRIC_CONFIG[payload_json["key_map"]["name"]]
+    metric_config = METRIC_CONFIG[payload_json["name"]]
     model_config = metric_config["model_config"]
 
     if model_config["name"] == "argo_cd":

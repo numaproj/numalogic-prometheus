@@ -61,11 +61,12 @@ def inference(key: str, datum: Datum) -> Messages:
                                dkeys=[model_config["model_name"]])
 
     train_payload = payload.key_map
+    train_payload["model_config"] = model_config["name"]
 
     if not artifact_dict:
         train_payload["resume_training"] = False
         LOGGER.info("%s - No model found, sending to trainer. Trainer payload: %s", payload.uuid, train_payload)
-        return [(model_config["name"], json.dumps(train_payload))]
+        return [("train", json.dumps(train_payload))]
 
     LOGGER.info(
         "%s - Successfully loaded model from mlflow, version: %s",

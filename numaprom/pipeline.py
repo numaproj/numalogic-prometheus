@@ -52,21 +52,22 @@ class PrometheusPipeline:
         delta_hr=36,
         end_dt: datetime = None,
         prometheus_server: str = DEFAULT_PROMETHEUS_SERVER,
+        step=30
     ) -> pd.DataFrame:
         self.datafetcher = Prometheus(prometheus_server)
 
         if not end_dt:
             end_dt = datetime.now(pytz.utc)
 
-        start_time = end_dt
-        end_time = end_dt - timedelta(hours=delta_hr)
+        start_dt = end_dt - timedelta(hours=delta_hr)
 
         df = self.datafetcher.query_metric(
             metric_name=metric_name,
             labels_map=labels_map,
             return_labels=return_labels,
-            start=start_time.timestamp(),
-            end=end_time.timestamp(),
+            start=start_dt.timestamp(),
+            end=end_dt.timestamp(),
+            step=step
         )
         return df
 
