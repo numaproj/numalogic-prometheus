@@ -128,7 +128,7 @@ spec:
           - name: SKIP_VALIDATION_FAILED
             value: "true"
           - name: "PROMETHEUS_SERVER"
-            value: "http://prometheus-pushgateway.monitoring.svc:9091"
+            value: "pushgateway.monitoring.svc.cluster.local:9091"
           image: quay.io/numaio/numaflow-sink/prometheus-pusher
   - name: output
     scale:
