@@ -8,8 +8,7 @@ from pynumaflow.function import Messages, Datum
 
 from numaprom.entities import Metric
 from numaprom.redis import get_redis_client
-from numaprom.constants import METRIC_CONFIG
-from numaprom.tools import msg_forward, catch_exception, extract, get_key_map
+from numaprom.tools import msg_forward, catch_exception, extract, get_key_map, get_metric_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,11 +42,14 @@ def window(key: str, datum: Datum) -> Messages:
 
     metric_name = msg["name"]
 
-    win_size = METRIC_CONFIG[metric_name]["model_config"]["win_size"]
+    metric_config = get_metric_config(metric_name)
+    win_size = metric_config["model_config"]["win_size"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 
     if buff_size < win_size:
-        raise ValueError(f"Redis list buffer size: {buff_size} is less than window length: {win_size}")
+        raise ValueError(
+            f"Redis list buffer size: {buff_size} is less than window length: {win_size}"
+        )
 
     key_map = get_key_map(msg)
     unique_key = ":".join(key_map.values())

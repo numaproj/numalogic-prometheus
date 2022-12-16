@@ -79,7 +79,7 @@ def get_key_map(msg: dict) -> Dict:
     labels = msg.get("labels")
     metric_name = msg["name"]
 
-    keys = METRIC_CONFIG[metric_name]["keys"]
+    keys = get_metric_config(metric_name)["keys"]
     result = {}
     for k in keys:
         if k in msg:
@@ -102,7 +102,12 @@ def extract(data: Dict[str, Any]) -> Optional[Payload]:
         endTS=data["timestamp"],
         status=Status.EXTRACTED,
     )
-    LOGGER.info("%s - Extracted Payload: Keys=%s, Metrics=%s", payload.uuid, payload.key_map, payload.processedMetrics)
+    LOGGER.info(
+        "%s - Extracted Payload: Keys=%s, Metrics=%s",
+        payload.uuid,
+        payload.key_map,
+        payload.processedMetrics,
+    )
     return payload
 
 
@@ -147,9 +152,7 @@ def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[Dict]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
         ml_registry = MLflowRegistrar(tracking_uri=tracking_uri)
-        artifact_dict = ml_registry.load(
-            skeys=skeys, dkeys=dkeys
-        )
+        artifact_dict = ml_registry.load(skeys=skeys, dkeys=dkeys)
         return artifact_dict
     except Exception as ex:
         print(ex)
@@ -158,7 +161,7 @@ def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[Dict]:
 
 
 def save_model(
-        skeys: Sequence[str], dkeys: Sequence[str], model, **metadata
+    skeys: Sequence[str], dkeys: Sequence[str], model, **metadata
 ) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
     ml_registry = MLflowRegistrar(tracking_uri=tracking_uri, artifact_type="pytorch")
@@ -167,3 +170,10 @@ def save_model(
     LOGGER.info("Successfully saved the model to mlflow. Model version: %s", version)
     mlflow.end_run()
     return version
+
+
+def get_metric_config(metric_name: str):
+    if metric_name in METRIC_CONFIG:
+        return METRIC_CONFIG[metric_name]
+    else:
+        return METRIC_CONFIG["default"]

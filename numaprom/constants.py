@@ -29,7 +29,7 @@ MODEL_CONFIG = {
             "namespace_app_pod_http_server_requests_error_rate",
             "namespace_app_pod_http_server_requests_latency",
             "namespace_asset_pod_cpu_utilization",
-            "namespace_asset_pod_memory_utilization"
+            "namespace_asset_pod_memory_utilization",
         ],
     },
     "argo_rollouts": {
@@ -45,45 +45,60 @@ MODEL_CONFIG = {
         "metrics": [
             "namespace_hash_pod_http_server_requests_error_rate",
             "namespace_hash_pod_http_server_requests_latency",
-        ]
-    }
+        ],
+    },
+    "default": {
+        "name": "default",
+        "win_size": 12,
+        "threshold_min": 0.1,
+        "model_name": "ae_sparse",
+        "retrain_freq_hr": 8,
+        "resume_training": "True",
+        "num_epochs": 100,
+        "keys": ["namespace", "name"],
+        "scrape_interval": 5,
+        "metrics": [],
+    },
 }
 
 METRIC_CONFIG = {
     "namespace_app_pod_http_server_requests_errors": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["argo_cd"],
-        "model": "VanillaAE"
-
+        "model": "VanillaAE",
     },
     "namespace_app_pod_http_server_requests_error_rate": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["argo_cd"],
-        "model": "VanillaAE"
+        "model": "VanillaAE",
     },
     "namespace_app_pod_http_server_requests_latency": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["argo_cd"],
-        "model": "Conv1dAE"
+        "model": "Conv1dAE",
     },
     "namespace_asset_pod_cpu_utilization": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["argo_cd"],
-        "model": "VanillaAE"
+        "model": "VanillaAE",
     },
     "namespace_asset_pod_memory_utilization": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["argo_cd"],
-        "model": "VanillaAE"
+        "model": "VanillaAE",
     },
     "namespace_hash_pod_http_server_requests_error_rate": {
         "keys": ["namespace", "name", "hash_id"],
         "model_config": MODEL_CONFIG["argo_rollouts"],
-        "model": "VanillaAE"
+        "model": "VanillaAE",
     },
     "namespace_hash_pod_http_server_requests_latency": {
         "keys": ["namespace", "name", "hash_id"],
         "model_config": MODEL_CONFIG["argo_rollouts"],
-        "model": "VanillaAE"
-    }
+        "model": "VanillaAE",
+    },
+    "default": {
+        "keys": ["namespace", "name"],
+        "model_config": MODEL_CONFIG["default"],
+    },
 }

@@ -9,8 +9,9 @@ import datetime
 from unittest.mock import MagicMock
 from mlflow.entities.model_registry import ModelVersion
 
-from pynumaflow.function import Datum
+from pynumaflow.function import Datum, Messages
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
+from pynumaflow.function._dtypes import DROP
 
 from numaprom.constants import TESTS_DIR
 from numaprom.factory import HandlerFactory
@@ -37,31 +38,43 @@ def get_stream_data(data_path: str):
     return data
 
 
-def get_prepoc_input(data_path: str) -> Datum:
+def get_prepoc_input(data_path: str) -> Messages:
+    out = Messages()
     data = get_stream_data(data_path)
-    output_ = None
     for obj in data:
-        output_ = window("", get_datum(obj))
-    return get_datum(output_.items()[0].value) if output_ else None
+        _out = window("", get_datum(obj))
+        if _out.items()[0].key != DROP:
+            out.append(_out.items()[0])
+    return out
 
 
-def get_inference_input(data_path: str) -> Datum:
+def get_inference_input(data_path: str) -> Messages:
+    out = Messages()
     preproc_input = get_prepoc_input(data_path)
-    handler_ = HandlerFactory.get_handler("preprocess")
-    out = handler_(None, preproc_input)
-    return get_datum(out.items()[0].value)
+    for msg in preproc_input.items():
+        _in = get_datum(msg.value)
+        handler_ = HandlerFactory.get_handler("preprocess")
+        _out = handler_(None, _in)
+        if _out.items()[0].key != DROP:
+            out.append(_out.items()[0])
+    return out
 
 
-def get_postproc_input(data_path: str) -> Datum:
+def get_postproc_input(data_path: str) -> Messages:
+    out = Messages()
     inference_input = get_inference_input(data_path)
-    handler_ = HandlerFactory.get_handler("inference")
-    out = handler_(None, inference_input)
-    return get_datum(out.items()[0].value)
+    for msg in inference_input.items():
+        _in = get_datum(msg.value)
+        handler_ = HandlerFactory.get_handler("inference")
+        _out = handler_(None, _in)
+        if _out.items()[0].key != DROP:
+            out.append(_out.items()[0])
+    return out
 
 
 def return_mock_vanilla(*_, **__):
     return {
-        "primary_artifact": VanillaAE(6),
+        "primary_artifact": VanillaAE(2),
         "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
         "model_properties": ModelVersion(
             creation_timestamp=1656615600000,
@@ -83,7 +96,7 @@ def return_mock_vanilla(*_, **__):
 
 def return_mock_lstmae(*_, **__):
     return {
-        "primary_artifact": LSTMAE(seq_len=6, no_features=1, embedding_dim=64),
+        "primary_artifact": LSTMAE(seq_len=2, no_features=1, embedding_dim=64),
         "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
         "model_properties": ModelVersion(
             creation_timestamp=1656615600000,
@@ -105,7 +118,7 @@ def return_mock_lstmae(*_, **__):
 
 def return_stale_model(*_, **__):
     return {
-        "primary_artifact": VanillaAE(6),
+        "primary_artifact": VanillaAE(2),
         "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
         "model_properties": ModelVersion(
             creation_timestamp=1656615600000,
@@ -149,7 +162,7 @@ def return_mock_metric_config():
             "keys": ["namespace", "name"],
             "model_config": {
                 "name": "argo_cd",
-                "win_size": 6,
+                "win_size": 2,
                 "threshold_min": 0.1,
                 "model_name": "ae_sparse",
                 "retrain_freq_hr": 8,
@@ -158,16 +171,16 @@ def return_mock_metric_config():
                 "keys": ["namespace", "name"],
                 "metrics": [
                     "metric_1",
-                ]
+                ],
+                "scrape_interval": 5,
             },
-            "model": "VanillaAE"
-
+            "model": "VanillaAE",
         },
         "metric_2": {
             "keys": ["namespace", "name", "hash_id"],
             "model_config": {
                 "name": "argo_rollouts",
-                "win_size": 6,
+                "win_size": 2,
                 "threshold_min": 0.001,
                 "model_name": "ae_sparse",
                 "retrain_freq_hr": 8,
@@ -176,9 +189,25 @@ def return_mock_metric_config():
                 "keys": ["namespace", "name"],
                 "metrics": [
                     "metric_2",
-                ]
+                ],
+                "scrape_interval": 5,
             },
-            "model": "VanillaAE"
-
-        }
+            "model": "VanillaAE",
+        },
+        "default": {
+            "keys": ["namespace", "name"],
+            "model_config": {
+                "name": "default",
+                "win_size": 2,
+                "threshold_min": 0.1,
+                "model_name": "ae_sparse",
+                "retrain_freq_hr": 8,
+                "resume_training": True,
+                "num_epochs": 10,
+                "keys": ["namespace", "name"],
+                "metrics": [],
+                "scrape_interval": 5,
+            },
+            "model": "VanillaAE",
+        },
     }

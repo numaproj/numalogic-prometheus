@@ -48,11 +48,11 @@ class PrometheusPipeline:
         self,
         metric_name: str,
         labels_map: Dict = None,
-        return_labels: List[str] =  None,
+        return_labels: List[str] = None,
         delta_hr=36,
         end_dt: datetime = None,
         prometheus_server: str = DEFAULT_PROMETHEUS_SERVER,
-        step=30
+        step=30,
     ) -> pd.DataFrame:
         self.datafetcher = Prometheus(prometheus_server)
 
@@ -67,7 +67,7 @@ class PrometheusPipeline:
             return_labels=return_labels,
             start=start_dt.timestamp(),
             end=end_dt.timestamp(),
-            step=step
+            step=step,
         )
         return df
 

@@ -12,7 +12,8 @@ from numaprom.tests.tools import (
     get_inference_input,
     return_mock_metric_config,
     return_stale_model,
-    return_mock_lstmae
+    return_mock_lstmae,
+    get_datum,
 )
 from numaprom.udf.inference import inference
 
@@ -23,7 +24,6 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())
 class TestInference(unittest.TestCase):
-
     @classmethod
     @patch.dict(METRIC_CONFIG, return_mock_metric_config())
     def setUpClass(cls) -> None:
@@ -32,21 +32,27 @@ class TestInference(unittest.TestCase):
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=return_mock_lstmae()))
     def test_inference(self):
-        _out = inference("", self.inference_input)
-        data = _out.items()[0].value.decode("utf-8")
-        payload = Payload.from_json(data)
-        self.assertEqual(payload.status, Status.INFERRED)
+        for msg in self.inference_input.items():
+            _in = get_datum(msg.value)
+            _out = inference("", _in)
+            data = _out.items()[0].value.decode("utf-8")
+            payload = Payload.from_json(data)
+            self.assertEqual(payload.status, Status.INFERRED)
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=None))
     def test_no_model(self):
-        _out = inference("", self.inference_input)
-        train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
-        self.assertFalse(train_payload["resume_training"])
+        for msg in self.inference_input.items():
+            _in = get_datum(msg.value)
+            _out = inference("", _in)
+            train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
+            self.assertFalse(train_payload["resume_training"])
 
     @patch.object(MLflowRegistrar, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):
-        _out = inference("", self.inference_input)
-        train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
-        postprocess_payload = Payload.from_json(_out.items()[1].value.decode("utf-8"))
-        self.assertEqual(postprocess_payload.status, Status.INFERRED)
-        self.assertTrue(train_payload["resume_training"])
+        for msg in self.inference_input.items():
+            _in = get_datum(msg.value)
+            _out = inference("", _in)
+            train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
+            postprocess_payload = Payload.from_json(_out.items()[1].value.decode("utf-8"))
+            self.assertEqual(postprocess_payload.status, Status.INFERRED)
+            self.assertTrue(train_payload["resume_training"])

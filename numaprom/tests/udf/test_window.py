@@ -15,7 +15,6 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())
 class TestWindow(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.input_stream = get_stream_data(STREAM_DATA_PATH)
@@ -31,11 +30,11 @@ class TestWindow(unittest.TestCase):
                 payload = Payload.from_json(_out)
                 keys = list(payload.key_map.values())
                 if "metric_2" in keys:
-                    self.assertEqual(keys, ['sandbox_numalogic_demo', 'metric_2', '123456789'])
+                    self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_2", "123456789"])
                 if "metric_1" in keys:
-                    self.assertEqual(keys, ['sandbox_numalogic_demo', 'metric_1'])
+                    self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_1"])
 
-    @mockenv(BUFF_SIZE="2")
+    @mockenv(BUFF_SIZE="1")
     def test_window_err(self):
         for data in self.input_stream:
             out = window("", get_datum(data))

@@ -5,10 +5,9 @@ from numalogic.scores import tanh_norm
 from pynumaflow.function import Messages, Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from numaprom.constants import METRIC_CONFIG
 from numaprom.entities import Payload, Status, PrometheusPayload
 from numaprom.redis import get_redis_client
-from numaprom.tools import catch_exception, msgs_forward
+from numaprom.tools import catch_exception, msgs_forward, get_metric_config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,10 +18,12 @@ AUTH = os.getenv("REDIS_AUTH")
 
 def save_to_redis(payload: Payload, recreate: bool):
     r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
-    model_config = METRIC_CONFIG[payload.metric_name]["model_config"]
+
+    metric_config = get_metric_config(payload.metric_name)
+    model_config = metric_config["model_config"]
 
     metrics_list = model_config["metrics"]
-    key = ":".join(METRIC_CONFIG[payload.metric_name]["keys"])
+    key = ":".join(metric_config["keys"])
     key = f"{key}:{payload.endTS}"
 
     if np.isnan(payload.anomaly):
@@ -47,10 +48,9 @@ def save_to_redis(payload: Payload, recreate: bool):
 
 
 def get_labels(payload: Payload):
-    keys = METRIC_CONFIG[payload.metric_name]["keys"]
-    labels = {
-        "model_version": str(payload.model_version)
-    }
+    metric_config = get_metric_config(payload.metric_name)
+    keys = metric_config["keys"]
+    labels = {"model_version": str(payload.model_version)}
     for key in keys:
         if key != "name":
             labels[key] = payload.src_labels[key]
@@ -67,21 +67,26 @@ def get_publisher_format(payload: Payload) -> PrometheusPayload:
         subsystem=None,
         type="Gauge",
         value=payload.anomaly,
-        labels=get_labels(payload)
+        labels=get_labels(payload),
     )
 
     return prometheus_payload
 
 
 def get_unified_format(payload: Payload, max_anomaly: float) -> PrometheusPayload:
-    model_config = METRIC_CONFIG[payload.metric_name]["model_config"]
+    model_config = get_metric_config(payload.metric_name)["model_config"]
     name = f"namespace_{model_config['name']}_unified_anomaly"
+
+    if "hash_id" in payload.src_labels:
+        subsystem = payload.src_labels["hash_id"]
+    else:
+        subsystem = None
 
     prometheus_payload = PrometheusPayload(
         timestamp_ms=int(payload.endTS),
         name=name,
         namespace=payload.src_labels["namespace"],
-        subsystem=payload.src_labels["hash_id"],
+        subsystem=subsystem,
         type="Gauge",
         value=max_anomaly,
         labels=get_labels(payload),
@@ -94,6 +99,7 @@ def get_unified_format(payload: Payload, max_anomaly: float) -> PrometheusPayloa
 @msgs_forward
 def postprocess(key: str, datum: Datum) -> Messages:
     payload = Payload.from_json(datum.value.decode("utf-8"))
+    model_config = get_metric_config(payload.metric_name)["model_config"]
 
     payload.win_score = payload.get_processed_array()
     payload.anomaly = tanh_norm(np.mean(payload.win_score))
@@ -103,6 +109,9 @@ def postprocess(key: str, datum: Datum) -> Messages:
     publisher_payload = get_publisher_format(payload)
     publisher_json = publisher_payload.to_json()
     LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
+
+    if model_config["name"] == "default":
+        return [publisher_json]
 
     try:
         max_anomaly, anomalies = save_to_redis(payload=payload, recreate=False)

@@ -136,5 +136,29 @@
         "name": "metric_2",
         "timestamp": "1654121213989",
         "value": "12"
+    },
+    {
+        "labels": {
+            "__name__": "metric_3",
+            "assetAlias": "sandbox.numalogic.demo",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo",
+            "hash_id": "123456789"
+        },
+        "name": "metric_3",
+        "timestamp": "1654121218989",
+        "value": "13"
+    },
+    {
+        "labels": {
+            "__name__": "metric_3",
+            "assetAlias": "sandbox.numalogic.demo",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo",
+            "hash_id": "123456789"
+        },
+        "name": "metric_3",
+        "timestamp": "1654121223989",
+        "value": "14"
     }
 ]

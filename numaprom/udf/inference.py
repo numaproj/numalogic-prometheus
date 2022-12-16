@@ -10,8 +10,13 @@ from pynumaflow.function import Messages, Datum
 
 from numaprom.entities import Payload, Status
 from numaprom.pipeline import PrometheusPipeline
-from numaprom.tools import catch_exception, get_metrics, conditional_forward, load_model
-from numaprom.constants import METRIC_CONFIG
+from numaprom.tools import (
+    catch_exception,
+    get_metrics,
+    conditional_forward,
+    load_model,
+    get_metric_config,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -53,19 +58,27 @@ def infer(payload: Payload, artifact_dict: Dict, model_config: Dict) -> Tuple[st
 def inference(key: str, datum: Datum) -> Messages:
     start_inference = time.time()
     payload = Payload.from_json(datum.value.decode("utf-8"))
-    model_config = METRIC_CONFIG[payload.metric_name]["model_config"]
+
+    metric_config = get_metric_config(payload.metric_name)
+    model_config = metric_config["model_config"]
 
     LOGGER.info("%s - Starting inference", payload.uuid)
 
-    artifact_dict = load_model(skeys=[payload.key_map["namespace"], payload.key_map["name"]],
-                               dkeys=[model_config["model_name"]])
+    artifact_dict = load_model(
+        skeys=[payload.key_map["namespace"], payload.key_map["name"]],
+        dkeys=[model_config["model_name"]],
+    )
 
     train_payload = payload.key_map
     train_payload["model_config"] = model_config["name"]
 
     if not artifact_dict:
         train_payload["resume_training"] = False
-        LOGGER.info("%s - No model found, sending to trainer. Trainer payload: %s", payload.uuid, train_payload)
+        LOGGER.info(
+            "%s - No model found, sending to trainer. Trainer payload: %s",
+            payload.uuid,
+            train_payload,
+        )
         return [("train", json.dumps(train_payload))]
 
     LOGGER.info(
@@ -77,7 +90,9 @@ def inference(key: str, datum: Datum) -> Messages:
     messages = []
 
     date_updated = artifact_dict["model_properties"].last_updated_timestamp / 1000
-    stale_date = (datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))).timestamp()
+    stale_date = (
+        datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))
+    ).timestamp()
 
     if date_updated < stale_date:
         train_payload["resume_training"] = True

@@ -12,13 +12,13 @@ class Prometheus:
         self.PROMETHEUS_SERVER = prometheus_server
 
     def query_metric(
-            self,
-            metric_name: str,
-            start: float,
-            end: float,
-            labels_map: Dict = None,
-            return_labels: List[str] = None,
-            step: int = 30,
+        self,
+        metric_name: str,
+        start: float,
+        end: float,
+        labels_map: Dict = None,
+        return_labels: List[str] = None,
+        step: int = 30,
     ) -> pd.DataFrame:
         query = metric_name
         if labels_map:
@@ -52,7 +52,7 @@ class Prometheus:
         data_points = (end - start) / step
         temp_start = start
         while data_points > 11000:
-            temp_end = temp_start + 11000*step
+            temp_end = temp_start + 11000 * step
             response = self.query_range_limit(query, temp_start, temp_end, step)
             if results:
                 results["values"] = results["values"] + response["values"]
@@ -70,7 +70,9 @@ class Prometheus:
 
         return results
 
-    def query_range_limit(self, query: str, start: float, end: float, step: int = 30) -> Optional[Dict]:
+    def query_range_limit(
+        self, query: str, start: float, end: float, step: int = 30
+    ) -> Optional[Dict]:
         data_points = (end - start) / step
 
         if data_points > 11000:

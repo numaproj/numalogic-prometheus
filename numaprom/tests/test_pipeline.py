@@ -15,7 +15,6 @@ from numaprom.tests.tools import mock_argocd_query_metric
 
 @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
 class TestPrometheusPipeline(unittest.TestCase):
-
     def setUp(self) -> None:
         self.win_size = 6
         self.raw_model = VanillaAE(self.win_size)
@@ -27,15 +26,16 @@ class TestPrometheusPipeline(unittest.TestCase):
             seq_len=self.win_size,
             num_epochs=10,
         )
-        df = prom_pl.fetch_data(delta_hr=1, metric_name="metric_1",
-                                labels_map={"namespace": "sandbox_numalogic_demo"})
+        df = prom_pl.fetch_data(
+            delta_hr=1, metric_name="metric_1", labels_map={"namespace": "sandbox_numalogic_demo"}
+        )
         x_scaled = prom_pl.preprocess(df.to_numpy())
         prom_pl.train(x_scaled)
         self.assertTrue(prom_pl.model)
 
     def test_inference(self):
         def _square(x):
-            return x ** 2
+            return x**2
 
         prom_pl = PrometheusPipeline(
             preprocess_steps=[StandardScaler()],
@@ -45,8 +45,9 @@ class TestPrometheusPipeline(unittest.TestCase):
             num_epochs=10,
         )
         test_size = 20
-        df = prom_pl.fetch_data(delta_hr=1, metric_name="metric_1",
-                                labels_map={"namespace": "sandbox_numalogic_demo"})
+        df = prom_pl.fetch_data(
+            delta_hr=1, metric_name="metric_1", labels_map={"namespace": "sandbox_numalogic_demo"}
+        )
         df_train, df_test = df[:-test_size], df[-test_size:]
 
         x_train_scaled = prom_pl.preprocess(df_train.to_numpy())
@@ -84,8 +85,9 @@ class TestPrometheusPipeline(unittest.TestCase):
             num_epochs=10,
         )
         test_size = 20
-        df = prom_pl_1.fetch_data(delta_hr=1, metric_name="metric_1",
-                                  labels_map={"namespace": "sandbox_numalogic_demo"})
+        df = prom_pl_1.fetch_data(
+            delta_hr=1, metric_name="metric_1", labels_map={"namespace": "sandbox_numalogic_demo"}
+        )
         df_train, df_test = df[:-test_size], df[-test_size:]
         prom_pl_1.train(df_train.to_numpy())
         y_1 = prom_pl_1.infer(df_test.to_numpy())
@@ -120,8 +122,9 @@ class TestPrometheusPipeline(unittest.TestCase):
             num_epochs=10,
         )
         test_size = 20
-        df = prom_pl_1.fetch_data(delta_hr=1, metric_name="metric_1",
-                                  labels_map={"namespace": "sandbox_numalogic_demo"})
+        df = prom_pl_1.fetch_data(
+            delta_hr=1, metric_name="metric_1", labels_map={"namespace": "sandbox_numalogic_demo"}
+        )
         df_train, df_test = df[:-test_size], df[-test_size:]
 
         prom_pl_1.train(df_train.to_numpy())

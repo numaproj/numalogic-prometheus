@@ -22,9 +22,6 @@ def metric_filter(key: str, datum: Datum) -> Optional[Messages]:
         LOGGER.exception("Error in Json serialization: %r", ex)
         return None
 
-    if data["name"] not in METRIC_CONFIG.keys():
-        return None
-
     LABEL = os.getenv("LABEL")
     LABEL_VALUES = json.loads(os.getenv("LABEL_VALUES", "[]"))
 
