@@ -17,7 +17,7 @@ It installs in a few minutes and is easier to onboard and configure any new metr
 Run the below command to install `numalogic-prometheus` and its dependencies on you cluster.
 
 ```shell
-kustomize build numalogic-prometheus/manifests/ | kubectl apply -f - 
+kustomize build manifests/ | kubectl apply -f - 
 ```
 
 
