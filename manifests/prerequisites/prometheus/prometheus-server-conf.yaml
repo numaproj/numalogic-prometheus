@@ -102,9 +102,8 @@ data:
           insecure_skip_verify: true
         write_relabel_configs:
         - action: keep
-          regex: namespace_*;true
+          regex: true
           source_labels:
-          - __name__
           - numalogic
     global:
       scrape_interval: 5s

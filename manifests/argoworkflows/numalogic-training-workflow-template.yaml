@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: numalogic-workflow-template
+  name: numalogic-training-workflow-template
 spec:
   entrypoint: whalesay-template
   podMetadata:
@@ -21,7 +21,7 @@ spec:
         value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
       - name: PROMETHEUS_SERVER
         value: "http://prometheus-service.monitoring.svc.cluster.local:8080"
-      image:  quay.io/numaio/numalogic-prometheus:v0.0.3
+      image:  quay.io/numaio/numalogic-prometheus:v0.0.4
       imagePullPolicy: Always
       command: [python, trainer.py]
       args:
