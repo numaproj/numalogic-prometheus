@@ -20,7 +20,7 @@ spec:
       max: 1
     udf:
      container:
-       image: docker.io/library/prometheus-serde:v0.0.3
+       image: quay.io/numaio/numaflow-udf/prometheus-serde
   - name: filter
     scale:
       min: 1
