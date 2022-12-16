@@ -2,9 +2,19 @@
 
 ## Prerequisites
 - [Numaflow](https://numaflow.numaproj.io/quick-start/#installation)
+  ```shell
+    kubectl create ns numaflow-system
+    kubectl apply -n numaflow-system -f https://raw.githubusercontent.com/numaproj/numaflow/stable/config/install.yaml
+  ```
 - [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)
+  ```shell
+    kustomize build numalogic-prometheus/manifests/prometheus/ | kubectl apply -f - 
+  ```
 - [Argo Workflows](https://argoproj.github.io/argo-workflows/quick-start/)
-
+    ```shell
+    kubectl create namespace argo
+    kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v<<ARGO_WORKFLOWS_VERSION>>/install.yaml
+    ```
 
 ## Quick Start:
 
