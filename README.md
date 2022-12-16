@@ -1,22 +1,18 @@
 # numalogic-prometheus
 
+
+Numalogic-prometheus is a AIOps pipeline to do in cluster anomaly detection for any prometheus metrics. It is built up on [numaflow](https://numaflow.numaproj.io/quick-start/#installation) using [nuamlogic](https://github.com/numaproj/numalogic) as the ML library.  
+
+By default, it provides anomaly detection for Argo CD and Argo Rollouts metrics, to identify issues before deploying/rolling out new changes. 
+
+It installs in a few minutes and is easier to onboard and configure any new metrics. 
+
 ## Prerequisites
 - [Numaflow](https://numaflow.numaproj.io/quick-start/#installation)
-  ```shell
-    kubectl create ns numaflow-system
-    kubectl apply -n numaflow-system -f https://raw.githubusercontent.com/numaproj/numaflow/stable/config/install.yaml
-  ```
-- [Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/)
-  ```shell
-    kustomize build numalogic-prometheus/manifests/prometheus/ | kubectl apply -f - 
-  ```
 - [Argo Workflows](https://argoproj.github.io/argo-workflows/quick-start/)
-    ```shell
-    kubectl create namespace argo
-    kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v<<ARGO_WORKFLOWS_VERSION>>/install.yaml
-    ```
+- [Prometheus](docs/prometheus.md)
 
-## Quick Start:
+## Quick Start
 
 Run the below command to install `numalogic-prometheus` and its dependencies in you cluster.
 
@@ -47,4 +43,9 @@ kubectl port-forward <prometheus-deployment-xxxxxxxxx-xxxxx> 8490:9090 -n monito
 ```
 
 
-
+## Resources
+- [PROMETHEUS](docs/prometheus.md)
+- [METRICS](docs/metrics.md)
+- [MLFLOW_WITH_S3](docs/mlflow-s3.md)
+- [DEVELOPMENT](docs/development/development.md)
+- [CONTRIBUTING](https://github.com/numaproj/numaproj/blob/main/CONTRIBUTING.md)
