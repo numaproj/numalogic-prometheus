@@ -29,7 +29,7 @@ namespace_argo_cd_unified_anomaly
 ```
 
 ### Argo Rollouts:
-For Argo CD use case, below are the golden signal metrics (error rates and latencies) configured in the [prometheus rules](../manifests/prometheus/prometheus-rules.yaml) and sent to the pipeline.
+For Argo CD use case, below are the golden signal metrics (error rates and latencies) configured in the [prometheus rules](../manifests/prerequisites/prometheus/prometheus-rules.yaml) and sent to the pipeline.
 
 ```shell
 namespace_hash_pod_http_server_requests_error_rate
@@ -43,7 +43,7 @@ namespace_hash_pod_http_server_requests_latency_anomaly
 namespace_argo_rollouts_unified_anomaly
 ```
 
-Refer to [prometheus-rules.yaml](../manifests/prometheus/prometheus-rules.yaml) to understand the metrics in detail.
+Refer to [prometheus-rules.yaml](../manifests/prerequisites/prometheus/prometheus-rules.yaml) to understand the metrics in detail.
 
 ## On-boarding New Metrics:
 

@@ -6,7 +6,7 @@
 Run the below command to install prometheus and its dependencies in you cluster.
 
 ```shell
-kustomize build manifests/prometheus/ | kubectl apply -f - 
+kustomize build manifests/prerequisites/prometheus/ | kubectl apply -f - 
 ```
 
 ## Remote Writer:

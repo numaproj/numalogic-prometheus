@@ -12,6 +12,11 @@ It installs in a few minutes and is easier to onboard and configure any new metr
 - [Argo Workflows](https://argoproj.github.io/argo-workflows/quick-start/)
 - [Prometheus](docs/prometheus.md)
 
+Run the below command to install all the prerequisites.
+```shell
+kustomize build manifests/prerequisites | kubectl apply -f -
+```
+
 ## Quick Start
 
 Run the below command to install `numalogic-prometheus` and its dependencies on you cluster.

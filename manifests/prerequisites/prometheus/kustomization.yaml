@@ -3,9 +3,9 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - namespace.yaml
+  - ./kube-state-metrics
   - clusterRole.yaml
   - prometheus-deployment.yaml
   - prometheus-server-conf.yaml
   - prometheus-service.yaml
   - pushgateway.yaml
-  - ./kube-state-metrics
