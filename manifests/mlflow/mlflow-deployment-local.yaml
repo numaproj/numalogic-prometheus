@@ -29,7 +29,7 @@ spec:
         persistentVolumeClaim:
           claimName: mlflow-pvc
       containers:
-        - image: docker.io/library/mlflow:v1
+        - image: quay.io/numaio/mlflow
           name: mlflow
           args:
           - server

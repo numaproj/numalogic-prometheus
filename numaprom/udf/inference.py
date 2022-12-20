@@ -1,69 +1,32 @@
-import os
-import time
 import json
+import time
 import logging
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Optional, Tuple, Dict
+from typing import Tuple, Dict
 
-from numalogic.registry import MLflowRegistrar
 from pynumaflow.function import Messages, Datum
 
-from numaprom.constants import (
-    DEFAULT_WIN_SIZE,
-    DEFAULT_THRESHOLD_MIN,
-    DEFAULT_TRACKING_URI,
-    DEFAULT_RETRAIN_FREQ_HR,
-    DEFAULT_MODEL_NAME,
-    ROLLOUTS_METRICS_LIST,
-    DEFAULT_ROLLOUT_MODEL_NAME,
-    DEFAULT_ROLLOUT_THRESHOLD_MIN,
-    DEFAULT_ROLLOUT_WIN_SIZE,
-)
 from numaprom.entities import Payload, Status
 from numaprom.pipeline import PrometheusPipeline
-from numaprom.tools import catch_exception, get_metrics, conditional_forward
+from numaprom.tools import (
+    catch_exception,
+    get_metrics,
+    conditional_forward,
+    load_model,
+    get_metric_config,
+)
 
 LOGGER = logging.getLogger(__name__)
 
 
-# TODO: dont log exception when it is ModelNotFound
-def load_model(payload) -> Optional[Dict]:
-    tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-    try:
-        model_name = os.getenv("MODEL_NAME", DEFAULT_MODEL_NAME)
-        ml_registry = MLflowRegistrar(tracking_uri=tracking_uri)
-        artifact_dict = ml_registry.load(
-            skeys=[payload.namespace, payload.metric], dkeys=[model_name]
-        )
-        return artifact_dict
-    except Exception as ex:
-        LOGGER.exception(
-            "%s - Error while loading model from MLflow database. Error:%",
-            payload.uuid,
-            ex,
-        )
-        return None
-
-
-def infer(payload: Payload, artifact_dict: Dict) -> Tuple[str, str]:
-    if payload.metric in ROLLOUTS_METRICS_LIST:
-        win_size = int(os.getenv("ROLLOUT_WIN_SIZE", DEFAULT_ROLLOUT_WIN_SIZE))
-        thresh_min = float(os.getenv("ROLLOUT_THRESHOLD_MIN", DEFAULT_ROLLOUT_THRESHOLD_MIN))
-        model_name = os.getenv("ROLLOUT_MODEL_NAME", DEFAULT_ROLLOUT_MODEL_NAME)
-    else:
-        win_size = int(os.getenv("WIN_SIZE", DEFAULT_WIN_SIZE))
-        thresh_min = float(os.getenv("THRESHOLD_MIN", DEFAULT_THRESHOLD_MIN))
-        model_name = os.getenv("MODEL_NAME", DEFAULT_MODEL_NAME)
-
+def infer(payload: Payload, artifact_dict: Dict, model_config: Dict) -> Tuple[str, str]:
     pipeline = PrometheusPipeline(
-        namespace=payload.namespace,
-        metric=payload.metric,
-        model_plname=model_name,
+        model_plname=model_config["model_name"],
         model=artifact_dict["primary_artifact"],
-        seq_len=win_size,
-        threshold_min=thresh_min,
+        seq_len=model_config["win_size"],
+        threshold_min=model_config["threshold_min"],
     )
     try:
         pipeline.load_model(
@@ -96,56 +59,60 @@ def inference(key: str, datum: Datum) -> Messages:
     start_inference = time.time()
     payload = Payload.from_json(datum.value.decode("utf-8"))
 
+    metric_config = get_metric_config(payload.metric_name)
+    model_config = metric_config["model_config"]
+
     LOGGER.info("%s - Starting inference", payload.uuid)
 
-    artifact_dict = load_model(payload)
-    train_payload = json.dumps({"namespace": payload.namespace, "metric": payload.metric})
+    artifact_dict = load_model(
+        skeys=[payload.key_map["namespace"], payload.key_map["name"]],
+        dkeys=[model_config["model_name"]],
+    )
+
+    train_payload = payload.key_map
+    train_payload["model_config"] = model_config["name"]
 
     if not artifact_dict:
-        if payload.metric in ROLLOUTS_METRICS_LIST:
-            LOGGER.info(
-                "%s - No model found, sending to rollout trainer. Trainer payload: %s",
-                payload.uuid,
-                train_payload,
-            )
-            return [("rollout-train", train_payload)]
-        else:
-            LOGGER.info(
-                "%s - No model found, sending to trainer. Trainer payload: %s",
-                payload.uuid,
-                train_payload,
-            )
-            return [("train", train_payload)]
+        train_payload["resume_training"] = False
+        LOGGER.info(
+            "%s - No model found, sending to trainer. Trainer payload: %s",
+            payload.uuid,
+            train_payload,
+        )
+        return [("train", json.dumps(train_payload))]
 
     LOGGER.info(
         "%s - Successfully loaded model from mlflow, version: %s",
         payload.uuid,
         artifact_dict["model_properties"].version,
     )
+
     messages = []
-    retrain_freq = os.getenv("RETRAIN_FREQ_HR", DEFAULT_RETRAIN_FREQ_HR)
 
     date_updated = artifact_dict["model_properties"].last_updated_timestamp / 1000
-    stale_date = (datetime.now() - timedelta(hours=int(retrain_freq))).timestamp()
+    stale_date = (
+        datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))
+    ).timestamp()
 
     if date_updated < stale_date:
+        train_payload["resume_training"] = True
         LOGGER.info(
             "%s - Model found is stale, sending to trainer. Trainer payload: %s",
             payload.uuid,
             train_payload,
         )
-        messages.append(("train", train_payload))
+        messages.append(("train", json.dumps(train_payload)))
 
-    messages.append(infer(payload, artifact_dict))
+    messages.append(infer(payload, artifact_dict, model_config))
 
     if time.time() - start_inference > 5:
-        LOGGER.info(
+        LOGGER.debug(
             "%s - Total time in inference is greater than 5 sec: %s sec",
             payload.uuid,
             time.time() - start_inference,
         )
     else:
-        LOGGER.info(
+        LOGGER.debug(
             "%s - Total time in inference: %s sec",
             payload.uuid,
             time.time() - start_inference,

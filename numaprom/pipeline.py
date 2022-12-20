@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 from datetime import datetime, timedelta
-from typing import Sequence, Callable, Optional, Union, BinaryIO
+from typing import Sequence, Callable, Optional, Union, BinaryIO, List, Dict
 
 from numalogic.models.autoencoder.factory import ModelPlFactory
 
@@ -25,15 +25,11 @@ class PrometheusPipeline:
 
     def __init__(
         self,
-        namespace: str,
-        metric: str,
         preprocess_steps: Sequence[TransformerMixin] = None,
         postprocess_funcs: Sequence[Callable] = None,
         model_plname="ae",
         **model_pl_kw
     ):
-        self.namespace = namespace
-        self.metric = metric
         self.datafetcher = None
 
         if model_pl_kw:
@@ -50,21 +46,28 @@ class PrometheusPipeline:
 
     def fetch_data(
         self,
+        metric_name: str,
+        labels_map: Dict = None,
+        return_labels: List[str] = None,
         delta_hr=36,
         end_dt: datetime = None,
-        hash_col: bool = False,
         prometheus_server: str = DEFAULT_PROMETHEUS_SERVER,
+        step=30,
     ) -> pd.DataFrame:
         self.datafetcher = Prometheus(prometheus_server)
-        end_dt = end_dt or datetime.now(pytz.utc)
+
+        if not end_dt:
+            end_dt = datetime.now(pytz.utc)
+
         start_dt = end_dt - timedelta(hours=delta_hr)
 
         df = self.datafetcher.query_metric(
-            metric=self.metric,
-            namespace=self.namespace,
+            metric_name=metric_name,
+            labels_map=labels_map,
+            return_labels=return_labels,
             start=start_dt.timestamp(),
             end=end_dt.timestamp(),
-            hash_col=hash_col,
+            step=step,
         )
         return df
 
@@ -89,7 +92,7 @@ class PrometheusPipeline:
             .drop("_merge", axis=1)
         )
         df.set_index("timestamp", inplace=True)
-        df.drop("hash", axis=1, inplace=True)
+        df.drop("hash_id", axis=1, inplace=True)
         df = df.sort_values(by=["timestamp"], ascending=True)
         if len(df) < (1.5 * 60 * 12):
             LOGGER.exception("Not enough training points to initiate training")

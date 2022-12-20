@@ -4,7 +4,7 @@ metadata:
   name: numalogic-prometheus-pipeline
 spec:
   watermark:
-    disabled: true
+    disabled: false
   limits:
     readBatchSize: 10
     bufferMaxLength: 500
@@ -27,7 +27,7 @@ spec:
       max: 1
     udf:
      container:
-       image: quay.io/numaio/numalogic-prometheus
+       image: quay.io/numaio/numalogic-prometheus:v0.0.4
        args:
        - python
        - starter.py
@@ -38,7 +38,7 @@ spec:
       max: 1
     udf:
       container:
-         image: quay.io/numaio/numalogic-prometheus
+         image: quay.io/numaio/numalogic-prometheus:v0.0.4
          args:
          - python
          - starter.py
@@ -49,7 +49,7 @@ spec:
       max: 1
     udf:
       container:
-         image: quay.io/numaio/numalogic-prometheus
+         image: quay.io/numaio/numalogic-prometheus:v0.0.4
          args:
          - python
          - starter.py
@@ -60,7 +60,7 @@ spec:
          - name: REDIS_PORT
            value: "6379"
          - name: REDIS_AUTH
-           value: <REDIS_AUTH>
+           value: 5rmmfXtsbL
     limits:
       readBatchSize: 1
   - name: inference
@@ -68,7 +68,7 @@ spec:
       min: 1
     udf:
       container:
-        image: quay.io/numaio/numalogic-prometheus
+        image: quay.io/numaio/numalogic-prometheus:v0.0.4
         args:
         - python
         - starter.py
@@ -76,20 +76,6 @@ spec:
         env:
         - name: TRACKING_URI
           value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
-        - name: WIN_SIZE
-          value: "12"
-        - name: THRESHOLD_MIN
-          value: "0.1"
-        - name: MODEL_NAME
-          value: "ae_sparse"
-        - name: ROLLOUT_WIN_SIZE
-          value: "8"
-        - name: ROLLOUT_THRESHOLD_MIN
-          value: "0.1"
-        - name: ROLLOUT_MODEL_NAME
-          value: "ae_sparse"
-        - name: RETRAIN_FREQ_HR
-          value: "8"
     metadata:
       annotations:
         iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
@@ -98,7 +84,7 @@ spec:
       min: 1
     udf:
       container:
-        image: quay.io/numaio/numalogic-prometheus
+        image: quay.io/numaio/numalogic-prometheus:v0.0.4
         args:
         - python
         - starter.py
@@ -109,7 +95,7 @@ spec:
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_AUTH
-          value: <REDIS_AUTH>
+          value: 5rmmfXtsbL
   - name: training-workflow
     scale:
       min: 1
@@ -120,33 +106,11 @@ spec:
         container:
           env:
             - name: ARGO_WORKFLOW_TEMPLATE
-              value: numalogic-argocd-workflow-template
+              value: numalogic-training-workflow-template
             - name: PARAMETER_NAME
               value: "payload"
             - name: MSG_DEDUP_KEYS
-              value: ".namespace,.metric"
-            - name: READ_INTERVAL_DURATION
-              value: "1s"
-            - name: DEDUP_CACHE_LIMIT
-              value: "10000"
-            - name: DEDUP_CACHE_TTL_DURATION
-              value: "30m"
-          image: quay.io/numaio/numaflow-sink/argo-workflow:v0.0.3
-  - name: rollouts-workflow
-    scale:
-      min: 1
-    limits:
-      readBatchSize: 2000
-    sink:
-      udsink:
-        container:
-          env:
-            - name: ARGO_WORKFLOW_TEMPLATE
-              value: numalogic-rollouts-workflow-template
-            - name: PARAMETER_NAME
-              value: "payload"
-            - name: MSG_DEDUP_KEYS
-              value: ".namespace,.metric"
+              value: ".namespace,.name"
             - name: READ_INTERVAL_DURATION
               value: "1s"
             - name: DEDUP_CACHE_LIMIT
@@ -164,7 +128,7 @@ spec:
           - name: SKIP_VALIDATION_FAILED
             value: "true"
           - name: "PROMETHEUS_SERVER"
-            value: <PROMETHEUS_SERVER>
+            value: "pushgateway.monitoring.svc.cluster.local:9091"
           image: quay.io/numaio/numaflow-sink/prometheus-pusher
   - name: output
     scale:
@@ -173,12 +137,6 @@ spec:
     sink:
       log: {}
   - name: training-output
-    scale:
-      min: 1
-      max: 1
-    sink:
-      log: {}
-  - name: rollouts-output
     scale:
       min: 1
       max: 1
@@ -210,16 +168,6 @@ spec:
     conditions:
       keyIn:
         - postprocess
-  - from: inference
-    to: rollouts-workflow
-    conditions:
-      keyIn:
-       - rollout-train
-  - from: inference
-    to: rollouts-output
-    conditions:
-      keyIn:
-        - rollout-train
   - from: postprocess
     to: output
   - from: postprocess

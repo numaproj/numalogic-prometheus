@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: numalogic-training-workflow-template
+spec:
+  entrypoint: whalesay-template
+  podMetadata:
+    annotations:
+      iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
+  ttlStrategy:
+    secondsAfterSuccess: 5
+    secondsAfterFailure: 60
+  templates:
+  - name: whalesay-template
+    inputs:
+      parameters:
+      - name: payload
+    container:
+      env:
+      - name: TRACKING_URI
+        value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+      - name: PROMETHEUS_SERVER
+        value: "http://prometheus-service.monitoring.svc.cluster.local:8080"
+      image:  quay.io/numaio/numalogic-prometheus:v0.0.4
+      imagePullPolicy: Always
+      command: [python, trainer.py]
+      args:
+        - "{{inputs.parameters.payload}}"

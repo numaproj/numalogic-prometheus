@@ -1,15 +1,21 @@
 import json
+import os
 import time
 import uuid
 import socket
 import logging
+
+import mlflow
 import pandas as pd
 from functools import wraps
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Sequence
 
+from mlflow.entities.model_registry import ModelVersion
+from numalogic.registry import MLflowRegistrar
 from pynumaflow.function import Messages, Message
 
-from numaprom.entities import Payload, Metric, MetricType, Status
+from numaprom.constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
+from numaprom.entities import Payload, Metric, Status
 
 LOGGER = logging.getLogger(__name__)
 
@@ -69,52 +75,38 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def get_metric_type(metric: str) -> MetricType:
-    if metric == "namespace_app_pod_http_server_requests_errors":
-        return MetricType.ERROR_COUNT
-    if metric == "namespace_app_pod_http_server_requests_error_rate":
-        return MetricType.ERROR_RATE
-    elif metric == "namespace_app_pod_http_server_requests_latency":
-        return MetricType.LATENCY
-    elif metric == "namespace_asset_pod_cpu_utilization":
-        return MetricType.CPU
-    elif metric == "namespace_asset_pod_memory_utilization":
-        return MetricType.MEMORY
-    elif metric == "namespace_hash_pod_http_server_requests_error_rate":
-        return MetricType.HASH_ERROR_RATE
-    elif metric == "namespace_hash_pod_http_server_requests_latency":
-        return MetricType.HASH_LATENCY
-    else:
-        raise NotImplementedError(f"Unsupported metric type: {metric}")
+def get_key_map(msg: dict) -> Dict:
+    labels = msg.get("labels")
+    metric_name = msg["name"]
+
+    keys = get_metric_config(metric_name)["keys"]
+    result = {}
+    for k in keys:
+        if k in msg:
+            result[k] = msg[k]
+        if k in labels:
+            result[k] = labels[k]
+    return result
 
 
 def extract(data: Dict[str, Any]) -> Optional[Payload]:
     input_metrics = [Metric(**_item) for _item in data["window"]]
-    if "pod_template_hash" in data["labels"]:
-        hash_id = str(data["labels"]["pod_template_hash"])
-    elif "rollouts_pod_template_hash" in data["labels"]:
-        hash_id = str(data["labels"]["rollouts_pod_template_hash"])
-    else:
-        hash_id = ""
 
     payload = Payload(
         uuid=str(uuid.uuid4()),
-        namespace=data["labels"]["namespace"],
-        metric=get_metric_type(data["name"]).value,
-        hash_id=hash_id,
+        metric_name=data["name"],
+        key_map=get_key_map(data),
         src_labels=data["labels"],
-        inputMetrics=input_metrics,
         processedMetrics=input_metrics,
         startTS=data["timestamp"],
         endTS=data["timestamp"],
         status=Status.EXTRACTED,
     )
     LOGGER.info(
-        "%s - Extracted Payload: keys: [%s, %s, %s]",
+        "%s - Extracted Payload: Keys=%s, Metrics=%s",
         payload.uuid,
-        payload.namespace,
-        payload.metric,
-        payload.hash_id,
+        payload.key_map,
+        payload.processedMetrics,
     )
     return payload
 
@@ -128,17 +120,6 @@ def get_data(file_path: str) -> Any:
     file = open(file_path)
     data = json.load(file)
     file.close()
-    return data
-
-
-def decode_msg(msg: bytes) -> Dict[str, Any]:
-    msg = msg.decode("utf-8")
-
-    try:
-        data = json.loads(msg)
-    except Exception as ex:
-        LOGGER.exception("Error in Json serialization: %r", ex)
-        return ""
     return data
 
 
@@ -165,3 +146,34 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
             return True
     LOGGER.error("Failed to resolve hostname: %s even after retries!")
     return False
+
+
+def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[Dict]:
+    try:
+        tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
+        ml_registry = MLflowRegistrar(tracking_uri=tracking_uri)
+        artifact_dict = ml_registry.load(skeys=skeys, dkeys=dkeys)
+        return artifact_dict
+    except Exception as ex:
+        print(ex)
+        LOGGER.error("Error while loading model from MLflow database: %s", ex)
+        return None
+
+
+def save_model(
+    skeys: Sequence[str], dkeys: Sequence[str], model, **metadata
+) -> Optional[ModelVersion]:
+    tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
+    ml_registry = MLflowRegistrar(tracking_uri=tracking_uri, artifact_type="pytorch")
+    mlflow.start_run()
+    version = ml_registry.save(skeys=skeys, dkeys=dkeys, primary_artifact=model, **metadata)
+    LOGGER.info("Successfully saved the model to mlflow. Model version: %s", version)
+    mlflow.end_run()
+    return version
+
+
+def get_metric_config(metric_name: str):
+    if metric_name in METRIC_CONFIG:
+        return METRIC_CONFIG[metric_name]
+    else:
+        return METRIC_CONFIG["default"]

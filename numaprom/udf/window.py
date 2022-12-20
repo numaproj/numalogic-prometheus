@@ -1,16 +1,16 @@
+import json
 import os
 import logging
 from typing import List, Tuple
-from pynumaflow.function import Messages, Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
+
+from pynumaflow.function import Messages, Datum
 
 from numaprom.entities import Metric
 from numaprom.redis import get_redis_client
-from numaprom.constants import DEFAULT_WIN_SIZE, ARGOCD_METRICS_LIST
-from numaprom.tools import decode_msg, msg_forward, catch_exception, extract, get_metric_type
+from numaprom.tools import msg_forward, catch_exception, extract, get_key_map, get_metric_config
 
 _LOGGER = logging.getLogger(__name__)
-
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -32,9 +32,18 @@ def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tu
 @catch_exception
 @msg_forward
 def window(key: str, datum: Datum) -> Messages:
-    msg = decode_msg(datum.value)
-    labels = msg.get("labels")
-    win_size = int(os.getenv("WIN_SIZE", DEFAULT_WIN_SIZE))
+    msg = datum.value.decode("utf-8")
+
+    try:
+        msg = json.loads(msg)
+    except Exception as ex:
+        _LOGGER.exception("Error in Json serialization: %r", ex)
+        return None
+
+    metric_name = msg["name"]
+
+    metric_config = get_metric_config(metric_name)
+    win_size = metric_config["model_config"]["win_size"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 
     if buff_size < win_size:
@@ -42,28 +51,18 @@ def window(key: str, datum: Datum) -> Messages:
             f"Redis list buffer size: {buff_size} is less than window length: {win_size}"
         )
 
-    metric = msg["name"]
-    namespace = labels.get("namespace")
+    key_map = get_key_map(msg)
+    unique_key = ":".join(key_map.values())
     value = float(msg["value"])
-    metric_type = get_metric_type(metric).value
-
-    if metric_type in ARGOCD_METRICS_LIST:
-        key = f"{namespace}:{metric}"
-    else:
-        if "pod_template_hash" in labels:
-            hash_id = str(labels.get("pod_template_hash"))
-        else:
-            hash_id = str(labels.get("rollouts_pod_template_hash"))
-        key = f"{namespace}:{hash_id}:{metric}"
 
     try:
         elements = __aggregate_window(
-            key, msg["timestamp"], value, win_size, buff_size, recreate=False
+            unique_key, msg["timestamp"], value, win_size, buff_size, recreate=False
         )
     except RedisConnectionError:
         _LOGGER.warning("Redis connection failed, recreating the redis client")
         elements = __aggregate_window(
-            key, msg["timestamp"], value, win_size, buff_size, recreate=True
+            unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
 
     if len(elements) < win_size:
@@ -74,5 +73,4 @@ def window(key: str, datum: Datum) -> Messages:
 
     payload = extract(msg)
     payload_json = payload.to_json()
-    _LOGGER.info("%s - Extracted payload: %s", payload.uuid, payload_json)
     return payload_json

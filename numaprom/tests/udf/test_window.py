@@ -1,60 +1,48 @@
-import json
 import os
 import unittest
 from unittest.mock import patch
+
 from pynumaflow.function._dtypes import DROP
 
-from numaprom.constants import TESTS_DIR
 from numaprom.tests import *
-from numaprom.tests.tools import get_datum
-from numaprom.tools import decode_msg
+from numaprom.entities import Payload
+from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
-ROLLOUTS_STREAM_PATH = os.path.join(DATA_DIR, "rollouts_stream.json")
 
 
-@patch.dict("os.environ", {"WIN_SIZE": "3"}, clear=True)
+@patch.dict(METRIC_CONFIG, return_mock_metric_config())
 class TestWindow(unittest.TestCase):
-    data = None
-
     @classmethod
     def setUpClass(cls) -> None:
-        with open(STREAM_DATA_PATH) as fp:
-            cls.data = json.load(fp)
-        with open(ROLLOUTS_STREAM_PATH) as fp:
-            cls.rollouts_data = json.load(fp)
+        cls.input_stream = get_stream_data(STREAM_DATA_PATH)
 
     def tearDown(self) -> None:
         redis_client.flushall()
 
     def test_window(self):
-        outs = []
-        for idx, data in enumerate(self.data):
-            out = window(None, get_datum(data))
-            outs.append(out)
-        data = decode_msg(outs[-1].items()[0].value)
-        self.assertListEqual(
-            [10, 11, 12], list(map(lambda x: int(x["value"]), data["processedMetrics"]))
-        )
+        for idx, data in enumerate(self.input_stream):
+            _out = window("", get_datum(data))
+            if not _out.items()[0].key == DROP:
+                _out = _out.items()[0].value.decode("utf-8")
+                payload = Payload.from_json(_out)
+                keys = list(payload.key_map.values())
+                if "metric_2" in keys:
+                    self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_2", "123456789"])
+                if "metric_1" in keys:
+                    self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_1"])
 
-    def test_window_rollouts(self):
-        outs = []
-        for idx, data in enumerate(self.rollouts_data):
-            out = window(None, get_datum(data))
-            outs.append(out)
-        data = decode_msg(outs[-1].items()[0].value)
-        self.assertEqual(data["hash_id"], "64f9bb588")
-
-    @patch.dict("os.environ", {"BUFF_SIZE": "2"}, clear=True)
+    @mockenv(BUFF_SIZE="1")
     def test_window_err(self):
-        for data in self.data:
-            out = window(None, get_datum(data))
+        for data in self.input_stream:
+            out = window("", get_datum(data))
             self.assertIsNone(out)
 
     def test_window_drop(self):
-        for _d in self.data:
-            out = window(None, get_datum(_d))
+        for _d in self.input_stream:
+            out = window("", get_datum(_d))
             self.assertEqual(DROP, out.items()[0].key)
             break
 

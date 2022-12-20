@@ -1,1 +1,0 @@
-{"labels":{"__name__":"namespace_app_pod_http_server_requests_latency","app":"mesh-dr","apps_deployment":"mesh-dr","numalogic":"true","namespace":"sandbox-meshdr-usw2-demo"},"name":"namespace_app_pod_http_server_requests_latency","timestamp":"1653086413989","value":"0.016666666666666666"}
