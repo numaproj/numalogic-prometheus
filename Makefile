@@ -22,7 +22,7 @@ format: clean
 
 # install all dependencies
 setup:
-	poetry install --all-extras
+	poetry install --with dev --all-extras
 
 test:
 	poetry run python -m unittest discover
