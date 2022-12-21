@@ -24,7 +24,7 @@ confluent-kafka = "^1.8.2"
 cachetools = "^5.0.0"
 redis = "^4.3.1"
 pynumaflow = "~0.2.6"
-numalogic = {version = "0.2.8", extras = ["mlflow"]}
+numalogic = {version = "~0.2.9", extras = ["mlflow"]}
 boto3 = "^1.25.2"
 
 
