@@ -32,5 +32,5 @@ jobs:
         poetry env use ${{ matrix.python-version }}
         poetry install --all-extras
 
-    - name: Run unt tests
+    - name: Run unit tests
       run: make test

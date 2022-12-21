@@ -41,6 +41,7 @@ optional = true
 coverage = "^6.3"
 black = "^22.1"
 fakeredis = "^1.8"
+flake8 = "^5.0"
 
 [tool.black]
 line-length = 100
