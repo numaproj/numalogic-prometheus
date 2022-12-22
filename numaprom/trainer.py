@@ -57,7 +57,7 @@ def rollout_trainer(payload: Dict) -> Optional[ModelVersion]:
         return_labels=["hash_id"],
         step=model_config["scrape_interval"],
     )
-    print(df)
+
     df = pipeline.clean_rollout_data(df)
     LOGGER.info("Time taken to fetch data for rollout: %s", time.time() - start_train)
 

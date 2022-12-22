@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 from numaprom.constants import TESTS_DIR, METRIC_CONFIG, MODEL_CONFIG
 from numaprom.entities import PrometheusPayload, Payload
-from numaprom.tests import redis_client
-from numaprom.tests.tools import (
+from tests import redis_client
+from tests.tools import (
     get_postproc_input,
     return_mock_vanilla,
     return_mock_metric_config,

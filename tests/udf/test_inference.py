@@ -7,8 +7,8 @@ from numalogic.registry import MLflowRegistrar
 
 from numaprom.constants import TESTS_DIR, METRIC_CONFIG
 from numaprom.entities import Payload, Status
-from numaprom.tests import redis_client
-from numaprom.tests.tools import (
+from tests import redis_client
+from tests.tools import (
     get_inference_input,
     return_mock_metric_config,
     return_stale_model,

@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 
 from numaprom.constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.tests.tools import get_stream_data, mockenv, get_datum
+from tests.tools import get_stream_data, mockenv, get_datum
 from numaprom.udf import metric_filter
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")

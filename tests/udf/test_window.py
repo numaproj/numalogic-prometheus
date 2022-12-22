@@ -4,10 +4,10 @@ from unittest.mock import patch
 
 from pynumaflow.function._dtypes import DROP
 
-from numaprom.tests import redis_client, window
+from tests import redis_client, window
 from numaprom.entities import Payload
 from numaprom.constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
+from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")

@@ -2,9 +2,9 @@ import os
 
 NUMAPROM_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.split(NUMAPROM_DIR)[0]
-TESTS_DIR = os.path.join(NUMAPROM_DIR, "tests")
+TESTS_DIR = os.path.join(ROOT_DIR, "tests")
 MODEL_PATH = os.path.join(ROOT_DIR, "numaprom/udf/models")
-DATA_DIR = os.path.join(NUMAPROM_DIR, "data")
+DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 
 CONFIG_MODEL_ID = "dataflow"
 
@@ -100,5 +100,6 @@ METRIC_CONFIG = {
     "default": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["default"],
+        "model": "VanillaAE",
     },
 }
