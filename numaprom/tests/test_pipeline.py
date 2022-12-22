@@ -90,7 +90,7 @@ class TestPrometheusPipeline(unittest.TestCase):
         )
         df_train, df_test = df[:-test_size], df[-test_size:]
         prom_pl_1.train(df_train.to_numpy())
-        y_1 = prom_pl_1.infer(df_test.to_numpy())
+        _ = prom_pl_1.infer(df_test.to_numpy())
 
         with tempfile.NamedTemporaryFile(suffix=".pth") as fp:
             prom_pl_1.save_model(fp.name)
@@ -101,7 +101,7 @@ class TestPrometheusPipeline(unittest.TestCase):
                 num_epochs=10,
             )
             prom_pl_2.load_model(fp.name)
-            y_2 = prom_pl_1.infer(df_test.to_numpy())
+            _ = prom_pl_1.infer(df_test.to_numpy())
 
         # Check if both model's weights are equal
         _mean_wts_1, _mean_wts_2 = [], []
@@ -128,7 +128,7 @@ class TestPrometheusPipeline(unittest.TestCase):
         df_train, df_test = df[:-test_size], df[-test_size:]
 
         prom_pl_1.train(df_train.to_numpy())
-        y_1 = prom_pl_1.infer(df_test.to_numpy())
+        _ = prom_pl_1.infer(df_test.to_numpy())
 
         buf = prom_pl_1.save_model()
 
@@ -138,7 +138,7 @@ class TestPrometheusPipeline(unittest.TestCase):
             num_epochs=10,
         )
         prom_pl_2.load_model(buf)
-        y_2 = prom_pl_1.infer(df_test.to_numpy())
+        _ = prom_pl_1.infer(df_test.to_numpy())
 
         # Check if both model's weights are equal
         _mean_wts_1, _mean_wts_2 = [], []
