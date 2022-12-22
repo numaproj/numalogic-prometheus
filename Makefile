@@ -20,6 +20,9 @@ format: clean
 	poetry run black trainer.py
 	poetry run black starter.py
 
+lint: format
+	poetry run flake8 .
+
 # install all dependencies
 setup:
 	poetry install --with dev --all-extras
