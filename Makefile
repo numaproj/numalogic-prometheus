@@ -7,8 +7,6 @@ ifndef PYTHON
 $(error "Python is not available, please install.")
 endif
 
-POETRY := $${HOME}/.poetry/bin/poetry
-
 clean:
 	@rm -rf build dist .eggs *.egg-info
 	@rm -rf .benchmarks .coverage coverage.xml htmlcov report.xml .tox
@@ -18,15 +16,19 @@ clean:
 	@find . -type f -name "*.py[co]" -exec rm -rf {} +
 
 format: clean
-	@POETRY run black numaprom/
-	@POETRY run black trainer.py
+	poetry run black numaprom/
+	poetry run black trainer.py
+	poetry run black starter.py
+
+lint: format
+	poetry run flake8 .
 
 # install all dependencies
 setup:
-	@POETRY install -v
+	poetry install --with dev --all-extras
 
 test:
-	@POETRY run python -m unittest discover
+	poetry run python -m unittest discover
 
 requirements:
 	poetry export -f requirements.txt --output requirements.txt --without-hashes

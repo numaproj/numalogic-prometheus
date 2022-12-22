@@ -5,7 +5,6 @@ from typing import Optional
 
 from pynumaflow.function import Messages, Datum
 
-from numaprom.constants import METRIC_CONFIG
 from numaprom.tools import catch_exception, msg_forward
 
 LOGGER = logging.getLogger(__name__)
