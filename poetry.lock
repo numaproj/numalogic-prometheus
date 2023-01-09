@@ -4,7 +4,7 @@
 name = "aiohttp"
 version = "3.8.3"
 description = "Async http client/server framework (asyncio)"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -113,7 +113,7 @@ speedups = ["Brotli", "aiodns", "cchardet"]
 name = "aiosignal"
 version = "1.3.1"
 description = "aiosignal: a list of registered asynchronous callbacks"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -159,7 +159,7 @@ files = [
 name = "attrs"
 version = "22.2.0"
 description = "Classes Without Boilerplate"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -212,18 +212,18 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.26.44"
+version = "1.26.46"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.26.44-py3-none-any.whl", hash = "sha256:a612ed29551900e6504e749df9b3c991453ee2bf2656d63777d76b4cbd644fed"},
-    {file = "boto3-1.26.44.tar.gz", hash = "sha256:4f4c3018caf2ddaf355f202be8ff48c5ecf9d4208d6d6c581055428fcfa2309b"},
+    {file = "boto3-1.26.46-py3-none-any.whl", hash = "sha256:96055651f7be882175aa334ad46528e1ad79fb8ca33fa9c3998cc1d985b34eab"},
+    {file = "boto3-1.26.46.tar.gz", hash = "sha256:e24d65c31780c208768ebcd152d8a0181591c9c8e7d971e23f318d7f41910ba1"},
 ]
 
 [package.dependencies]
-botocore = ">=1.29.44,<1.30.0"
+botocore = ">=1.29.46,<1.30.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -232,14 +232,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.29.44"
+version = "1.29.46"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.29.44-py3-none-any.whl", hash = "sha256:d4c10df0946ada82827b9f5323c43ba2ee5e81ae9c2acfbd2c59f65668c27863"},
-    {file = "botocore-1.29.44.tar.gz", hash = "sha256:e48371ff2c375f6a5ac2e6cdbb2d32aa14b1c9c0c049f12af96ec5614c55a6f1"},
+    {file = "botocore-1.29.46-py3-none-any.whl", hash = "sha256:dbac2fde265f13beb9191ec3ff63b90b515e9ed63875edc3afbd72c5f585e48b"},
+    {file = "botocore-1.29.46.tar.gz", hash = "sha256:78bf25933e35eb6354a9e80fe156f86dce4d346a92afe364dfce25c17ab0639f"},
 ]
 
 [package.dependencies]
@@ -252,14 +252,14 @@ crt = ["awscrt (==0.15.3)"]
 
 [[package]]
 name = "cachetools"
-version = "5.2.0"
+version = "5.2.1"
 description = "Extensible memoizing collections and decorators"
 category = "main"
 optional = false
 python-versions = "~=3.7"
 files = [
-    {file = "cachetools-5.2.0-py3-none-any.whl", hash = "sha256:f9f17d2aec496a9aa6b76f53e3b614c965223c061982d434d160f930c698a9db"},
-    {file = "cachetools-5.2.0.tar.gz", hash = "sha256:6a94c6402995a99c3970cc7e4884bb60b4a8639938157eeed436098bf9831757"},
+    {file = "cachetools-5.2.1-py3-none-any.whl", hash = "sha256:8462eebf3a6c15d25430a8c27c56ac61340b2ecf60c9ce57afc2b97e450e47da"},
+    {file = "cachetools-5.2.1.tar.gz", hash = "sha256:5991bc0e08a1319bb618d3195ca5b6bc76646a49c21d55962977197b301cc1fe"},
 ]
 
 [[package]]
@@ -529,7 +529,7 @@ dotenv = ["python-dotenv"]
 name = "frozenlist"
 version = "1.3.3"
 description = "A list-like structure which implements collections.abc.MutableSequence"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -613,7 +613,7 @@ files = [
 name = "fsspec"
 version = "2022.11.0"
 description = "File-system specification"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -982,7 +982,7 @@ files = [
 name = "lightning-utilities"
 version = "0.5.0"
 description = "PyTorch Lightning Sample project."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1195,7 +1195,7 @@ sqlserver = ["mlflow-dbstore"]
 name = "multidict"
 version = "6.0.4"
 description = "multidict implementation"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1350,7 +1350,7 @@ files = [
 name = "nvidia-cublas-cu11"
 version = "11.10.3.66"
 description = "CUBLAS native runtime libraries"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3"
 files = [
@@ -1366,7 +1366,7 @@ wheel = "*"
 name = "nvidia-cuda-nvrtc-cu11"
 version = "11.7.99"
 description = "NVRTC native runtime libraries"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3"
 files = [
@@ -1383,7 +1383,7 @@ wheel = "*"
 name = "nvidia-cuda-runtime-cu11"
 version = "11.7.99"
 description = "CUDA Runtime native Libraries"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3"
 files = [
@@ -1399,7 +1399,7 @@ wheel = "*"
 name = "nvidia-cudnn-cu11"
 version = "8.5.0.96"
 description = "cuDNN runtime libraries"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3"
 files = [
@@ -1427,6 +1427,60 @@ files = [
 rsa = ["cryptography (>=3.0.0)"]
 signals = ["blinker (>=1.4.0)"]
 signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
+
+[[package]]
+name = "orjson"
+version = "3.8.4"
+description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "orjson-3.8.4-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:94841c3418b818c8cda01ad632f0e740dad3a5bcbc38609f1fd163f4bd202ef9"},
+    {file = "orjson-3.8.4-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:ffb9367d63a4c71cd0432fc5a4e295b0e89b061e90be9f5ff3ffca301ba2dd84"},
+    {file = "orjson-3.8.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:74c25f71a41a3a213bee02f496abbc9ebc7cb0c8d1e5c1a5ab77c87b427b3f07"},
+    {file = "orjson-3.8.4-cp310-cp310-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:30294eeb7417eca85572b64278f5c4fdd72049725d7d23da5042a61c1a2298c9"},
+    {file = "orjson-3.8.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:36257f254635da390a9d689214c4cec9ec4ea224c5e2bcdfe97d15a384695be5"},
+    {file = "orjson-3.8.4-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:170a041d0d967e348ab086f1c9765846658cb0e807abe98e8320f665b1c67e9b"},
+    {file = "orjson-3.8.4-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:38df475523ca0f3f88b871821a9fb1a1437dad7c637847e0e7378024c7654473"},
+    {file = "orjson-3.8.4-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:54ade013afcda2f32f98227f0eb3dba4267c6efe7a8abd93bfec6d7af2546370"},
+    {file = "orjson-3.8.4-cp310-none-win_amd64.whl", hash = "sha256:b0a8273ebcf363042e7847faaf67f92178aceb3476e374da5432f9e6772c7a80"},
+    {file = "orjson-3.8.4-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:4c3c3571118371a5b88a89a0a157b4e98827d3a540c3f683c59d80e71f66195d"},
+    {file = "orjson-3.8.4-cp311-cp311-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:86f71f2abc24b79e74a13f8d4eebb7d03cad43d6a46e2cad6fd5891423f84773"},
+    {file = "orjson-3.8.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1bff66b99ce8ba3d3b39ce10f27a848b3b68d80f64d77b8118d4648fafd2f964"},
+    {file = "orjson-3.8.4-cp311-cp311-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:49c59a728510a6ef20de59f6262d1415108b323996634d263e4d0d613994fc13"},
+    {file = "orjson-3.8.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:27225338f24a6906d254c4b8b3849135af758af55ae1f43e5ccbebcf2097628a"},
+    {file = "orjson-3.8.4-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:0c42fc0ed3f12bc7d0fd61a26899a8ac32deb6622289110b6d7f4d60d47dcff3"},
+    {file = "orjson-3.8.4-cp311-none-win_amd64.whl", hash = "sha256:ad6d533ab9ef8b141d6749e7591ee3a3195037c217818e3b3351df1468efc012"},
+    {file = "orjson-3.8.4-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:654e219ace2c942f9d8f3a69935991f8c88efb4a85b074ba917960c800a1e5c8"},
+    {file = "orjson-3.8.4-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:0b57cc7a94b133140c85c3873d22e7a1f8e0d2489619a7e2e8640f9a9edfbc29"},
+    {file = "orjson-3.8.4-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:447a4c95f849872ac9af137153e8748b3b35d199c03a3bc618da6a3a23681f96"},
+    {file = "orjson-3.8.4-cp37-cp37m-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:5d47002a88f60a35901925d4085a313647229950d2818044520eb0e30fc9447b"},
+    {file = "orjson-3.8.4-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e26422430227e2a8a6d07daee5390fb6510ce67f2b45a1016595e0ca8fb9515b"},
+    {file = "orjson-3.8.4-cp37-cp37m-manylinux_2_28_x86_64.whl", hash = "sha256:77034415ceb563d38b5aa9713b8945faed7a5ddf5553a5e0831cee362b81e0b2"},
+    {file = "orjson-3.8.4-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:486ecbd6548232ee4d533effcd4dbf5cfc547738ce1791f6204e949f1214c0a0"},
+    {file = "orjson-3.8.4-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:b68f2f7f61b2f85623e0cd02eea04ab358cba9a01370fa8f2e96f1b2b83705b7"},
+    {file = "orjson-3.8.4-cp37-none-win_amd64.whl", hash = "sha256:8b18925638936104e1c2bdc555b508733ef83c4c9ac96c5ec6666af6df12c22d"},
+    {file = "orjson-3.8.4-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:c834eed62fd184d8c0a707f7d1dbaf57815c4865091bfc220182c83321c773f5"},
+    {file = "orjson-3.8.4-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:6b07c1d76db95706e78e904f2329796d0c26ffed5eaea7a1be753ef7032c30dc"},
+    {file = "orjson-3.8.4-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3cb431a8168510458fa9d3a1a3ed8f56909187db953138080e8c8ef44484adde"},
+    {file = "orjson-3.8.4-cp38-cp38-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:64d60e21096de30101348de25f20c516289365c056d0987ec76c74f5073af122"},
+    {file = "orjson-3.8.4-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ceabb527e0641ff23d5ed89f3d9c22f3df2cbe967547d28ea7fdc09c3de1168d"},
+    {file = "orjson-3.8.4-cp38-cp38-manylinux_2_28_x86_64.whl", hash = "sha256:16a00f10321b4afacd8ecbe239e4ac8c6a77eb442caeffb638c9a49a653dfa2c"},
+    {file = "orjson-3.8.4-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:e9c0fb49362e79e3db158b8d307ff53adb4a5bd2706e1a4372393a4d661000fb"},
+    {file = "orjson-3.8.4-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:e7f72c7a810977b94d0411a5edf3b0eab7bc5763089ad0a0d639e49f651a0d91"},
+    {file = "orjson-3.8.4-cp38-none-win_amd64.whl", hash = "sha256:2e6b088d6a1700fad0ce18715ec309bb7efc8ec6275413e1495261a3bbfbc17a"},
+    {file = "orjson-3.8.4-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:5d618f30784321361927a65a6da484ef6da218f62c594987bd4b79f97df55036"},
+    {file = "orjson-3.8.4-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:42aee49489de6aa3e9b3280c9a124d2f4a984be7a714cd8b13b27634af817521"},
+    {file = "orjson-3.8.4-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:31f919b370159b3d0c3f38844d66545a4520bc2652c32b9127d02e94f107247e"},
+    {file = "orjson-3.8.4-cp39-cp39-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:5fd174091a24a5ded94eaa141b1c989ce9dd6a7af8eadd525ef93dc5849cb48e"},
+    {file = "orjson-3.8.4-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e030e8e50e908a7f8ba02b69c5692e30d9687ad184f0b75bfd8cd57df695093a"},
+    {file = "orjson-3.8.4-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:22b4c6066c1906b8d2a88cec8e8dc138ba2e08b17971419672734ca3ddab1995"},
+    {file = "orjson-3.8.4-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:90ea42189d81dea219dfda58374e2d9f07e1d17052fa33ade07441e5e50d62d2"},
+    {file = "orjson-3.8.4-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:53cc5be7c5c60d7583d71144bdb77171183f015b755ad5ab4a248fc03e61dad7"},
+    {file = "orjson-3.8.4-cp39-none-win_amd64.whl", hash = "sha256:c2664d39fa599beb70afe8aa92c7ca905207a0b0aeb7597c038cb42394bd1a0e"},
+    {file = "orjson-3.8.4.tar.gz", hash = "sha256:9dcb8d788254936de2791d6d2c29bc41a3dc2c9d9cb4f01c06c0e6d424844593"},
+]
 
 [[package]]
 name = "packaging"
@@ -1676,7 +1730,7 @@ six = ">=1.5"
 name = "pytorch-lightning"
 version = "1.8.6"
 description = "PyTorch Lightning is the lightweight PyTorch wrapper for ML researchers. Scale your models. Write less boilerplate."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1811,14 +1865,14 @@ six = "*"
 
 [[package]]
 name = "redis"
-version = "4.4.0"
+version = "4.4.1"
 description = "Python client for Redis database and key-value store"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "redis-4.4.0-py3-none-any.whl", hash = "sha256:cae3ee5d1f57d8caf534cd8764edf3163c77e073bdd74b6f54a87ffafdc5e7d9"},
-    {file = "redis-4.4.0.tar.gz", hash = "sha256:7b8c87d19c45d3f1271b124858d2a5c13160c4e74d4835e28273400fa34d5228"},
+    {file = "redis-4.4.1-py3-none-any.whl", hash = "sha256:a721fd4d715fcd947848ed8fa02c2efd8224279979e0b721d9fdac6c4db35e93"},
+    {file = "redis-4.4.1.tar.gz", hash = "sha256:f7a870c44868ab87bbecd6211c6d7c8720b1e9a796b743fbc4725d7ec75651c3"},
 ]
 
 [package.dependencies]
@@ -2107,20 +2161,19 @@ widechars = ["wcwidth"]
 
 [[package]]
 name = "tensorboardx"
-version = "2.5"
+version = "2.5.1"
 description = "TensorBoardX lets you watch Tensors Flow without Tensorflow"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "tensorboardX-2.5-py2.py3-none-any.whl", hash = "sha256:b1d8903f8106e2f4484640a293f9680f9757d5f7d2e699e0672bb2382d988e07"},
-    {file = "tensorboardX-2.5.tar.gz", hash = "sha256:5238ac5eac4a26d8f8381d7f54a2fcd530a134db841af9a9a6427beca93c6776"},
+    {file = "tensorboardX-2.5.1-py2.py3-none-any.whl", hash = "sha256:8808133ccca673cd04076f6f2a85cf2d39bb2d0393a0f20d0f9cbb06d472b57e"},
+    {file = "tensorboardX-2.5.1.tar.gz", hash = "sha256:ea85a3446f22ce8a917fe4fa4d8a7a96222ef84ac835267d038c34bb99f6d61b"},
 ]
 
 [package.dependencies]
 numpy = "*"
-protobuf = ">=3.8.0"
-six = "*"
+protobuf = ">=3.8.0,<=3.20.1"
 
 [[package]]
 name = "threadpoolctl"
@@ -2150,7 +2203,7 @@ files = [
 name = "torch"
 version = "1.13.1"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7.0"
 files = [
@@ -2191,7 +2244,7 @@ opt-einsum = ["opt-einsum (>=3.3)"]
 name = "torchmetrics"
 version = "0.11.0"
 description = "PyTorch native Metrics"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2219,7 +2272,7 @@ text = ["nltk (>=3.6)", "regex (>=2021.9.24)", "tqdm (>=4.41.0)"]
 name = "tqdm"
 version = "4.64.1"
 description = "Fast, Extensible Progress Meter"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
 files = [
@@ -2336,7 +2389,7 @@ watchdog = ["watchdog"]
 name = "wheel"
 version = "0.38.4"
 description = "A built-package format for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2351,7 +2404,7 @@ test = ["pytest (>=3.0.0)"]
 name = "yarl"
 version = "1.8.2"
 description = "Yet another URL library"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2454,4 +2507,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <3.11"
-content-hash = "474500feb6357a2bf540bcd0352b25ed580948c63387d1a3bb871a8341c0069d"
+content-hash = "764b42df1d6f4c432753a226e220020737fb32d89f026795e1f8fea8214cc6ee"

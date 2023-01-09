@@ -1,11 +1,13 @@
 import os
 import unittest
+from pprint import pprint
 from unittest.mock import patch
 
+import orjson
 from pynumaflow.function._dtypes import DROP
 
 from tests import *
-from numaprom.entities import Payload
+from numaprom.entities import Payload, StreamPayload
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
 from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
 
@@ -27,8 +29,8 @@ class TestWindow(unittest.TestCase):
             _out = window("", get_datum(data))
             if not _out.items()[0].key == DROP:
                 _out = _out.items()[0].value.decode("utf-8")
-                payload = Payload.from_json(_out)
-                keys = list(payload.key_map.values())
+                payload = StreamPayload(**orjson.loads(_out))
+                keys = list(payload.metadata["key_map"].values())
                 if "metric_2" in keys:
                     self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_2", "123456789"])
                 if "metric_1" in keys:

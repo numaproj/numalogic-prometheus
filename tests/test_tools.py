@@ -1,13 +1,12 @@
 import os
 import socket
 import unittest
-from pprint import pprint
 from unittest.mock import patch
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.entities import Payload
+from numaprom.entities import StreamPayload
+from numaprom.tools import parse_input, is_host_reachable
 from tests.tools import get_stream_data, return_mock_metric_config
-from numaprom.tools import extract, is_host_reachable
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 REQ_2xx = os.path.join(DATA_DIR, "2xx.txt")
@@ -34,9 +33,8 @@ class TestTools(unittest.TestCase):
     def test_extract(self):
         for idx, data in enumerate(self.input_stream):
             data["window"] = self.window
-            out = extract(data)
-            pprint(out, indent=2)
-            self.assertTrue(type(out), Payload)
+            out = parse_input(data)
+            self.assertIsInstance(out, StreamPayload)
 
     def test_is_host_reachable(self):
         self.assertTrue(is_host_reachable("google.com"))

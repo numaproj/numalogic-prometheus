@@ -1,8 +1,9 @@
+from dataclasses import dataclass
+from enum import Enum
+from typing import List, Dict, Optional, Any
+
 import numpy as np
 import pandas as pd
-from enum import Enum
-from typing import List, Dict, Optional
-from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
 
 
@@ -18,7 +19,24 @@ class Status(str, Enum):
 @dataclass
 class Metric:
     timestamp: str
-    value: float = 0
+    value: float
+
+
+@dataclass
+class StreamPayload:
+    uuid: str
+    name: str
+    data: List[Metric]
+    status: str = Status.RAW
+    metadata: Dict[str, Any] = None
+
+    @property
+    def start_ts(self):
+        return self.data[0].timestamp
+
+    @property
+    def end_ts(self):
+        return self.data[-1].timestamp
 
 
 @dataclass_json
