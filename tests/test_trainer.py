@@ -5,9 +5,9 @@ from unittest.mock import patch, Mock
 from numalogic.registry import MLflowRegistrar
 
 import trainer
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom._constants import TESTS_DIR, METRIC_CONFIG
 from numaprom.prometheus import Prometheus
-from numaprom.tests.tools import (
+from tests.tools import (
     return_mock_metric_config,
     return_mock_lstmae,
     mock_argocd_query_metric,

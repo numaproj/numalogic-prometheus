@@ -20,12 +20,13 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.9, <3.11"
 dataclasses-json = "^0.5.6"
-confluent-kafka = "^1.8.2"
 cachetools = "^5.0.0"
 redis = "^4.3.1"
 pynumaflow = "~0.2.6"
-numalogic = {version = "~0.2.9", extras = ["mlflow"]}
+numalogic = {version = "~0.3.0", extras = ["mlflow"]}
 boto3 = "^1.25.2"
+pytorch-lightning = "^1.8.6"
+protobuf = "3.20"
 
 
 [tool.poetry.group.mlflowserver]

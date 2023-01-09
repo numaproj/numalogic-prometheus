@@ -10,7 +10,7 @@ from numalogic.models.autoencoder.variants import VanillaAE
 
 from numaprom.pipeline import PrometheusPipeline
 from numaprom.prometheus import Prometheus
-from numaprom.tests.tools import mock_argocd_query_metric
+from tests.tools import mock_argocd_query_metric
 
 
 @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))

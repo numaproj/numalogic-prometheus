@@ -4,9 +4,9 @@ import unittest
 from pprint import pprint
 from unittest.mock import patch
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom._constants import TESTS_DIR, METRIC_CONFIG
 from numaprom.entities import Payload
-from numaprom.tests.tools import get_stream_data, return_mock_metric_config
+from tests.tools import get_stream_data, return_mock_metric_config
 from numaprom.tools import extract, is_host_reachable
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")

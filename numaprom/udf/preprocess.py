@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 @catch_exception
 @msg_forward
-def preprocess(key: str, datum: Datum) -> Messages:
+def preprocess(_: str, datum: Datum) -> Messages:
     start_preprocess = time.time()
     payload = Payload.from_json(datum.value.decode("utf-8"))
 

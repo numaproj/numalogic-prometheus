@@ -3,12 +3,12 @@ import os
 import unittest
 from unittest.mock import patch, Mock
 
-from numalogic.registry import MLflowRegistrar
+from numalogic.registry import MLflowRegistry
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom._constants import TESTS_DIR, METRIC_CONFIG
 from numaprom.entities import Payload, Status
-from numaprom.tests import redis_client
-from numaprom.tests.tools import (
+from tests import redis_client
+from tests.tools import (
     get_inference_input,
     return_mock_metric_config,
     return_stale_model,
@@ -30,7 +30,7 @@ class TestInference(unittest.TestCase):
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)
 
-    @patch.object(MLflowRegistrar, "load", Mock(return_value=return_mock_lstmae()))
+    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
     def test_inference(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
@@ -39,7 +39,7 @@ class TestInference(unittest.TestCase):
             payload = Payload.from_json(data)
             self.assertEqual(payload.status, Status.INFERRED)
 
-    @patch.object(MLflowRegistrar, "load", Mock(return_value=None))
+    @patch.object(MLflowRegistry, "load", Mock(return_value=None))
     def test_no_model(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
@@ -47,7 +47,7 @@ class TestInference(unittest.TestCase):
             train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
             self.assertFalse(train_payload["resume_training"])
 
-    @patch.object(MLflowRegistrar, "load", Mock(return_value=return_stale_model()))
+    @patch.object(MLflowRegistry, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)

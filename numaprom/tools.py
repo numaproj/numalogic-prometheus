@@ -11,10 +11,10 @@ from functools import wraps
 from typing import List, Optional, Any, Dict, Sequence
 
 from mlflow.entities.model_registry import ModelVersion
-from numalogic.registry import MLflowRegistrar
+from numalogic.registry import MLflowRegistry
 from pynumaflow.function import Messages, Message
 
-from numaprom.constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
+from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
 from numaprom.entities import Payload, Metric, Status
 
 LOGGER = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
 def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[Dict]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-        ml_registry = MLflowRegistrar(tracking_uri=tracking_uri)
+        ml_registry = MLflowRegistry(tracking_uri=tracking_uri)
         artifact_dict = ml_registry.load(skeys=skeys, dkeys=dkeys)
         return artifact_dict
     except Exception as ex:
@@ -164,7 +164,7 @@ def save_model(
     skeys: Sequence[str], dkeys: Sequence[str], model, **metadata
 ) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-    ml_registry = MLflowRegistrar(tracking_uri=tracking_uri, artifact_type="pytorch")
+    ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type="pytorch")
     mlflow.start_run()
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, primary_artifact=model, **metadata)
     LOGGER.info("Successfully saved the model to mlflow. Model version: %s", version)
