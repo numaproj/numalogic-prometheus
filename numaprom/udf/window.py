@@ -71,6 +71,6 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         status=Status.EXTRACTED,
         win_arr=[float(_val) for _val, _ in elements],
         win_ts_arr=[str(_ts) for _, _ts in elements],
-        metadata=dict(src_labels=msg["labels"])
+        metadata=dict(src_labels=msg["labels"]),
     )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

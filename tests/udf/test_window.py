@@ -7,8 +7,8 @@ from pynumaflow.function._dtypes import DROP
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
 from numaprom.entities import StreamPayload
-from tests import *
 from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
+from tests import *
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
