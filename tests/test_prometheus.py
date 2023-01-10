@@ -4,7 +4,7 @@ import datetime
 import unittest
 from unittest.mock import patch, Mock, MagicMock
 
-from numaprom.constants import TESTS_DIR
+from numaprom._constants import TESTS_DIR
 from numaprom.prometheus import Prometheus
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")

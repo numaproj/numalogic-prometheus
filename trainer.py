@@ -10,7 +10,7 @@ from mlflow.entities.model_registry import ModelVersion
 from numalogic.models.autoencoder.variants import VanillaAE, Conv1dAE, LSTMAE
 from numalogic.preprocess.transformer import LogTransformer
 
-from numaprom.constants import DEFAULT_PROMETHEUS_SERVER
+from numaprom._constants import DEFAULT_PROMETHEUS_SERVER
 from numaprom.pipeline import PrometheusPipeline
 from numaprom.tools import load_model, save_model, get_metric_config
 

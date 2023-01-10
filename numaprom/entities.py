@@ -1,9 +1,14 @@
-import numpy as np
-import pandas as pd
-from enum import Enum
-from typing import List, Dict, Optional
+from copy import copy
 from dataclasses import dataclass
-from dataclasses_json import dataclass_json, LetterCase
+from enum import Enum
+from typing import List, Dict, Optional, Any, Union
+
+import numpy as np
+import numpy.typing as npt
+import orjson
+
+Vector = List[float]
+Matrix = Union[Vector, List[Vector], npt.NDArray]
 
 
 class Status(str, Enum):
@@ -14,54 +19,45 @@ class Status(str, Enum):
     POST_PROCESSED = "post_processed"
 
 
-@dataclass_json
-@dataclass
+@dataclass(frozen=True)
 class Metric:
     timestamp: str
-    value: float = 0
+    value: float
 
 
-@dataclass_json
 @dataclass
-class Payload:
+class StreamPayload:
     uuid: str
-    metric_name: str
-    key_map: Dict
-    src_labels: Dict[str, str]
-    processedMetrics: List[Metric]
-    startTS: str
-    endTS: str
+    win_arr: Matrix
+    win_ts_arr: List[str]
+    composite_keys: Dict[str, str]
     status: Status = Status.RAW
-    win_score: Optional[List[float]] = None
-    steps: Optional[Dict[str, str]] = None
-    std: Optional[float] = None
-    mean: Optional[float] = None
-    threshold: Optional[float] = None
-    model_version: Optional[int] = None
-    anomaly: Optional[float] = None
+    metadata: Dict[str, Any] = None
 
-    def get_processed_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame([metric.__dict__ for metric in self.processedMetrics])
-        df.set_index("timestamp", inplace=True)
-        return df
+    @property
+    def start_ts(self):
+        return self.win_ts_arr[0]
 
-    def get_input_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame([metric.__dict__ for metric in self.inputMetrics])
-        df.set_index("timestamp", inplace=True)
-        return df
+    @property
+    def end_ts(self):
+        return self.win_ts_arr[-1]
 
-    def get_processed_array(self) -> np.array:
-        arr = np.array([[metric.value] for metric in self.processedMetrics])
-        return arr
+    def get_streamarray(self):
+        return np.asarray(self.win_arr)
 
-    def __eq__(self, other):
-        return isinstance(other, Payload) and self.uuid == other.uuid
+    def get_metadata(self, key: str):
+        return copy(self.metadata[key])
 
-    def __hash__(self):
-        return hash(self.uuid)
+    def set_win_arr(self, arr):
+        self.win_arr = arr
+
+    def set_status(self, status: Status):
+        self.status = status
+
+    def set_metadata(self, key: str, value):
+        self.metadata[key] = value
 
 
-@dataclass_json(letter_case=LetterCase.PASCAL)
 @dataclass
 class PrometheusPayload:
     timestamp_ms: int
@@ -71,3 +67,29 @@ class PrometheusPayload:
     type: str
     value: float
     labels: Dict[str, str]
+
+    def as_json(self) -> bytes:
+        return orjson.dumps(
+            {
+                "TimestampMs": self.timestamp_ms,
+                "Name": self.name,
+                "Namespace": self.namespace,
+                "Subsystem": self.subsystem,
+                "Type": self.type,
+                "Value": self.value,
+                "Labels": self.labels,
+            }
+        )
+
+    @classmethod
+    def from_json(cls, json_obj) -> "PrometheusPayload":
+        obj = orjson.loads(json_obj)
+        return cls(
+            timestamp_ms=obj["TimestampMs"],
+            name=obj["Name"],
+            namespace=obj["Namespace"],
+            subsystem=obj["Subsystem"],
+            type=obj["Type"],
+            value=obj["Value"],
+            labels=obj["Labels"],
+        )

@@ -8,10 +8,7 @@ from sklearn.base import TransformerMixin
 from sklearn.pipeline import make_pipeline
 from datetime import datetime, timedelta
 from typing import Sequence, Callable, Optional, Union, BinaryIO, List, Dict
-
-from numalogic.models.autoencoder.factory import ModelPlFactory
-
-from numaprom.constants import DEFAULT_PROMETHEUS_SERVER
+from numaprom._constants import DEFAULT_PROMETHEUS_SERVER
 from numaprom.prometheus import Prometheus
 
 LOGGER = logging.getLogger(__name__)

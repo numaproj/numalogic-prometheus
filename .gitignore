@@ -130,3 +130,6 @@ dmypy.json
 
 # Jetbrains project
 .idea/
+
+# Mac related
+.DS_Store

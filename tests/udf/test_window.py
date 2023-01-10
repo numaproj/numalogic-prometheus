@@ -2,12 +2,13 @@ import os
 import unittest
 from unittest.mock import patch
 
+import orjson
 from pynumaflow.function._dtypes import DROP
 
-from numaprom.tests import redis_client, window
-from numaprom.entities import Payload
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
+from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.entities import StreamPayload
+from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
+from tests import redis_client, window
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
@@ -27,8 +28,8 @@ class TestWindow(unittest.TestCase):
             _out = window("", get_datum(data))
             if not _out.items()[0].key == DROP:
                 _out = _out.items()[0].value.decode("utf-8")
-                payload = Payload.from_json(_out)
-                keys = list(payload.key_map.values())
+                payload = StreamPayload(**orjson.loads(_out))
+                keys = list(payload.composite_keys.values())
                 if "metric_2" in keys:
                     self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_2", "123456789"])
                 if "metric_1" in keys:
@@ -36,9 +37,9 @@ class TestWindow(unittest.TestCase):
 
     @mockenv(BUFF_SIZE="1")
     def test_window_err(self):
-        for data in self.input_stream:
-            out = window("", get_datum(data))
-            self.assertIsNone(out)
+        with self.assertRaises(ValueError):
+            for data in self.input_stream:
+                window("", get_datum(data))
 
     def test_window_drop(self):
         for _d in self.input_stream:
