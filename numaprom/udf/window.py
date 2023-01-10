@@ -1,16 +1,16 @@
 import json
-import os
 import logging
+import os
+import uuid
 from typing import List, Tuple, Optional
 
 import orjson.orjson
+from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from pynumaflow.function import Messages, Datum
-
-from numaprom.entities import Metric
+from numaprom.entities import StreamPayload, Status
 from numaprom.redis import get_redis_client
-from numaprom.tools import msg_forward, catch_exception, parse_input, get_key_map, get_metric_config
+from numaprom.tools import msg_forward, get_key_map, get_metric_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,9 +31,11 @@ def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tu
     return _window
 
 
-@catch_exception
 @msg_forward
 def window(_: str, datum: Datum) -> Optional[bytes]:
+    """
+    UDF to construct windowing of the streaming input data, required by ML models.
+    """
     msg = json.loads(datum.value.decode("utf-8"))
 
     metric_name = msg["name"]
@@ -63,8 +65,12 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     if len(elements) < win_size:
         return None
 
-    ts_window = [Metric(timestamp=str(_ts), value=float(_val)).to_dict() for _val, _ts in elements]
-    msg["window"] = ts_window
-
-    payload = parse_input(msg)
-    return orjson.dumps(payload)
+    payload = StreamPayload(
+        uuid=uuid.uuid4().hex,
+        name=msg["name"],
+        status=Status.EXTRACTED,
+        win_arr=[float(_val) for _val, _ in elements],
+        win_ts_arr=[str(_ts) for _, _ts in elements],
+        metadata=dict(src_labels=msg["labels"], key_map=get_key_map(msg))
+    )
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

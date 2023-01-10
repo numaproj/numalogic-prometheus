@@ -1,14 +1,13 @@
 import os
 import unittest
-from pprint import pprint
 from unittest.mock import patch
 
 import orjson
 from pynumaflow.function._dtypes import DROP
 
-from tests import *
-from numaprom.entities import Payload, StreamPayload
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.entities import StreamPayload
+from tests import *
 from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
@@ -38,9 +37,9 @@ class TestWindow(unittest.TestCase):
 
     @mockenv(BUFF_SIZE="1")
     def test_window_err(self):
-        for data in self.input_stream:
-            out = window("", get_datum(data))
-            self.assertIsNone(out)
+        with self.assertRaises(ValueError):
+            for data in self.input_stream:
+                window("", get_datum(data))
 
     def test_window_drop(self):
         for _d in self.input_stream:

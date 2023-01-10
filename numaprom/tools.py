@@ -1,23 +1,21 @@
 import json
+import logging
 import os
+import socket
 import time
 import uuid
-import socket
-import logging
+from functools import wraps
 from json import JSONDecodeError
-from pprint import pprint
+from typing import List, Optional, Any, Dict, Sequence
 
 import mlflow
 import pandas as pd
-from functools import wraps
-from typing import List, Optional, Any, Dict, Sequence
-
 from mlflow.entities.model_registry import ModelVersion
 from numalogic.registry import MLflowRegistry
 from pynumaflow.function import Messages, Message
 
 from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
-from numaprom.entities import Payload, Metric, Status, StreamPayload
+from numaprom.entities import Metric, Status, StreamPayload
 
 LOGGER = logging.getLogger(__name__)
 
@@ -98,27 +96,14 @@ def parse_input(src_data: Dict[str, Any]) -> Optional[StreamPayload]:
     Function to parse raw data from source vertex and construct
     a StreamPayload object
     """
-    input_metrics = [Metric(**_item) for _item in src_data["window"]]
-    pprint(src_data, indent=2)
-
     stream_payload = StreamPayload(
         uuid=uuid.uuid4().hex,
         name=src_data["name"],
-        data=input_metrics,
         status=Status.EXTRACTED,
+        win_arr=src_data["arr_window"],
+        win_ts_arr=src_data["ts_window"],
         metadata=dict(src_labels=src_data["labels"], key_map=get_key_map(src_data))
     )
-
-    # payload = Payload(
-    #     uuid=str(uuid.uuid4()),
-    #     metric_name=data["name"],
-    #     key_map=get_key_map(data),
-    #     src_labels=data["labels"],
-    #     processedMetrics=input_metrics,
-    #     startTS=data["timestamp"],
-    #     endTS=data["timestamp"],
-    #     status=Status.EXTRACTED,
-    # )
     return stream_payload
 
 

@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Union
 
 import numpy as np
 import pandas as pd
 from dataclasses_json import dataclass_json, LetterCase
+
+Vector = List[float]
+Matrix = Union[Vector, List[Vector]]
 
 
 class Status(str, Enum):
@@ -15,8 +18,7 @@ class Status(str, Enum):
     POST_PROCESSED = "post_processed"
 
 
-@dataclass_json
-@dataclass
+@dataclass(frozen=True)
 class Metric:
     timestamp: str
     value: float
@@ -26,17 +28,18 @@ class Metric:
 class StreamPayload:
     uuid: str
     name: str
-    data: List[Metric]
+    win_arr: Matrix
+    win_ts_arr: List[str]
     status: str = Status.RAW
     metadata: Dict[str, Any] = None
 
     @property
     def start_ts(self):
-        return self.data[0].timestamp
+        return self.win_ts_arr[0]
 
     @property
     def end_ts(self):
-        return self.data[-1].timestamp
+        return self.win_ts_arr[-1]
 
 
 @dataclass_json
