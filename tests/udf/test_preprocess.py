@@ -1,15 +1,15 @@
-import os
 import unittest
 from unittest.mock import patch
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.constants import METRIC_CONFIG
 from numaprom.entities import Payload, Status
-from tests.tools import get_prepoc_input, return_mock_metric_config, get_datum
 from numaprom.udf.preprocess import preprocess
-
-DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
-print(DATA_DIR)
-STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
+from tests.tools import (
+    get_prepoc_input,
+    return_mock_metric_config,
+    get_datum,
+    STREAM_DATA_PATH
+)
 
 
 class TestPreprocess(unittest.TestCase):

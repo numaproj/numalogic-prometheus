@@ -4,14 +4,10 @@ import unittest
 from pprint import pprint
 from unittest.mock import patch
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.constants import METRIC_CONFIG
 from numaprom.entities import Payload
-from tests.tools import get_stream_data, return_mock_metric_config
+from tests.tools import get_stream_data, return_mock_metric_config, STREAM_DATA_PATH
 from numaprom.tools import extract, is_host_reachable
-
-DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
-REQ_2xx = os.path.join(DATA_DIR, "2xx.txt")
-STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 def mock_resolver(*_, **__):

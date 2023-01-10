@@ -6,11 +6,8 @@ from pynumaflow.function._dtypes import DROP
 
 from tests import redis_client, window
 from numaprom.entities import Payload
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
-from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
-
-DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
-STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
+from numaprom.constants import METRIC_CONFIG
+from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config, STREAM_DATA_PATH
 
 
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())

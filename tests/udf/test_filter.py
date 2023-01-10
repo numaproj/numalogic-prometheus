@@ -1,14 +1,10 @@
 import json
-import os
 import unittest
 from unittest.mock import patch
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
-from tests.tools import get_stream_data, mockenv, get_datum
+from numaprom.constants import METRIC_CONFIG
 from numaprom.udf import metric_filter
-
-DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
-STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
+from tests.tools import get_stream_data, mockenv, get_datum, STREAM_DATA_PATH
 
 
 class TestFilter(unittest.TestCase):

@@ -5,7 +5,7 @@ from unittest.mock import patch, Mock
 from numalogic.registry import MLflowRegistrar
 
 from numaprom import trainer
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.constants import METRIC_CONFIG
 from numaprom.prometheus import Prometheus
 from tests.tools import (
     return_mock_metric_config,
@@ -13,9 +13,6 @@ from tests.tools import (
     mock_argocd_query_metric,
     mock_rollout_query_metric,
 )
-
-DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
-STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())

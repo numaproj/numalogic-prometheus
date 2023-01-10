@@ -18,6 +18,8 @@ from tests import window
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
+DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
+STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 def mockenv(**envvars):

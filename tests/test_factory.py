@@ -1,7 +1,6 @@
 import unittest
 
 from numaprom.factory import HandlerFactory
-
 from numaprom.udf import metric_filter, preprocess, postprocess, inference
 
 
