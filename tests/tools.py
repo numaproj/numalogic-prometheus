@@ -9,6 +9,7 @@ import pandas as pd
 import torch
 from mlflow.entities.model_registry import ModelVersion
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
+from numalogic.registry import ArtifactData
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 
@@ -94,47 +95,47 @@ def return_mock_vanilla(*_, **__):
 
 
 def return_mock_lstmae(*_, **__):
-    return {
-        "primary_artifact": LSTMAE(seq_len=2, no_features=1, embedding_dim=64),
-        "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
-        "model_properties": ModelVersion(
-            creation_timestamp=1656615600000,
-            current_stage="Production",
-            description="",
-            last_updated_timestamp=datetime.datetime.now().timestamp() * 1000,
-            name="sandbox_numalogic_demo:metric_2:123456789",
-            run_id="6f1e582fb6194bbdaa4141feb2ce8e27",
-            run_link="",
-            source="mlflow-artifacts:/0/6f1e582fb6194bbdaa4141feb2ce8e27/artifacts/model",
-            status="READY",
-            status_message="",
-            tags={},
-            user_id="",
-            version="125",
-        ),
-    }
+    return ArtifactData(
+        artifact=LSTMAE(seq_len=2, no_features=1, embedding_dim=4),
+        metadata={},
+        extras={
+            "creation_timestamp": 1653402941169,
+            "current_stage": "Production",
+            "description": "",
+            "last_updated_timestamp": 1645369200000,
+            "name": "test::error",
+            "run_id": "a7c0b376530b40d7b23e6ce2081c899c",
+            "run_link": "",
+            "source": "mlflow-artifacts:/0/a7c0b376530b40d7b23e6ce2081c899c/artifacts/model",
+            "status": "READY",
+            "status_message": "",
+            "tags": {},
+            "user_id": "",
+            "version": "5",
+        },
+    )
 
 
 def return_stale_model(*_, **__):
-    return {
-        "primary_artifact": VanillaAE(2),
-        "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
-        "model_properties": ModelVersion(
-            creation_timestamp=1656615600000,
-            current_stage="Production",
-            description="",
-            last_updated_timestamp=1656615600000,
-            name="sandbox:lol::demo:lol",
-            run_id="6f1e582fb6194bbdaa4141feb2ce8e27",
-            run_link="",
-            source="mlflow-artifacts:/0/6f1e582fb6194bbdaa4141feb2ce8e27/artifacts/model",
-            status="READY",
-            status_message="",
-            tags={},
-            user_id="",
-            version="125",
-        ),
-    }
+    return ArtifactData(
+        artifact=VanillaAE(seq_len=2),
+        metadata={},
+        extras={
+            "creation_timestamp": 1653402941169,
+            "current_stage": "Production",
+            "description": "",
+            "last_updated_timestamp": 1656615600000,
+            "name": "test::error",
+            "run_id": "a7c0b376530b40d7b23e6ce2081c899c",
+            "run_link": "",
+            "source": "mlflow-artifacts:/0/a7c0b376530b40d7b23e6ce2081c899c/artifacts/model",
+            "status": "READY",
+            "status_message": "",
+            "tags": {},
+            "user_id": "",
+            "version": "5",
+        },
+    )
 
 
 def mock_argocd_query_metric(*_, **__):

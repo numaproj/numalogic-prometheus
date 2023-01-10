@@ -4,11 +4,12 @@ from enum import Enum
 from typing import List, Dict, Optional, Any, Union
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from dataclasses_json import dataclass_json, LetterCase
 
 Vector = List[float]
-Matrix = Union[Vector, List[Vector]]
+Matrix = Union[Vector, List[Vector], npt.NDArray]
 
 
 class Status(str, Enum):

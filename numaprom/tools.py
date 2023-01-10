@@ -68,7 +68,7 @@ def conditional_forward(hand_func):
         msgs = Messages()
         for vertex, json_data in data:
             if json_data and vertex:
-                msgs.append(Message.to_vtx(key=vertex.encode(), value=json_data.encode()))
+                msgs.append(Message.to_vtx(key=vertex.encode(), value=json_data))
             else:
                 msgs.append(Message.to_drop())
         return msgs
@@ -76,7 +76,7 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def get_key_map(msg: dict) -> Dict:
+def create_composite_keys(msg: dict) -> Dict:
     labels = msg.get("labels")
     metric_name = msg["name"]
 

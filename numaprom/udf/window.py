@@ -4,13 +4,14 @@ import os
 import uuid
 from typing import List, Tuple, Optional
 
+import numpy as np
 import orjson.orjson
 from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from numaprom.entities import StreamPayload, Status
 from numaprom.redis import get_redis_client
-from numaprom.tools import msg_forward, get_key_map, get_metric_config
+from numaprom.tools import msg_forward, create_composite_keys, get_metric_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
             f"Redis list buffer size: {buff_size} is less than window length: {win_size}"
         )
 
-    key_map = get_key_map(msg)
+    key_map = create_composite_keys(msg)
     unique_key = ":".join(key_map.values())
     value = float(msg["value"])
 
@@ -65,11 +66,12 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     if len(elements) < win_size:
         return None
 
+    win_list = [float(_val) for _val, _ in elements]
     payload = StreamPayload(
         uuid=uuid.uuid4().hex,
-        composite_keys=get_key_map(msg),
+        composite_keys=create_composite_keys(msg),
         status=Status.EXTRACTED,
-        win_arr=[float(_val) for _val, _ in elements],
+        win_arr=np.asarray(win_list).reshape(-1, 1),
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )
