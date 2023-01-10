@@ -6,7 +6,6 @@ from typing import List, Dict, Optional, Any, Union
 import numpy as np
 import numpy.typing as npt
 import orjson
-from dataclasses_json import dataclass_json, LetterCase
 
 Vector = List[float]
 Matrix = Union[Vector, List[Vector], npt.NDArray]
@@ -70,15 +69,17 @@ class PrometheusPayload:
     labels: Dict[str, str]
 
     def as_json(self) -> bytes:
-        return orjson.dumps({
-            "TimestampMs": self.timestamp_ms,
-            "Name": self.name,
-            "Namespace": self.namespace,
-            "Subsystem": self.subsystem,
-            "Type": self.type,
-            "Value": self.value,
-            "Labels": self.labels
-        })
+        return orjson.dumps(
+            {
+                "TimestampMs": self.timestamp_ms,
+                "Name": self.name,
+                "Namespace": self.namespace,
+                "Subsystem": self.subsystem,
+                "Type": self.type,
+                "Value": self.value,
+                "Labels": self.labels,
+            }
+        )
 
     @classmethod
     def from_json(cls, json_obj) -> "PrometheusPayload":
@@ -90,5 +91,5 @@ class PrometheusPayload:
             subsystem=obj["Subsystem"],
             type=obj["Type"],
             value=obj["Value"],
-            labels=obj["Labels"]
+            labels=obj["Labels"],
         )

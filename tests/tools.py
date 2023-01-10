@@ -15,7 +15,7 @@ from pynumaflow.function._dtypes import DROP
 
 from numaprom._constants import TESTS_DIR
 from numaprom.factory import HandlerFactory
-from tests import *
+from tests import window
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
