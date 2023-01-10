@@ -5,7 +5,7 @@ from typing import List, Dict, Optional, Any, Union
 
 import numpy as np
 import numpy.typing as npt
-import pandas as pd
+import orjson
 from dataclasses_json import dataclass_json, LetterCase
 
 Vector = List[float]
@@ -55,48 +55,10 @@ class StreamPayload:
     def set_status(self, status: Status):
         self.status = status
 
-
-@dataclass_json
-@dataclass
-class Payload:
-    uuid: str
-    metric_name: str
-    key_map: Dict
-    src_labels: Dict[str, str]
-    processedMetrics: List[Metric]
-    startTS: str
-    endTS: str
-    status: Status = Status.RAW
-    win_score: Optional[List[float]] = None
-    steps: Optional[Dict[str, str]] = None
-    std: Optional[float] = None
-    mean: Optional[float] = None
-    threshold: Optional[float] = None
-    model_version: Optional[int] = None
-    anomaly: Optional[float] = None
-
-    def get_processed_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame([metric.__dict__ for metric in self.processedMetrics])
-        df.set_index("timestamp", inplace=True)
-        return df
-
-    def get_input_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame([metric.__dict__ for metric in self.inputMetrics])
-        df.set_index("timestamp", inplace=True)
-        return df
-
-    def get_processed_array(self) -> np.array:
-        arr = np.array([[metric.value] for metric in self.processedMetrics])
-        return arr
-
-    def __eq__(self, other):
-        return isinstance(other, Payload) and self.uuid == other.uuid
-
-    def __hash__(self):
-        return hash(self.uuid)
+    def set_metadata(self, key: str, value):
+        self.metadata[key] = value
 
 
-@dataclass_json(letter_case=LetterCase.PASCAL)
 @dataclass
 class PrometheusPayload:
     timestamp_ms: int
@@ -106,3 +68,27 @@ class PrometheusPayload:
     type: str
     value: float
     labels: Dict[str, str]
+
+    def as_json(self) -> bytes:
+        return orjson.dumps({
+            "TimestampMs": self.timestamp_ms,
+            "Name": self.name,
+            "Namespace": self.namespace,
+            "Subsystem": self.subsystem,
+            "Type": self.type,
+            "Value": self.value,
+            "Labels": self.labels
+        })
+
+    @classmethod
+    def from_json(cls, json_obj) -> "PrometheusPayload":
+        obj = orjson.loads(json_obj)
+        return cls(
+            timestamp_ms=obj["TimestampMs"],
+            name=obj["Name"],
+            namespace=obj["Namespace"],
+            subsystem=obj["Subsystem"],
+            type=obj["Type"],
+            value=obj["Value"],
+            labels=obj["Labels"]
+        )

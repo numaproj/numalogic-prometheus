@@ -59,7 +59,9 @@ class TestInference(unittest.TestCase):
             _in = get_datum(msg.value)
             _out = inference("", _in)
             train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
-            postprocess_payload = StreamPayload(**orjson.loads(_out.items()[1].value.decode("utf-8")))
+            postprocess_payload = StreamPayload(
+                **orjson.loads(_out.items()[1].value.decode("utf-8"))
+            )
 
             self.assertTrue(train_payload)
             self.assertTrue(postprocess_payload)

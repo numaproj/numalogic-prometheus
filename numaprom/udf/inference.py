@@ -32,6 +32,7 @@ def _run_model(
 
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
+    payload.set_metadata("version", artifact_data.extras.get("version"))
 
     return "postprocess", orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
