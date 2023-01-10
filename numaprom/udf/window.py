@@ -67,10 +67,10 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
 
     payload = StreamPayload(
         uuid=uuid.uuid4().hex,
-        name=msg["name"],
+        composite_keys=get_key_map(msg),
         status=Status.EXTRACTED,
         win_arr=[float(_val) for _val, _ in elements],
         win_ts_arr=[str(_ts) for _, _ts in elements],
-        metadata=dict(src_labels=msg["labels"], key_map=get_key_map(msg))
+        metadata=dict(src_labels=msg["labels"])
     )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

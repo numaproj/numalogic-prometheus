@@ -3,7 +3,6 @@ import logging
 import os
 import socket
 import time
-import uuid
 from functools import wraps
 from json import JSONDecodeError
 from typing import List, Optional, Any, Dict, Sequence
@@ -11,11 +10,11 @@ from typing import List, Optional, Any, Dict, Sequence
 import mlflow
 import pandas as pd
 from mlflow.entities.model_registry import ModelVersion
-from numalogic.registry import MLflowRegistry
+from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
 from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
-from numaprom.entities import Metric, Status, StreamPayload
+from numaprom.entities import Metric
 
 LOGGER = logging.getLogger(__name__)
 
@@ -91,22 +90,6 @@ def get_key_map(msg: dict) -> Dict:
     return result
 
 
-def parse_input(src_data: Dict[str, Any]) -> Optional[StreamPayload]:
-    """
-    Function to parse raw data from source vertex and construct
-    a StreamPayload object
-    """
-    stream_payload = StreamPayload(
-        uuid=uuid.uuid4().hex,
-        name=src_data["name"],
-        status=Status.EXTRACTED,
-        win_arr=src_data["arr_window"],
-        win_ts_arr=src_data["ts_window"],
-        metadata=dict(src_labels=src_data["labels"], key_map=get_key_map(src_data))
-    )
-    return stream_payload
-
-
 def get_metrics(df: pd.DataFrame) -> List[Metric]:
     metrics = [Metric(**kwargs) for kwargs in df.to_dict(orient="records")]
     return metrics
@@ -144,15 +127,13 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
     return False
 
 
-def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[Dict]:
+def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactData]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
         ml_registry = MLflowRegistry(tracking_uri=tracking_uri)
-        artifact_dict = ml_registry.load(skeys=skeys, dkeys=dkeys)
-        return artifact_dict
+        return ml_registry.load(skeys=skeys, dkeys=dkeys)
     except Exception as ex:
-        print(ex)
-        LOGGER.error("Error while loading model from MLflow database: %s", ex)
+        LOGGER.error("Error while loading model from MLflow database: %r", ex)
         return None
 
 

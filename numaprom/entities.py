@@ -1,3 +1,4 @@
+from copy import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict, Optional, Any, Union
@@ -27,10 +28,10 @@ class Metric:
 @dataclass
 class StreamPayload:
     uuid: str
-    name: str
     win_arr: Matrix
     win_ts_arr: List[str]
-    status: str = Status.RAW
+    composite_keys: Dict[str, str]
+    status: Status = Status.RAW
     metadata: Dict[str, Any] = None
 
     @property
@@ -40,6 +41,18 @@ class StreamPayload:
     @property
     def end_ts(self):
         return self.win_ts_arr[-1]
+
+    def get_streamarray(self):
+        return np.asarray(self.win_arr)
+
+    def get_metadata(self, key: str):
+        return copy(self.metadata[key])
+
+    def set_win_arr(self, arr):
+        self.win_arr = arr
+
+    def set_status(self, status: Status):
+        self.status = status
 
 
 @dataclass_json

@@ -29,7 +29,7 @@ class TestWindow(unittest.TestCase):
             if not _out.items()[0].key == DROP:
                 _out = _out.items()[0].value.decode("utf-8")
                 payload = StreamPayload(**orjson.loads(_out))
-                keys = list(payload.metadata["key_map"].values())
+                keys = list(payload.composite_keys.values())
                 if "metric_2" in keys:
                     self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_2", "123456789"])
                 if "metric_1" in keys:
