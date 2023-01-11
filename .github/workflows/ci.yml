@@ -23,18 +23,18 @@ jobs:
         username: ${{ secrets.QUAYIO_USERNAME }}
         password: ${{ secrets.QUAYIO_PASSWORD }}
 
-    - name: Docker Buildx Argo workflow
+    - name: Docker Build
       env:
-        DOCKERIO_ORG: quay.io/numaio
+        QUAYIO_ORG: quay.io/numaio
         LATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
         run: |
           tag=$(basename $GITHUB_REF)
-          if [ $tag = "master" ]; then
+          if [ $tag = "main" ]; then
             tag="latest"
           fi
           
-          image_name="${DOCKERIO_ORG}/numalogic-prometheus/udf:${tag}"
+          image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
           
           docker buildx build \
             --output "type=image,push=true" \
