@@ -58,6 +58,7 @@ def __construct_publisher_payload(
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),
+        "intuit_alert": True,
         **stream_payload.get_metadata("src_labels"),
     }
     subsystem = stream_payload.get_metadata("src_labels").get("hash_id") or None
@@ -81,6 +82,7 @@ def __construct_unified_payload(
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),
+        "intuit_alert": True,
         **stream_payload.get_metadata("src_labels"),
     }
 
@@ -119,7 +121,6 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
     model_config = get_metric_config(metric_name)["model_config"]
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
-    # publisher_json = orjson.dumps(publisher_payload, option=orjson.OPT_SERIALIZE_NUMPY)
     LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
 
     if model_config["name"] == "default":
@@ -136,8 +137,7 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         )
 
     if max_anomaly > -1:
-        unified_payload = __construct_unified_payload(payload, max_anomaly)
-        unified_json = orjson.dumps(unified_payload)
+        unified_json = __construct_unified_payload(payload, max_anomaly).as_json()
         LOGGER.info(
             "%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json
         )

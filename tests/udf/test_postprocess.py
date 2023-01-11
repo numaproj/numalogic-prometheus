@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import patch
 
 from freezegun import freeze_time
-from orjson import orjson
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG, MODEL_CONFIG
 from numaprom.entities import PrometheusPayload, StreamPayload
@@ -56,7 +55,7 @@ class TestPostProcess(unittest.TestCase):
             if prom_payload.name != "metric_3_anomaly":
                 self.assertEqual(len(_out.items()), 2)
                 data = _out.items()[1].value.decode("utf-8")
-                uniprom_payload = PrometheusPayload(**orjson.loads(data))
+                uniprom_payload = PrometheusPayload.from_json(data)
                 self.assertTrue(uniprom_payload)
 
     def test_save_redis1(self):

@@ -19,8 +19,6 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.11"
-dataclasses-json = "^0.5.6"
-cachetools = "^5.0.0"
 redis = "^4.3.1"
 pynumaflow = "~0.2.6"
 numalogic = {version = "~0.3.0", extras = ["mlflow"]}
