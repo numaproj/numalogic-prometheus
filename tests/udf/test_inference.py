@@ -1,25 +1,21 @@
 import json
-import os
 import unittest
 from unittest.mock import patch, Mock
 
 from numalogic.registry import MLflowRegistrar
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.constants import METRIC_CONFIG
 from numaprom.entities import Payload, Status
-from numaprom.tests import redis_client
-from numaprom.tests.tools import (
+from numaprom.udf.inference import inference
+from tests import redis_client
+from tests.tools import (
     get_inference_input,
     return_mock_metric_config,
     return_stale_model,
     return_mock_lstmae,
     get_datum,
+    STREAM_DATA_PATH,
 )
-from numaprom.udf.inference import inference
-
-DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
-MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
-STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())

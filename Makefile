@@ -17,7 +17,6 @@ clean:
 
 format: clean
 	poetry run black numaprom/
-	poetry run black trainer.py
 	poetry run black starter.py
 
 lint: format
