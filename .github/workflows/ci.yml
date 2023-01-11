@@ -2,18 +2,12 @@ name: Build Release CI
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - v*
 
 jobs:
   build:
-    name: Python version
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9", "3.10"]
 
     steps:
     - uses: actions/checkout@v3
@@ -56,20 +50,3 @@ jobs:
           [quay.io/numaio/numalogic-prometheus/udf:${{ steps.vars.outputs.tag }}](https://quay.io/repository/numaio/numalogic-prometheus/udf)
         draft: false
         prerelease: false
-
-    - name: Install poetry
-      run: pipx install poetry
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'poetry'
-
-    - name: Install dependencies
-      run: |
-        poetry env use ${{ matrix.python-version }}
-        poetry install --with dev --all-extras
-
-    - name: Run unit tests
-      run: make test
