@@ -28,18 +28,18 @@ jobs:
         QUAYIO_ORG: quay.io/numaio
         LATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
-        run: |
-          tag=$(basename $GITHUB_REF)
-          if [ $tag = "main" ]; then
-            tag="latest"
-          fi
-          
-          image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
-          
-          docker buildx build \
-            --output "type=image,push=true" \
-            --platform="${PLATFORM}" \
-            --tag $image_name .
+      run: |
+        tag=$(basename $GITHUB_REF)
+        if [ $tag = "main" ]; then
+          tag="latest"
+        fi
+        
+        image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
+        
+        docker buildx build \
+          --output "type=image,push=true" \
+          --platform="${PLATFORM}" \
+          --tag $image_name .
 
     - name: Create Release
       id: create_release
