@@ -22,6 +22,8 @@ data:
                   sum(kube_pod_container_resource_requests{resource="cpu"}) by (namespace, pod) * on (namespace, pod) group_left(assetAlias)
                   label_replace(kube_pod_labels{job="kube-state-metrics"}, "assetAlias", "$1", "label_assetAlias","(.*)")
           )
+        labels:
+          numalogic: "true"
       - record: namespace_asset_memory_usage_bytes
         expr: |
           sum by (namespace, assetAlias) (
