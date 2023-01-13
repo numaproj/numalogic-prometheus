@@ -7,7 +7,6 @@ from functools import wraps
 from json import JSONDecodeError
 from typing import List, Optional, Any, Dict, Sequence
 
-import mlflow
 import pandas as pd
 from mlflow.entities.model_registry import ModelVersion
 from numalogic.registry import MLflowRegistry, ArtifactData
