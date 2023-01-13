@@ -5,39 +5,42 @@ metadata:
 spec:
   interStepBufferServiceName: numalogic-isbs
   watermark:
-    disabled: true
+    disabled: false
   limits:
     readBatchSize: 100
     bufferMaxLength: 1000
     bufferUsageLimit: 100
   vertices:
     - name: input
-      scale:
-        min: 3
-        max: 5
       source:
         http:
           service: true
-    - name: preprocess
+    - name: decode
       scale:
-        min: 2
-        max: 5
+        min: 1
+        max: 1
       udf:
         container:
-          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
-          imagePullPolicy: Always
+          image: quay.io/numaio/numaflow-udf/prometheus-serde
+    - name: filter
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
           args:
             - python
             - starter.py
             - udf
-            - preprocess
+            - metric_filter
     - name: window
       scale:
-        min: 2
-        max: 5
+        min: 1
+        max: 1
       udf:
         container:
-          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
           imagePullPolicy: Always
           args:
             - python
@@ -46,20 +49,35 @@ spec:
             - window
           env:
             - name: REDIS_HOST
-              value: bitnami-redis-cluster.numalogic-prometheus.svc.cluster.local
+              value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_AUTH
               value: "5rmmfXtsbL"
       limits:
         readBatchSize: 1
-    - name: inference
+    - name: preprocess
       scale:
-        min: 2
-        max: 10
+        min: 1
+        max: 5
       udf:
         container:
-          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          imagePullPolicy: Always
+          args:
+            - python
+            - starter.py
+            - udf
+            - preprocess
+      limits:
+        readBatchSize: 1
+    - name: inference
+      scale:
+        min: 1
+        max: 5
+      udf:
+        container:
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
           imagePullPolicy: Always
           args:
             - python
@@ -69,20 +87,6 @@ spec:
           env:
             - name: TRACKING_URI
               value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
-            - name: WIN_SIZE
-              value: "12"
-            - name: THRESHOLD_MIN
-              value: "0.1"
-            - name: MODEL_NAME
-              value: "ae_sparse"
-            - name: ROLLOUT_WIN_SIZE
-              value: "8"
-            - name: ROLLOUT_THRESHOLD_MIN
-              value: "0.1"
-            - name: ROLLOUT_MODEL_NAME
-              value: "ae_sparse"
-            - name: RETRAIN_FREQ_HR
-              value: "8"
       metadata:
         annotations:
           iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
@@ -92,7 +96,7 @@ spec:
         max: 5
       udf:
         container:
-          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
           imagePullPolicy: Always
           args:
             - python
@@ -110,28 +114,27 @@ spec:
       scale:
         min: 1
         max: 5
-      udsink:
-        container:
-          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
-          imagePullPolicy: Always
-          args:
-            - python
-            - starter.py
-            - udsink
-            - train
-          env:
-            - name: TRACKING_URI
-              value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
-            - name: PROMETHEUS_SERVER
-              value: "http://thanos.addon-metricset-ns.svc.cluster.local:9090"
-            - name: WIN_SIZE
-              value: "12"
-            - name: REDIS_HOST
-              value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
-            - name: REDIS_PORT
-              value: "6379"
-            - name: REDIS_AUTH
-              value: "5rmmfXtsbL"
+      sink:
+        udsink:
+          container:
+            image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+            imagePullPolicy: Always
+            args:
+              - python
+              - starter.py
+              - udsink
+              - train
+            env:
+              - name: TRACKING_URI
+                value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+              - name: PROMETHEUS_SERVER
+                value: "http://prometheus-service.monitoring.svc.cluster.local:8080"
+              - name: REDIS_HOST
+                value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
+              - name: REDIS_PORT
+                value: "6379"
+              - name: REDIS_AUTH
+                value: "5rmmfXtsbL"
     - name: prometheus-pusher
       scale:
         min: 1
@@ -143,10 +146,10 @@ spec:
               - name: SKIP_VALIDATION_FAILED
                 value: "true"
               - name: "PROMETHEUS_SERVER"
-                value: "http://prometheus-pushgateway.addon-metricset-ns.svc:9091"
+                value: "pushgateway.monitoring.svc.cluster.local:9091"
               - name: "METRICS_LABELS"
                 value: "intuit_alert=true"
-            image: docker.intuit.com/quay-rmt/numaio/numaflow-sink/prometheus-pusher:v0.0.5a
+            image: quay.io/numaio/numaflow-sink/prometheus-pusher
     - name: output
       scale:
         min: 1
@@ -167,9 +170,13 @@ spec:
         log: {}
   edges:
     - from: input
-      to: window
+      to: decode
     - from: input
       to: input-output
+    - from: decode
+      to: filter
+    - from: filter
+      to: window
     - from: window
       to: preprocess
     - from: preprocess
