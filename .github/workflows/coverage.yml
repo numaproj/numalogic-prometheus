@@ -34,7 +34,7 @@ jobs:
 
     - name: Run Coverage
       run: |
-        poetry run pytest --cov-report=xml --cov=numaprom --cov-config .coveragerc numaprom/tests/ -sq
+        poetry run pytest --cov-report=xml --cov=numaprom --cov-config .coveragerc tests/ -sq
 
     - name: Upload Coverage
       uses: codecov/codecov-action@v3
