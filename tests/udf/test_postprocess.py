@@ -49,7 +49,6 @@ class TestPostProcess(unittest.TestCase):
             _in = get_datum(msg.value)
             _out = postprocess("", _in)
             data = _out.items()[0].value.decode("utf-8")
-            print("DATA", data)
             prom_payload = PrometheusPayload.from_json(data)
 
             if prom_payload.name != "metric_3_anomaly":

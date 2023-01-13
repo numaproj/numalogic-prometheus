@@ -9,7 +9,6 @@ from numalogic.registry import MLflowRegistry
 from pynumaflow.sink import Datum
 
 import trainer
-from numaprom.udsink import train
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
 from numaprom.prometheus import Prometheus
@@ -19,18 +18,21 @@ from tests.tools import (
     mock_argocd_query_metric,
     mock_rollout_query_metric,
 )
+from tests import train, redis_client
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-def as_datum(data: Union[str, bytes, dict]) -> Datum:
+def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
     if type(data) is not bytes:
         data = json.dumps(data).encode("utf-8")
     elif type(data) == dict:
         data = json.dumps(data)
 
-    return Datum(sink_msg_id="1", value=data, event_time=datetime.now(), watermark=datetime.now())
+    return Datum(
+        sink_msg_id=msg_id, value=data, event_time=datetime.now(), watermark=datetime.now()
+    )
 
 
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())
@@ -41,13 +43,29 @@ class TestTrainer(unittest.TestCase):
         "resume_training": False,
     }
 
+    def setUp(self) -> None:
+        redis_client.flushall()
+
     @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
-    def test_argocd_trainer(self):
+    def test_argocd_trainer_01(self):
         datums = [as_datum(self.train_payload)]
         _out = train(datums)
         self.assertTrue(_out.items()[0].success)
         self.assertEqual("1", _out.items()[0].id)
+        self.assertEqual(1, len(_out.items()))
+
+    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
+    @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
+    def test_argocd_trainer_02(self):
+        datums = [as_datum(self.train_payload), as_datum(self.train_payload, msg_id="2")]
+        _out = train(datums)
+        self.assertTrue(_out.items()[0].success)
+        self.assertEqual("1", _out.items()[0].id)
+
+        self.assertFalse(_out.items()[1].success)
+        self.assertEqual("2", _out.items()[1].id)
+        self.assertEqual(2, len(_out.items()))
 
     @unittest.skip("Need to update for rollouts")
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
