@@ -97,5 +97,6 @@ METRIC_CONFIG = {
     "default": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["default"],
+        "model": "VanillaAE",
     },
 }
