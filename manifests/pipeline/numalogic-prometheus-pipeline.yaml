@@ -3,172 +3,193 @@ kind: Pipeline
 metadata:
   name: numalogic-prometheus-pipeline
 spec:
+  interStepBufferServiceName: numalogic-isbs
   watermark:
-    disabled: false
+    disabled: true
   limits:
-    readBatchSize: 10
-    bufferMaxLength: 500
+    readBatchSize: 100
+    bufferMaxLength: 1000
     bufferUsageLimit: 100
   vertices:
-  - name: input
-    source:
-      http:
-        service: true
-  - name: decode
-    scale:
-      min: 1
-      max: 1
-    udf:
-     container:
-       image: quay.io/numaio/numaflow-udf/prometheus-serde
-  - name: filter
-    scale:
-      min: 1
-      max: 1
-    udf:
-     container:
-       image: quay.io/numaio/numalogic-prometheus:v0.0.4
-       args:
-       - python
-       - starter.py
-       - metric_filter
-  - name: preprocess
-    scale:
-      min: 1
-      max: 1
-    udf:
-      container:
-         image: quay.io/numaio/numalogic-prometheus:v0.0.4
-         args:
-         - python
-         - starter.py
-         - preprocess
-  - name: window
-    scale:
-      min: 1
-      max: 1
-    udf:
-      container:
-         image: quay.io/numaio/numalogic-prometheus:v0.0.4
-         args:
-         - python
-         - starter.py
-         - window
-         env:
-         - name: REDIS_HOST
-           value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
-         - name: REDIS_PORT
-           value: "6379"
-         - name: REDIS_AUTH
-           value: 5rmmfXtsbL
-    limits:
-      readBatchSize: 1
-  - name: inference
-    scale:
-      min: 1
-    udf:
-      container:
-        image: quay.io/numaio/numalogic-prometheus:v0.0.4
-        args:
-        - python
-        - starter.py
-        - inference
-        env:
-        - name: TRACKING_URI
-          value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
-    metadata:
-      annotations:
-        iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
-  - name: postprocess
-    scale:
-      min: 1
-    udf:
-      container:
-        image: quay.io/numaio/numalogic-prometheus:v0.0.4
-        args:
-        - python
-        - starter.py
-        - postprocess
-        env:
-        - name: REDIS_HOST
-          value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
-        - name: REDIS_PORT
-          value: "6379"
-        - name: REDIS_AUTH
-          value: 5rmmfXtsbL
-  - name: training-workflow
-    scale:
-      min: 1
-    limits:
-      readBatchSize: 2000
-    sink:
+    - name: input
+      scale:
+        min: 3
+        max: 5
+      source:
+        http:
+          service: true
+    - name: preprocess
+      scale:
+        min: 2
+        max: 5
+      udf:
+        container:
+          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          imagePullPolicy: Always
+          args:
+            - python
+            - starter.py
+            - udf
+            - preprocess
+    - name: window
+      scale:
+        min: 2
+        max: 5
+      udf:
+        container:
+          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          imagePullPolicy: Always
+          args:
+            - python
+            - starter.py
+            - udf
+            - window
+          env:
+            - name: REDIS_HOST
+              value: bitnami-redis-cluster.numalogic-prometheus.svc.cluster.local
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_AUTH
+              value: "5rmmfXtsbL"
+      limits:
+        readBatchSize: 1
+    - name: inference
+      scale:
+        min: 2
+        max: 10
+      udf:
+        container:
+          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          imagePullPolicy: Always
+          args:
+            - python
+            - starter.py
+            - udf
+            - inference
+          env:
+            - name: TRACKING_URI
+              value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+            - name: WIN_SIZE
+              value: "12"
+            - name: THRESHOLD_MIN
+              value: "0.1"
+            - name: MODEL_NAME
+              value: "ae_sparse"
+            - name: ROLLOUT_WIN_SIZE
+              value: "8"
+            - name: ROLLOUT_THRESHOLD_MIN
+              value: "0.1"
+            - name: ROLLOUT_MODEL_NAME
+              value: "ae_sparse"
+            - name: RETRAIN_FREQ_HR
+              value: "8"
+      metadata:
+        annotations:
+          iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
+    - name: postprocess
+      scale:
+        min: 1
+        max: 5
+      udf:
+        container:
+          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          imagePullPolicy: Always
+          args:
+            - python
+            - starter.py
+            - udf
+            - postprocess
+          env:
+            - name: REDIS_HOST
+              value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_AUTH
+              value: "5rmmfXtsbL"
+    - name: trainer
+      scale:
+        min: 1
+        max: 5
       udsink:
         container:
+          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.0.4a
+          imagePullPolicy: Always
+          args:
+            - python
+            - starter.py
+            - udsink
+            - train
           env:
-            - name: ARGO_WORKFLOW_TEMPLATE
-              value: numalogic-training-workflow-template
-            - name: PARAMETER_NAME
-              value: "payload"
-            - name: MSG_DEDUP_KEYS
-              value: ".namespace,.name"
-            - name: READ_INTERVAL_DURATION
-              value: "1s"
-            - name: DEDUP_CACHE_LIMIT
-              value: "10000"
-            - name: DEDUP_CACHE_TTL_DURATION
-              value: "30m"
-          image: quay.io/numaio/numaflow-sink/argo-workflow:v0.0.3
-  - name: prometheus-pusher
-    scale:
-      min: 1
-    sink:
-      udsink:
-        container:
-          env:
-          - name: SKIP_VALIDATION_FAILED
-            value: "true"
-          - name: "PROMETHEUS_SERVER"
-            value: "pushgateway.monitoring.svc.cluster.local:9091"
-          image: quay.io/numaio/numaflow-sink/prometheus-pusher
-  - name: output
-    scale:
-      min: 1
-      max: 1
-    sink:
-      log: {}
-  - name: training-output
-    scale:
-      min: 1
-      max: 1
-    sink:
-      log: {}
+            - name: TRACKING_URI
+              value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+            - name: PROMETHEUS_SERVER
+              value: "http://thanos.addon-metricset-ns.svc.cluster.local:9090"
+            - name: WIN_SIZE
+              value: "12"
+            - name: REDIS_HOST
+              value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_AUTH
+              value: "5rmmfXtsbL"
+    - name: prometheus-pusher
+      scale:
+        min: 1
+        max: 5
+      sink:
+        udsink:
+          container:
+            env:
+              - name: SKIP_VALIDATION_FAILED
+                value: "true"
+              - name: "PROMETHEUS_SERVER"
+                value: "http://prometheus-pushgateway.addon-metricset-ns.svc:9091"
+              - name: "METRICS_LABELS"
+                value: "intuit_alert=true"
+            image: docker.intuit.com/quay-rmt/numaio/numaflow-sink/prometheus-pusher:v0.0.5a
+    - name: output
+      scale:
+        min: 1
+        max: 1
+      sink:
+        log: {}
+    - name: training-output
+      scale:
+        min: 1
+        max: 1
+      sink:
+        log: {}
+    - name: input-output
+      scale:
+        min: 1
+        max: 1
+      sink:
+        log: {}
   edges:
-  - from: input
-    to: decode
-  - from: decode
-    to: filter
-  - from: filter
-    to: window
-  - from: window
-    to: preprocess
-  - from: preprocess
-    to: inference
-  - from: inference
-    to: training-workflow
-    conditions:
-      keyIn:
-        - train
-  - from: inference
-    to: training-output
-    conditions:
-      keyIn:
-        - train
-  - from: inference
-    to: postprocess
-    conditions:
-      keyIn:
-        - postprocess
-  - from: postprocess
-    to: output
-  - from: postprocess
-    to: prometheus-pusher
+    - from: input
+      to: window
+    - from: input
+      to: input-output
+    - from: window
+      to: preprocess
+    - from: preprocess
+      to: inference
+    - from: inference
+      to: trainer
+      conditions:
+        keyIn:
+          - train
+    - from: inference
+      to: training-output
+      conditions:
+        keyIn:
+          - train
+    - from: inference
+      to: postprocess
+      conditions:
+        keyIn:
+          - postprocess
+    - from: postprocess
+      to: output
+    - from: postprocess
+      to: prometheus-pusher

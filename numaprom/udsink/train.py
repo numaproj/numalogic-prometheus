@@ -47,7 +47,7 @@ def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFr
         end=end_dt.timestamp(),
         step=model_config["scrape_interval"]
     )
-    LOGGER.info("Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape)
+    LOGGER.debug("Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape)
     return df
 
 
@@ -61,7 +61,7 @@ def _train_model(x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.info("Time taken to train model: %s", time.time() - _start_train)
+    LOGGER.debug("Time taken to train model: %s", time.time() - _start_train)
     return model
 
 
@@ -98,7 +98,6 @@ def train(datums: List[Datum]) -> Responses:
         model = _train_model(x_train, model_config)
 
         skeys = [namespace, metric_name]
-        print("SAVING NOW!!!", save_model)
         version = save_model(
             skeys=skeys,
             dkeys=[model_config["model_name"]],

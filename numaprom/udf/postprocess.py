@@ -58,7 +58,6 @@ def __construct_publisher_payload(
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),
-        "intuit_alert": True,
         **stream_payload.get_metadata("src_labels"),
     }
     subsystem = stream_payload.get_metadata("src_labels").get("hash_id") or None
@@ -82,7 +81,6 @@ def __construct_unified_payload(
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),
-        "intuit_alert": True,
         **stream_payload.get_metadata("src_labels"),
     }
 

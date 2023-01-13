@@ -30,6 +30,8 @@ def _run_model(
     trainer = AutoencoderTrainer()
     recon_err = trainer.predict(model, dataloaders=streamloader)
 
+    LOGGER.info("%s - Succesfully inferred", payload.uuid)
+
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
     payload.set_metadata("version", artifact_data.extras.get("version"))
@@ -46,7 +48,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
 
-    LOGGER.info("%s - Starting inference", payload.uuid)
+    LOGGER.debug("%s - Starting inference", payload.uuid)
 
     artifact_data = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
