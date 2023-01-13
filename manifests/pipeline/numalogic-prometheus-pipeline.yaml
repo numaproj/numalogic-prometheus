@@ -3,7 +3,6 @@ kind: Pipeline
 metadata:
   name: numalogic-prometheus-pipeline
 spec:
-  interStepBufferServiceName: numalogic-isbs
   watermark:
     disabled: false
   limits:
