@@ -142,10 +142,7 @@ def save_model(
 ) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type="pytorch")
-    mlflow.start_run()
-    version = ml_registry.save(skeys=skeys, dkeys=dkeys, primary_artifact=model, **metadata)
-    LOGGER.info("Successfully saved the model to mlflow. Model version: %s", version)
-    mlflow.end_run()
+    version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
 
 

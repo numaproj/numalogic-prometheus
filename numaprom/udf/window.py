@@ -1,11 +1,10 @@
-import json
 import logging
 import os
 import uuid
 from typing import List, Tuple, Optional
 
 import numpy as np
-import orjson.orjson
+from orjson import orjson
 from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
@@ -37,7 +36,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     """
     UDF to construct windowing of the streaming input data, required by ML models.
     """
-    msg = json.loads(datum.value.decode("utf-8"))
+    msg = orjson.loads(datum.value)
 
     metric_name = msg["name"]
     metric_config = get_metric_config(metric_name)

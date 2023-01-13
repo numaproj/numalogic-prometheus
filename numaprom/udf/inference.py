@@ -28,7 +28,7 @@ def _run_model(
     streamloader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
 
     trainer = AutoencoderTrainer()
-    recon_err = trainer.predict(model, dataloaders=streamloader, unbatch=False)
+    recon_err = trainer.predict(model, dataloaders=streamloader)
 
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
