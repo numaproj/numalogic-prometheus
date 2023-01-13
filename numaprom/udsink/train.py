@@ -45,9 +45,11 @@ def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFr
         labels_map=labels,
         start=start_dt.timestamp(),
         end=end_dt.timestamp(),
-        step=model_config["scrape_interval"]
+        step=model_config["scrape_interval"],
     )
-    LOGGER.debug("Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape)
+    LOGGER.debug(
+        "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
+    )
     return df
 
 
@@ -88,8 +90,10 @@ def train(datums: List[Datum]) -> Responses:
         train_df = clean_data(train_df)
 
         if len(train_df) < model_config["win_size"]:
-            warn_msg = f"Skipping training since traindata size: {train_df.shape} " \
-                       f"is less than winsize: {win_size}"
+            warn_msg = (
+                f"Skipping training since traindata size: {train_df.shape} "
+                f"is less than winsize: {win_size}"
+            )
             LOGGER.warning(warn_msg)
             responses.append(Response.as_failure(_datum.id, err_msg=warn_msg))
             continue
@@ -98,11 +102,7 @@ def train(datums: List[Datum]) -> Responses:
         model = _train_model(x_train, model_config)
 
         skeys = [namespace, metric_name]
-        version = save_model(
-            skeys=skeys,
-            dkeys=[model_config["model_name"]],
-            model=model
-        )
+        version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
         LOGGER.info("Model saved with skeys: %s with version: %s", skeys, version)
         responses.append(Response.as_success(_datum.id))
 

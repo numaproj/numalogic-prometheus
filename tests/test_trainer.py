@@ -38,7 +38,7 @@ class TestTrainer(unittest.TestCase):
     train_payload = {
         "namespace": "sandbox_numalogic_demo",
         "name": "metric_1",
-        "resume_training": False
+        "resume_training": False,
     }
 
     @patch.object(MLflowRegistry, "save", Mock(return_value=1))
