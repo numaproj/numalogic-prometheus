@@ -4,7 +4,7 @@ metadata:
   name: numalogic-prometheus-pipeline
 spec:
   watermark:
-    disabled: false
+    disabled: true
   limits:
     readBatchSize: 100
     bufferMaxLength: 1000
@@ -40,7 +40,6 @@ spec:
       udf:
         container:
           image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
-          imagePullPolicy: Always
           args:
             - python
             - starter.py
@@ -62,7 +61,6 @@ spec:
       udf:
         container:
           image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
-          imagePullPolicy: Always
           args:
             - python
             - starter.py
@@ -77,7 +75,6 @@ spec:
       udf:
         container:
           image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
-          imagePullPolicy: Always
           args:
             - python
             - starter.py
@@ -96,7 +93,6 @@ spec:
       udf:
         container:
           image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
-          imagePullPolicy: Always
           args:
             - python
             - starter.py
@@ -117,7 +113,6 @@ spec:
         udsink:
           container:
             image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
-            imagePullPolicy: Always
             args:
               - python
               - starter.py

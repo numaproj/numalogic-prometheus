@@ -9,3 +9,6 @@ README.md
 LICENSE
 .gitignore
 .idea/
+.codecov.yml
+.coveragerc
+.flake8

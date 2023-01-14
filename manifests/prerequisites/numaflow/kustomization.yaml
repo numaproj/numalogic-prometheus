@@ -3,4 +3,4 @@ kind: Kustomization
 namespace: numaflow-system
 resources:
   - namespace.yaml
-  - https://raw.githubusercontent.com/numaproj/numaflow/v0.6.4/config/install.yaml
+  - https://raw.githubusercontent.com/numaproj/numaflow/v0.6.5/config/install.yaml
