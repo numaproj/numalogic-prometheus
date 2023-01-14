@@ -10,7 +10,7 @@ ENV PYTHONFAULTHANDLER=1 \
   PIP_NO_CACHE_DIR=on \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=100 \
-  POETRY_VERSION=1.2.2 \
+  POETRY_VERSION=1.3.1 \
   POETRY_HOME="/opt/poetry" \
   POETRY_VIRTUALENVS_IN_PROJECT=true \
   POETRY_NO_INTERACTION=1 \
@@ -59,9 +59,8 @@ EXPOSE 5000
 FROM builder AS udf
 
 WORKDIR $PYSETUP_PATH
-COPY ./pyproject.toml ./poetry.lock ./
-RUN poetry install --no-cache --no-root && \
-    rm -rf ~/.cache/pypoetry/
+COPY ./requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 ADD . /app
 WORKDIR /app

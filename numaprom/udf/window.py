@@ -1,14 +1,16 @@
-import json
-import os
 import logging
-from typing import List, Tuple
+import os
+import uuid
+from typing import List, Tuple, Optional
+
+import numpy as np
+from orjson import orjson
+from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from pynumaflow.function import Messages, Datum
-
-from numaprom.entities import Metric
+from numaprom.entities import StreamPayload, Status
 from numaprom.redis import get_redis_client
-from numaprom.tools import msg_forward, catch_exception, extract, get_key_map, get_metric_config
+from numaprom.tools import msg_forward, create_composite_keys, get_metric_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
-def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tuple[str, float]]:
+def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tuple[float, float]]:
     redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})
@@ -29,19 +31,14 @@ def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tu
     return _window
 
 
-@catch_exception
 @msg_forward
-def window(key: str, datum: Datum) -> Messages:
-    msg = datum.value.decode("utf-8")
-
-    try:
-        msg = json.loads(msg)
-    except Exception as ex:
-        _LOGGER.exception("Error in Json serialization: %r", ex)
-        return None
+def window(_: str, datum: Datum) -> Optional[bytes]:
+    """
+    UDF to construct windowing of the streaming input data, required by ML models.
+    """
+    msg = orjson.loads(datum.value)
 
     metric_name = msg["name"]
-
     metric_config = get_metric_config(metric_name)
     win_size = metric_config["model_config"]["win_size"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
@@ -51,7 +48,7 @@ def window(key: str, datum: Datum) -> Messages:
             f"Redis list buffer size: {buff_size} is less than window length: {win_size}"
         )
 
-    key_map = get_key_map(msg)
+    key_map = create_composite_keys(msg)
     unique_key = ":".join(key_map.values())
     value = float(msg["value"])
 
@@ -68,9 +65,13 @@ def window(key: str, datum: Datum) -> Messages:
     if len(elements) < win_size:
         return None
 
-    ts_window = [Metric(timestamp=str(_ts), value=float(_val)).to_dict() for _val, _ts in elements]
-    msg["window"] = ts_window
-
-    payload = extract(msg)
-    payload_json = payload.to_json()
-    return payload_json
+    win_list = [float(_val) for _val, _ in elements]
+    payload = StreamPayload(
+        uuid=uuid.uuid4().hex,
+        composite_keys=create_composite_keys(msg),
+        status=Status.EXTRACTED,
+        win_arr=np.asarray(win_list).reshape(-1, 1),
+        win_ts_arr=[str(_ts) for _, _ts in elements],
+        metadata=dict(src_labels=msg["labels"]),
+    )
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

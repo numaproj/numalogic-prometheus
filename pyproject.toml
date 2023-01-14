@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "numalogic-prometheus"
-version = "0.0.3"
+version = "0.0.4"
 description = "ML inference on numaflow using numalogic on Prometheus metrics"
 authors = ["Numalogic developers"]
 packages = [{ include = "numaprom" }]
@@ -19,14 +19,12 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.11"
-dataclasses-json = "^0.5.6"
-confluent-kafka = "^1.8.2"
-cachetools = "^5.0.0"
 redis = "^4.3.1"
 pynumaflow = "~0.2.6"
-numalogic = {version = "~0.2.9", extras = ["mlflow"]}
+numalogic = {version = "~0.3.1", extras = ["mlflow"]}
 boto3 = "^1.25.2"
-
+orjson = "^3.8.4"
+pytorch-lightning = "^1.8.6"
 
 [tool.poetry.group.mlflowserver]
 optional = true
@@ -44,6 +42,7 @@ fakeredis = "^1.8"
 flake8 = "^5.0"
 pytest = "^7.1"
 pytest-cov = "^4.0"
+freezegun = "^1.2.2"
 
 [tool.black]
 line-length = 100

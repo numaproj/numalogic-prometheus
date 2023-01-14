@@ -1,21 +1,19 @@
 import json
-import os
-import time
-import uuid
-import socket
 import logging
-
-import mlflow
-import pandas as pd
+import os
+import socket
+import time
 from functools import wraps
+from json import JSONDecodeError
 from typing import List, Optional, Any, Dict, Sequence
 
+import pandas as pd
 from mlflow.entities.model_registry import ModelVersion
-from numalogic.registry import MLflowRegistrar
+from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
-from numaprom.constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
-from numaprom.entities import Payload, Metric, Status
+from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
+from numaprom.entities import Metric
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,6 +23,8 @@ def catch_exception(func):
     def inner_function(*args, **kwargs):
         try:
             return func(*args, **kwargs)
+        except JSONDecodeError as err:
+            LOGGER.exception("Error in json decode for %s: %r", func.__name__, err)
         except Exception as ex:
             LOGGER.exception("Error in %s: %r", func.__name__, ex)
 
@@ -38,7 +38,7 @@ def msgs_forward(handler_func):
         msgs = Messages()
         for json_data in json_list:
             if json_data:
-                msgs.append(Message.to_all(json_data.encode()))
+                msgs.append(Message.to_all(json_data))
             else:
                 msgs.append(Message.to_drop())
         return msgs
@@ -52,7 +52,7 @@ def msg_forward(handler_func):
         json_data = handler_func(*args, **kwargs)
         msgs = Messages()
         if json_data:
-            msgs.append(Message.to_all(value=json_data.encode()))
+            msgs.append(Message.to_all(value=json_data))
         else:
             msgs.append(Message.to_drop())
         return msgs
@@ -67,7 +67,7 @@ def conditional_forward(hand_func):
         msgs = Messages()
         for vertex, json_data in data:
             if json_data and vertex:
-                msgs.append(Message.to_vtx(key=vertex.encode(), value=json_data.encode()))
+                msgs.append(Message.to_vtx(key=vertex.encode(), value=json_data))
             else:
                 msgs.append(Message.to_drop())
         return msgs
@@ -75,7 +75,7 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def get_key_map(msg: dict) -> Dict:
+def create_composite_keys(msg: dict) -> Dict:
     labels = msg.get("labels")
     metric_name = msg["name"]
 
@@ -87,28 +87,6 @@ def get_key_map(msg: dict) -> Dict:
         if k in labels:
             result[k] = labels[k]
     return result
-
-
-def extract(data: Dict[str, Any]) -> Optional[Payload]:
-    input_metrics = [Metric(**_item) for _item in data["window"]]
-
-    payload = Payload(
-        uuid=str(uuid.uuid4()),
-        metric_name=data["name"],
-        key_map=get_key_map(data),
-        src_labels=data["labels"],
-        processedMetrics=input_metrics,
-        startTS=data["timestamp"],
-        endTS=data["timestamp"],
-        status=Status.EXTRACTED,
-    )
-    LOGGER.info(
-        "%s - Extracted Payload: Keys=%s, Metrics=%s",
-        payload.uuid,
-        payload.key_map,
-        payload.processedMetrics,
-    )
-    return payload
 
 
 def get_metrics(df: pd.DataFrame) -> List[Metric]:
@@ -148,15 +126,13 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
     return False
 
 
-def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[Dict]:
+def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactData]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-        ml_registry = MLflowRegistrar(tracking_uri=tracking_uri)
-        artifact_dict = ml_registry.load(skeys=skeys, dkeys=dkeys)
-        return artifact_dict
+        ml_registry = MLflowRegistry(tracking_uri=tracking_uri)
+        return ml_registry.load(skeys=skeys, dkeys=dkeys)
     except Exception as ex:
-        print(ex)
-        LOGGER.error("Error while loading model from MLflow database: %s", ex)
+        LOGGER.error("Error while loading model from MLflow database: %r", ex)
         return None
 
 
@@ -164,11 +140,8 @@ def save_model(
     skeys: Sequence[str], dkeys: Sequence[str], model, **metadata
 ) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-    ml_registry = MLflowRegistrar(tracking_uri=tracking_uri, artifact_type="pytorch")
-    mlflow.start_run()
-    version = ml_registry.save(skeys=skeys, dkeys=dkeys, primary_artifact=model, **metadata)
-    LOGGER.info("Successfully saved the model to mlflow. Model version: %s", version)
-    mlflow.end_run()
+    ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type="pytorch")
+    version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
 
 

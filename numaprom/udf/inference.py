@@ -1,18 +1,17 @@
-import json
-import time
 import logging
-import numpy as np
-import pandas as pd
+import time
 from datetime import datetime, timedelta
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
-from pynumaflow.function import Messages, Datum
+from numalogic.models.autoencoder import AutoencoderTrainer
+from numalogic.registry import ArtifactData
+from numalogic.tools.data import StreamingDataset
+from orjson import orjson
+from pynumaflow.function import Datum
+from torch.utils.data import DataLoader
 
-from numaprom.entities import Payload, Status
-from numaprom.pipeline import PrometheusPipeline
+from numaprom.entities import Status, StreamPayload
 from numaprom.tools import (
-    catch_exception,
-    get_metrics,
     conditional_forward,
     load_model,
     get_metric_config,
@@ -21,75 +20,60 @@ from numaprom.tools import (
 LOGGER = logging.getLogger(__name__)
 
 
-def infer(payload: Payload, artifact_dict: Dict, model_config: Dict) -> Tuple[str, str]:
-    pipeline = PrometheusPipeline(
-        model_plname=model_config["model_name"],
-        model=artifact_dict["primary_artifact"],
-        seq_len=model_config["win_size"],
-        threshold_min=model_config["threshold_min"],
-    )
-    try:
-        pipeline.load_model(
-            path_or_buf=None, model=artifact_dict["primary_artifact"], **artifact_dict["metadata"]
-        )
-        LOGGER.info("%s - Successfully loaded model to pipeline", payload.uuid)
-        arr = pipeline.infer(payload.get_processed_array())
-        df = payload.get_processed_dataframe()
-        df = pd.DataFrame(data=arr, columns=df.columns, index=df.index).reset_index()
-        payload.processedMetrics = get_metrics(df)
-        payload.status = Status.INFERRED
-        payload.std = float(np.mean(pipeline.model_ppl.err_stats["std"]))
-        payload.mean = float(np.mean(pipeline.model_ppl.err_stats["mean"]))
-        payload.threshold = float(np.mean(pipeline.model_ppl.thresholds))
-        payload.model_version = artifact_dict["model_properties"].version
-        LOGGER.info("%s - Successfully inferred payload: %s", payload.uuid, payload.to_json())
-    except Exception as ex:
-        LOGGER.exception(
-            "%s - Error while doing inference. Error:%r",
-            payload.uuid,
-            ex,
-        )
-        return "", ""
-    return "postprocess", payload.to_json()
+def _run_model(
+    payload: StreamPayload, artifact_data: ArtifactData, model_config: Dict
+) -> Tuple[str, str]:
+    model = artifact_data.artifact
+    stream_data = payload.get_streamarray()
+    streamloader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
+
+    trainer = AutoencoderTrainer()
+    recon_err = trainer.predict(model, dataloaders=streamloader)
+
+    LOGGER.info("%s - Succesfully inferred", payload.uuid)
+
+    payload.set_win_arr(recon_err.numpy())
+    payload.set_status(Status.INFERRED)
+    payload.set_metadata("version", artifact_data.extras.get("version"))
+
+    return "postprocess", orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
 
-@catch_exception
 @conditional_forward
-def inference(key: str, datum: Datum) -> Messages:
-    start_inference = time.time()
-    payload = Payload.from_json(datum.value.decode("utf-8"))
+def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
+    _start_time = time.time()
+    _in_msg = datum.value.decode("utf-8")
+    payload = StreamPayload(**orjson.loads(_in_msg))
 
-    metric_config = get_metric_config(payload.metric_name)
+    metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
 
-    LOGGER.info("%s - Starting inference", payload.uuid)
+    LOGGER.debug("%s - Starting inference", payload.uuid)
 
-    artifact_dict = load_model(
-        skeys=[payload.key_map["namespace"], payload.key_map["name"]],
+    artifact_data = load_model(
+        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
         dkeys=[model_config["model_name"]],
     )
 
-    train_payload = payload.key_map
-    train_payload["model_config"] = model_config["name"]
+    train_payload = {
+        **payload.composite_keys,
+        "model_config": model_config["name"],
+        "resume_training": False,
+    }
 
-    if not artifact_dict:
-        train_payload["resume_training"] = False
+    if not artifact_data:
         LOGGER.info(
             "%s - No model found, sending to trainer. Trainer payload: %s",
             payload.uuid,
             train_payload,
         )
-        return [("train", json.dumps(train_payload))]
+        return [("train", orjson.dumps(train_payload))]
 
-    LOGGER.info(
-        "%s - Successfully loaded model from mlflow, version: %s",
-        payload.uuid,
-        artifact_dict["model_properties"].version,
-    )
+    LOGGER.debug("%s - Successfully loaded model from mlflow", payload.uuid)
 
     messages = []
 
-    date_updated = artifact_dict["model_properties"].last_updated_timestamp / 1000
+    date_updated = artifact_data.extras["last_updated_timestamp"] / 1000
     stale_date = (
         datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))
     ).timestamp()
@@ -101,20 +85,13 @@ def inference(key: str, datum: Datum) -> Messages:
             payload.uuid,
             train_payload,
         )
-        messages.append(("train", json.dumps(train_payload)))
+        messages.append(("train", orjson.dumps(train_payload)))
 
-    messages.append(infer(payload, artifact_dict, model_config))
+    messages.append(_run_model(payload, artifact_data, model_config))
 
-    if time.time() - start_inference > 5:
-        LOGGER.debug(
-            "%s - Total time in inference is greater than 5 sec: %s sec",
-            payload.uuid,
-            time.time() - start_inference,
-        )
-    else:
-        LOGGER.debug(
-            "%s - Total time in inference: %s sec",
-            payload.uuid,
-            time.time() - start_inference,
-        )
+    LOGGER.debug(
+        "%s - Total time in inference: %s sec",
+        payload.uuid,
+        time.time() - _start_time,
+    )
     return messages

@@ -16,7 +16,7 @@ clean:
 	@find . -type f -name "*.py[co]" -exec rm -rf {} +
 
 format: clean
-	poetry run black numaprom/
+	poetry run black numaprom/ tests/
 	poetry run black trainer.py
 	poetry run black starter.py
 
@@ -28,7 +28,7 @@ setup:
 	poetry install --with dev --all-extras
 
 test:
-	poetry run python -m unittest discover
+	poetry run python -m unittest discover -s tests -t .
 
 requirements:
 	poetry export -f requirements.txt --output requirements.txt --without-hashes

@@ -3,6 +3,7 @@ from typing import Callable
 from pynumaflow.function import Messages
 
 from numaprom.udf import preprocess, postprocess, window, metric_filter, inference
+from numaprom.udsink import train
 
 
 class HandlerFactory:
@@ -22,5 +23,8 @@ class HandlerFactory:
 
         if step == "postprocess":
             return postprocess
+
+        if step == "train":
+            return train
 
         raise NotImplementedError(f"Invalid step provided: {step}")

@@ -2,9 +2,13 @@ import os
 import unittest
 from unittest.mock import patch
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.entities import Payload, Status
-from numaprom.tests.tools import get_prepoc_input, return_mock_metric_config, get_datum
+from orjson import orjson
+
+from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from numaprom.entities import Status, StreamPayload
+from tests.tools import get_prepoc_input, return_mock_metric_config, get_datum
+
+# Make sure to import this in the end
 from numaprom.udf.preprocess import preprocess
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
@@ -23,9 +27,12 @@ class TestPreprocess(unittest.TestCase):
         for msg in self.preproc_input.items():
             _in = get_datum(msg.value)
             _out = preprocess("", _in)
-            data = _out.items()[0].value.decode("utf-8")
-            payload = Payload.from_json(data)
+            out_data = _out.items()[0].value.decode("utf-8")
+            payload = StreamPayload(**orjson.loads(out_data))
+
             self.assertEqual(payload.status, Status.PRE_PROCESSED)
+            self.assertTrue(payload.win_arr)
+            self.assertTrue(payload.win_ts_arr)
 
 
 if __name__ == "__main__":

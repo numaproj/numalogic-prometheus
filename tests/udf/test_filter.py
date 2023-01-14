@@ -3,8 +3,8 @@ import os
 import unittest
 from unittest.mock import patch
 
-from numaprom.constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.tests.tools import get_stream_data, mockenv, get_datum
+from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from tests.tools import get_stream_data, mockenv, get_datum
 from numaprom.udf import metric_filter
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
@@ -21,7 +21,7 @@ class TestFilter(unittest.TestCase):
     def test_filter(self):
         for data in self.input_stream:
             _out = metric_filter("", get_datum(data))
-            _out = _out.items()[0].value.decode("utf-8")
+            _out = _out.items()[0].value
             if _out:
                 data = json.loads(_out)
                 self.assertEqual(data["labels"]["numalogic"], "true")

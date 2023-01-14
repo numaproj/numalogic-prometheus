@@ -1,39 +1,33 @@
-import time
 import logging
-import pandas as pd
+import time
 
+import orjson
 from numalogic.preprocess.transformer import LogTransformer
-from pynumaflow.function import Messages, Datum
+from pynumaflow.function import Datum
 
-from numaprom.entities import Status, Payload
-from numaprom.pipeline import PrometheusPipeline
-from numaprom.tools import catch_exception, msg_forward, get_metrics
+from numaprom.entities import Status, StreamPayload
+from numaprom.tools import msg_forward
 
 LOGGER = logging.getLogger(__name__)
 
 
-@catch_exception
 @msg_forward
-def preprocess(key: str, datum: Datum) -> Messages:
-    start_preprocess = time.time()
-    payload = Payload.from_json(datum.value.decode("utf-8"))
+def preprocess(_: str, datum: Datum) -> bytes:
+    _start_time = time.perf_counter()
+    _in_msg = datum.value.decode("utf-8")
+    payload = StreamPayload(**orjson.loads(_in_msg))
 
-    pipeline = PrometheusPipeline(
-        preprocess_steps=[LogTransformer()],
-    )
+    x_raw = payload.get_streamarray()
+    preproc_clf = LogTransformer()
+    x_scaled = preproc_clf.transform(x_raw)
 
-    df = payload.get_processed_dataframe()
-    arr = pipeline.preprocess(df.to_numpy(), train=False)
-    df = pd.DataFrame(data=arr, columns=df.columns, index=df.index).reset_index()
-    payload.processedMetrics = get_metrics(df)
-    payload.status = Status.PRE_PROCESSED
+    payload.set_win_arr(x_scaled)
+    payload.set_status(Status.PRE_PROCESSED)
 
-    payload_json = payload.to_json()
-    LOGGER.info("%s - Successfully pre-processed payload: %s", payload.uuid, payload_json)
     LOGGER.debug(
         "%s - Total time to preprocess: %s",
         payload.uuid,
-        time.time() - start_preprocess,
+        time.perf_counter() - _start_time,
     )
 
-    return payload_json
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

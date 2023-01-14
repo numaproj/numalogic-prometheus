@@ -3,6 +3,7 @@ import unittest
 from numaprom.factory import HandlerFactory
 
 from numaprom.udf import metric_filter, preprocess, postprocess, inference
+from numaprom.udsink import train
 
 
 class TestFactory(unittest.TestCase):
@@ -21,6 +22,10 @@ class TestFactory(unittest.TestCase):
     def test_inference(self):
         func = HandlerFactory.get_handler("inference")
         self.assertEqual(func, inference)
+
+    def test_train(self):
+        func = HandlerFactory.get_handler("train")
+        self.assertEqual(func, train)
 
     def test_invalid(self):
         with self.assertRaises(NotImplementedError):

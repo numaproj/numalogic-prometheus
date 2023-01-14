@@ -3,7 +3,6 @@ kind: Kustomization
 namespace: numalogic-prometheus
 resources:
   - namespace.yaml
-  - ./argoworkflows
   - ./mlflow
   - ./redis
   - ./pipeline

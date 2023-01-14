@@ -12,19 +12,14 @@ LOGGER = logging.getLogger(__name__)
 
 @catch_exception
 @msg_forward
-def metric_filter(key: str, datum: Datum) -> Optional[Messages]:
+def metric_filter(_: str, datum: Datum) -> Optional[Messages]:
     msg = datum.value.decode("utf-8")
+    data = json.loads(msg)
 
-    try:
-        data = json.loads(msg)
-    except Exception as ex:
-        LOGGER.exception("Error in Json serialization: %r", ex)
-        return None
+    label = os.getenv("LABEL")
+    label_values = json.loads(os.getenv("LABEL_VALUES", "[]"))
 
-    LABEL = os.getenv("LABEL")
-    LABEL_VALUES = json.loads(os.getenv("LABEL_VALUES", "[]"))
-
-    if LABEL in data["labels"] and data["labels"][LABEL] not in LABEL_VALUES:
+    if label in data["labels"] and data["labels"][label] not in label_values:
         return None
 
     LOGGER.info("Sending Metric: %s ", data)
