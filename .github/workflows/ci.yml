@@ -30,10 +30,10 @@ jobs:
         PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
       run: |
-        tag=$(basename $GITHUB_REF)
-        if [ $tag = "main" ]; then
-          tag="latest"
-        fi
+        tag= poetry version -s
+#        if [ $tag = "main" ]; then
+#          tag="latest"
+#        fi
         
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
         
