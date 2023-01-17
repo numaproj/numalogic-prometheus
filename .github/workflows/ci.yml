@@ -24,6 +24,9 @@ jobs:
         username: ${{ secrets.QUAYIO_USERNAME }}
         password: ${{ secrets.QUAYIO_PASSWORD }}
 
+    - name: Install poetry
+      run: pipx install poetry
+
     - name: Docker Build
       env:
         QUAYIO_ORG: quay.io/numaio
