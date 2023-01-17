@@ -26,7 +26,7 @@ jobs:
     - name: Docker Build
       env:
         QUAYIO_ORG: quay.io/numaio
-        LATFORM: linux/x86_64
+        PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
       run: |
         tag=$(basename $GITHUB_REF)
