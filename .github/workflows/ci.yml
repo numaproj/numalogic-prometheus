@@ -45,9 +45,9 @@ jobs:
       run: |
         branch=$(basename $GITHUB_REF)
         
-        tag=${{ env.version }}
+        tag="v${{ env.version }}"
         if [ $branch != "main" ]; then
-          tag="${branch}v${tag}"
+          tag="${branch}${tag}"
         fi
         
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
