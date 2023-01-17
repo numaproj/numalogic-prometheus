@@ -59,8 +59,10 @@ EXPOSE 5000
 FROM builder AS udf
 
 WORKDIR $PYSETUP_PATH
-COPY ./requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+COPY ./pyproject.toml ./poetry.lock ./
+RUN poetry install --no-cache --no-root && \
+    poetry run pip install --no-cache torch --extra-index-url https://download.pytorch.org/whl/cpu && \
+    rm -rf ~/.cache/pypoetry/
 
 ADD . /app
 WORKDIR /app
