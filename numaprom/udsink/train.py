@@ -17,9 +17,15 @@ from torch.utils.data import DataLoader
 
 from numaprom._constants import DEFAULT_PROMETHEUS_SERVER
 from numaprom.prometheus import Prometheus
+from numaprom.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model
 
 LOGGER = logging.getLogger(__name__)
+
+HOST = os.getenv("REDIS_HOST")
+PORT = os.getenv("REDIS_PORT")
+AUTH = os.getenv("REDIS_AUTH")
+EXPIRY = int(os.getenv("REDIS_EXPIRY", 300))
 
 
 def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
@@ -73,6 +79,18 @@ def _preprocess(x_raw):
     return x_scaled
 
 
+def _is_new_request(namespace: str, metric: str) -> bool:
+    redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=False)
+    r_key = f"train::{namespace}:{metric}"
+
+    value = redis_client.get(r_key)
+    if value:
+        return False
+
+    redis_client.setex(r_key, time=EXPIRY, value=1)
+    return True
+
+
 def train(datums: List[Datum]) -> Responses:
     responses = Responses()
 
@@ -82,6 +100,13 @@ def train(datums: List[Datum]) -> Responses:
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
+        is_new = _is_new_request(namespace, metric_name)
+        if not is_new:
+            warn_msg = f"Skipping train request with namespace: {namespace}, metric: {metric_name}"
+            LOGGER.warning(warn_msg)
+            responses.append(Response.as_failure(_datum.id, err_msg=warn_msg))
+            continue
+
         metric_config = get_metric_config(metric_name)
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
@@ -90,12 +115,12 @@ def train(datums: List[Datum]) -> Responses:
         train_df = clean_data(train_df)
 
         if len(train_df) < model_config["win_size"]:
-            warn_msg = (
+            _info_msg = (
                 f"Skipping training since traindata size: {train_df.shape} "
                 f"is less than winsize: {win_size}"
             )
-            LOGGER.warning(warn_msg)
-            responses.append(Response.as_failure(_datum.id, err_msg=warn_msg))
+            LOGGER.info(_info_msg)
+            responses.append(Response.as_failure(_datum.id, err_msg=_info_msg))
             continue
 
         x_train = _preprocess(train_df.to_numpy())

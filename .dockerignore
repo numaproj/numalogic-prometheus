@@ -12,3 +12,4 @@ LICENSE
 .codecov.yml
 .coveragerc
 .flake8
+.hack/
