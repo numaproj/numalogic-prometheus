@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
-EXPIRY = int(os.getenv("REDIS_EXPIRY", 1800))
+EXPIRY = int(os.getenv("REDIS_EXPIRY", 300))
 
 
 def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
