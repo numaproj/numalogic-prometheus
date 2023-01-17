@@ -9,13 +9,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
 
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install poetry
+      run: pipx install poetry
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'poetry'
+
     - name: Set output
       id: vars
-      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      run: |
+        echo "version=$(poetry version -s)" >> $GITHUB_ENV
 
     - name: Docker Login
       uses: docker/login-action@v2
@@ -30,9 +43,11 @@ jobs:
         PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
       run: |
-        tag=$(basename $GITHUB_REF)
-        if [ $tag = "main" ]; then
-          tag="latest"
+        branch=$(basename $GITHUB_REF)
+        
+        tag="v${{ env.version }}"
+        if [ $branch != "main" ]; then
+          tag="${branch}${tag}"
         fi
         
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
