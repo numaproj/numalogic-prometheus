@@ -33,7 +33,7 @@ jobs:
         PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
       run: |
-        tag= poetry version -s
+        tag= ${poetry version -s}
 #        if [ $tag = "main" ]; then
 #          tag="latest"
 #        fi
