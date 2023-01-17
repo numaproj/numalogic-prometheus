@@ -47,7 +47,7 @@ jobs:
         
         tag=${{ env.version }}
         if [ $branch != "main" ]; then
-          tag="${branch}-${tag}"
+          tag="${branch}v${tag}"
         fi
         
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
