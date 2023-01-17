@@ -13,9 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install poetry
+      run: pipx install poetry
+
     - name: Set output
       id: vars
-      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      run: |
+        tag=$(poetry version -s) | echo $tag
 
     - name: Docker Login
       uses: docker/login-action@v2
@@ -30,10 +34,9 @@ jobs:
         PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
       run: |
-        tag=$(basename $GITHUB_REF)
-        if [ $tag = "main" ]; then
-          tag="latest"
-        fi
+#        if [ $tag = "main" ]; then
+#          tag="latest"
+#        fi
         
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
         
