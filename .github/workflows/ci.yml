@@ -33,11 +33,7 @@ jobs:
         QUAYIO_ORG: quay.io/numaio
         PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
-      run: |
-#        if [ $tag = "main" ]; then
-#          tag="latest"
-#        fi
-        
+      run: |        
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
         
         docker buildx build \
