@@ -13,9 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install poetry
+      run: pipx install poetry
+
     - name: Set output
       id: vars
-      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      run: |
+        tag=$(poetry version -s) | echo $tag
 
     - name: Docker Login
       uses: docker/login-action@v2
@@ -24,16 +28,12 @@ jobs:
         username: ${{ secrets.QUAYIO_USERNAME }}
         password: ${{ secrets.QUAYIO_PASSWORD }}
 
-    - name: Install poetry
-      run: pipx install poetry
-
     - name: Docker Build
       env:
         QUAYIO_ORG: quay.io/numaio
         PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
       run: |
-        tag= $(poetry version -s)
 #        if [ $tag = "main" ]; then
 #          tag="latest"
 #        fi
