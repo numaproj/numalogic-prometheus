@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.1.0a1 (2023-01-17)
+
+ * [a37d581](https://github.com/numaproj/numalogic-prometheus/commit/a37d581f9f47339f2cce607b2caa2638aee269ba) fix: install pytorch-lightning in docker (#42)
+ * [1fc7daf](https://github.com/numaproj/numalogic-prometheus/commit/1fc7daf0dd5983865627503e869bc2e74f1fbe0c) fix: tag for release (#40)
+
+### Contributors
+
+ * Avik Basu
+ * Nandita Koppisetty
+
 ## v0.1.0a0 (2023-01-17)
 
  * [4789b19](https://github.com/numaproj/numalogic-prometheus/commit/4789b1989e175b55d3247486cc173f60ad23b23f) feat: train udsink request deduplication (#39)
