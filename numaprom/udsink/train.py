@@ -102,9 +102,10 @@ def train(datums: List[Datum]) -> Responses:
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
-            warn_msg = f"Skipping train request with namespace: {namespace}, metric: {metric_name}"
-            LOGGER.warning(warn_msg)
-            responses.append(Response.as_failure(_datum.id, err_msg=warn_msg))
+            LOGGER.info(
+                "Skipping train request with namespace: %s, metric: %s", namespace, metric_name
+            )
+            responses.append(Response.as_success(_datum.id))
             continue
 
         metric_config = get_metric_config(metric_name)
