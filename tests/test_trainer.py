@@ -63,7 +63,7 @@ class TestTrainer(unittest.TestCase):
         self.assertTrue(_out.items()[0].success)
         self.assertEqual("1", _out.items()[0].id)
 
-        self.assertFalse(_out.items()[1].success)
+        self.assertTrue(_out.items()[1].success)
         self.assertEqual("2", _out.items()[1].id)
         self.assertEqual(2, len(_out.items()))
 
