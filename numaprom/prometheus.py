@@ -94,7 +94,9 @@ class Prometheus:
     def query(self, query: str) -> Optional[Dict]:
         results = []
         try:
-            response = requests.get(self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query})
+            response = requests.get(
+                self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query}
+            )
             if response:
                 results = response.json()["data"]["result"]
             else:
