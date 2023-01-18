@@ -66,6 +66,7 @@ class Prometheus:
             if results:
                 results["values"] = results["values"] + response["values"]
             else:
+                LOGGER.debug("Prometheus query has returned empty results.")
                 results = response
 
         return results
@@ -92,7 +93,13 @@ class Prometheus:
 
     def query(self, query: str) -> Optional[Dict]:
         results = []
-        response = requests.get(self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query})
-        if response:
-            results = response.json()["data"]["result"]
+        try:
+            response = requests.get(self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query})
+            if response:
+                results = response.json()["data"]["result"]
+            else:
+                LOGGER.debug("Prometheus query has returned empty results.")
+        except Exception as ex:
+            LOGGER.exception("error: %r", ex)
+
         return results

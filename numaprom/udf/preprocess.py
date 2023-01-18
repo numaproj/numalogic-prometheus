@@ -27,9 +27,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
     payload.set_status(Status.PRE_PROCESSED)
 
     LOGGER.debug(
-        "%s - Total time to preprocess: %s",
-        payload.uuid,
-        time.perf_counter() - _start_time
+        "%s - Total time to preprocess: %s", payload.uuid, time.perf_counter() - _start_time
     )
     LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
 

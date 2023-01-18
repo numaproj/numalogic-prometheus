@@ -92,9 +92,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     messages.append(_run_model(payload, artifact_data, model_config))
 
     LOGGER.debug(
-        "%s - Total time in inference: %s sec",
-        payload.uuid,
-        time.perf_counter() - _start_time
+        "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
     )
     LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
 

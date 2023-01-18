@@ -60,7 +60,7 @@ def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFr
 
 
 def _train_model(x, model_config):
-    _start_train = time.time()
+    _start_train = time.perf_counter()
 
     win_size = model_config["win_size"]
     dataset = StreamingDataset(x, win_size)
@@ -69,7 +69,7 @@ def _train_model(x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.debug("Time taken to train model: %s", time.time() - _start_train)
+    LOGGER.debug("Time taken to train model: %s", time.perf_counter() - _start_train)
     return model
 
 
@@ -99,6 +99,8 @@ def train(datums: List[Datum]) -> Responses:
 
         namespace = payload["namespace"]
         metric_name = payload["name"]
+
+        LOGGER.info("Starting Training for Keys: { %s, %s } ", namespace, metric_name)
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:

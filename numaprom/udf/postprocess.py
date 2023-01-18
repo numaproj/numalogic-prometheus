@@ -51,7 +51,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
 
 
 def __construct_publisher_payload(
-        stream_payload: StreamPayload, final_score: float
+    stream_payload: StreamPayload, final_score: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
@@ -74,7 +74,7 @@ def __construct_publisher_payload(
 
 
 def __construct_unified_payload(
-        stream_payload: StreamPayload, max_anomaly: float
+    stream_payload: StreamPayload, max_anomaly: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
