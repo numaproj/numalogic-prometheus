@@ -13,6 +13,8 @@ LOGGER = logging.getLogger(__name__)
 
 @msg_forward
 def preprocess(_: str, datum: Datum) -> bytes:
+    LOGGER.debug("Received Msg: %s ", datum.value)
+
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
@@ -27,7 +29,8 @@ def preprocess(_: str, datum: Datum) -> bytes:
     LOGGER.debug(
         "%s - Total time to preprocess: %s",
         payload.uuid,
-        time.perf_counter() - _start_time,
+        time.perf_counter() - _start_time
     )
+    LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
 
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

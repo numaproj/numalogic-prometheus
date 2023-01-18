@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 import uuid
 from typing import List, Tuple, Optional
 
@@ -12,7 +13,7 @@ from numaprom.entities import StreamPayload, Status
 from numaprom.redis import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys, get_metric_config
 
-_LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -36,6 +37,9 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     """
     UDF to construct windowing of the streaming input data, required by ML models.
     """
+    LOGGER.debug("Received Msg: %s ", datum.value)
+
+    _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
 
     metric_name = msg["name"]
@@ -57,7 +61,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=False
         )
     except RedisConnectionError:
-        _LOGGER.warning("Redis connection failed, recreating the redis client")
+        LOGGER.warning("Redis connection failed, recreating the redis client")
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
@@ -74,4 +78,6 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )
+    LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
+    LOGGER.debug("%s - Total time to window: %s", payload.uuid, time.perf_counter() - _start_time)
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

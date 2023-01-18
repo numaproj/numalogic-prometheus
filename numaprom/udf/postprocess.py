@@ -12,7 +12,7 @@ from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import msgs_forward, get_metric_config
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLOGGER(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -51,7 +51,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
 
 
 def __construct_publisher_payload(
-    stream_payload: StreamPayload, final_score: float
+        stream_payload: StreamPayload, final_score: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
@@ -74,7 +74,7 @@ def __construct_publisher_payload(
 
 
 def __construct_unified_payload(
-    stream_payload: StreamPayload, max_anomaly: float
+        stream_payload: StreamPayload, max_anomaly: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
@@ -96,23 +96,6 @@ def __construct_unified_payload(
         value=max_anomaly,
         labels=labels,
     )
-
-
-@msgs_forward
-def postprocess(_: str, datum: Datum) -> List[bytes]:
-    _in_msg = datum.value.decode("utf-8")
-    payload = StreamPayload(**orjson.loads(_in_msg))
-
-    raw_scores = payload.get_streamarray()
-    raw_mean_score = np.mean(raw_scores)
-
-    postproc_clf = TanhNorm()
-    norm_score = postproc_clf.transform(raw_mean_score)
-
-    payload.set_status(Status.POST_PROCESSED)
-    LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
-
-    return _publish(norm_score, payload)
 
 
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
@@ -142,3 +125,22 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         )
         return [publisher_json, unified_json]
     return [publisher_json]
+
+
+@msgs_forward
+def postprocess(_: str, datum: Datum) -> List[bytes]:
+    LOGGER.debug("Received Msg: %s ", datum.value)
+
+    _in_msg = datum.value.decode("utf-8")
+    payload = StreamPayload(**orjson.loads(_in_msg))
+
+    raw_scores = payload.get_streamarray()
+    raw_mean_score = np.mean(raw_scores)
+
+    postproc_clf = TanhNorm()
+    norm_score = postproc_clf.transform(raw_mean_score)
+
+    payload.set_status(Status.POST_PROCESSED)
+    LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
+
+    return _publish(norm_score, payload)

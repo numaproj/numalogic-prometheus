@@ -17,7 +17,7 @@ from numaprom.tools import (
     get_metric_config,
 )
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLOGGER(__name__)
 
 
 def _run_model(
@@ -41,7 +41,9 @@ def _run_model(
 
 @conditional_forward
 def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
-    _start_time = time.time()
+    LOGGER.debug("Received Msg: %s ", datum.value)
+
+    _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
@@ -92,6 +94,8 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     LOGGER.debug(
         "%s - Total time in inference: %s sec",
         payload.uuid,
-        time.time() - _start_time,
+        time.perf_counter() - _start_time
     )
+    LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
+
     return messages
