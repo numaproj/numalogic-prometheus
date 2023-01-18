@@ -12,7 +12,7 @@ from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import msgs_forward, get_metric_config
 
-LOGGER = logging.getLOGGER(__name__)
+LOGGER = logging.getLogger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")

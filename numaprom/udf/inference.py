@@ -17,7 +17,7 @@ from numaprom.tools import (
     get_metric_config,
 )
 
-LOGGER = logging.getLOGGER(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def _run_model(
