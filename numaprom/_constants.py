@@ -44,6 +44,36 @@ MODEL_CONFIG = {
             "namespace_hash_pod_http_server_requests_latency",
         ],
     },
+    "fuzzy_argocd": {
+        "name": "fuzzy_argocd",
+        "win_size": 12,
+        "threshold_min": 0.1,
+        "model_name": "ae_sparse",
+        "retrain_freq_hr": 8,
+        "resume_training": "True",
+        "num_epochs": 100,
+        "keys": ["namespace", "name"],
+        "scrape_interval": 5,
+        "metrics": [
+            "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_latency",
+            "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_error_count",
+        ],
+    },
+    "fuzzy_rollouts": {
+        "name": "fuzzy_rollouts",
+        "win_size": 12,
+        "threshold_min": 0.001,
+        "model_name": "ae_sparse",
+        "retrain_freq_hr": 8,
+        "resume_training": "True",
+        "num_epochs": 50,
+        "keys": ["namespace", "name"],
+        "scrape_interval": 5,
+        "metrics": [
+            "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_latency",
+            "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_error_count",
+        ],
+    },
     "default": {
         "name": "default",
         "win_size": 12,
@@ -92,6 +122,26 @@ METRIC_CONFIG = {
     "namespace_hash_pod_http_server_requests_latency": {
         "keys": ["namespace", "name", "hash_id"],
         "model_config": MODEL_CONFIG["argo_rollouts"],
+        "model": "VanillaAE",
+    },
+    "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_latency": {
+        "keys": ["namespace", "name"],
+        "model_config": MODEL_CONFIG["fuzzy_argocd"],
+        "model": "VanillaAE",
+    },
+    "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_error_count": {
+        "keys": ["namespace", "name"],
+        "model_config": MODEL_CONFIG["fuzzy_argocd"],
+        "model": "VanillaAE",
+    },
+    "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_latency": {
+        "keys": ["namespace", "name", "hash_id"],
+        "model_config": MODEL_CONFIG["fuzzy_rollouts"],
+        "model": "VanillaAE",
+    },
+    "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_error_count": {
+        "keys": ["namespace", "name", "hash_id"],
+        "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "model": "VanillaAE",
     },
     "default": {
