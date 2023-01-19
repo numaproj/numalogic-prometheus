@@ -3,7 +3,6 @@ import time
 from datetime import datetime, timedelta
 from typing import Tuple, Dict, List
 
-from mlflow.exceptions import RestException
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import ArtifactData
 from numalogic.tools.data import StreamingDataset
