@@ -34,7 +34,7 @@ def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
     return df
 
 
-def _train_model(_id, x, model_config):
+def _train_model(uuid, x, model_config):
     _start_train = time.time()
 
     win_size = model_config["win_size"]
@@ -44,7 +44,7 @@ def _train_model(_id, x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    _LOGGER.debug("%s - Time taken to train model: %s", _id, time.perf_counter() - _start_train)
+    _LOGGER.debug("%s - Time taken to train model: %s", uuid, time.perf_counter() - _start_train)
     return model
 
 
@@ -95,12 +95,12 @@ def train(datums: List[Datum]) -> Responses:
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
 
-        train_df = fetch_data(metric_name, model_config, {"namespace": namespace})
+        train_df = fetch_data(_id, metric_name, model_config, {"namespace": namespace})
         train_df = clean_data(train_df)
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (
-                f"Skipping training since traindata size: {train_df.shape} "
+                f"{_id} - Skipping training since traindata size: {train_df.shape} "
                 f"is less than winsize: {win_size}"
             )
             _LOGGER.info(_info_msg)

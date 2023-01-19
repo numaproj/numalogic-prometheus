@@ -25,7 +25,7 @@ EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
-def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
+def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
@@ -44,12 +44,12 @@ def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     df.drop(hash_col, axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
     if len(df) < (1.5 * 60 * 12):
-        _LOGGER.exception("%s - Not enough training points to initiate training", _id)
+        _LOGGER.exception("%s - Not enough training points to initiate training", uuid)
         return pd.DataFrame()
     return df
 
 
-def _train_model(_id, x, model_config):
+def _train_model(uuid, x, model_config):
     _start_train = time.time()
 
     win_size = model_config["win_size"]
@@ -59,7 +59,7 @@ def _train_model(_id, x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    _LOGGER.debug("%s - Time taken to train model: %s", _id, time.time() - _start_train)
+    _LOGGER.debug("%s - Time taken to train model: %s", uuid, time.time() - _start_train)
     return model
 
 
@@ -111,9 +111,9 @@ def train_rollout(datums: List[Datum]) -> Responses:
         win_size = model_config["win_size"]
 
         train_df = fetch_data(
-            metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
+            _id, metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
         )
-        train_df = clean_data(train_df, "hash_id")
+        train_df = clean_data(_id, train_df, "hash_id")
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (

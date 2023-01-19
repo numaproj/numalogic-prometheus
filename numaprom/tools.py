@@ -162,7 +162,7 @@ def get_metric_config(metric_name: str):
 
 
 def fetch_data(
-    metric_name: str, model_config: dict, labels: dict, return_labels=None
+    uuid: str, metric_name: str, model_config: dict, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 
@@ -180,7 +180,10 @@ def fetch_data(
         end=end_dt.timestamp(),
         step=model_config["scrape_interval"],
     )
-    LOGGER.info(
-        "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
+    _LOGGER.info(
+        "%s - Time taken to fetch data: %s, for df shape: %s",
+        uuid,
+        time.time() - _start_time,
+        df.shape,
     )
     return df
