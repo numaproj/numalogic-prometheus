@@ -8,7 +8,7 @@ from pynumaflow.function import Datum
 from numaprom.entities import Status, StreamPayload
 from numaprom.tools import msg_forward
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 @msg_forward
@@ -17,7 +17,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
-    LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
 
     x_raw = payload.get_streamarray()
     preproc_clf = LogTransformer()
@@ -26,8 +26,8 @@ def preprocess(_: str, datum: Datum) -> bytes:
     payload.set_win_arr(x_scaled)
     payload.set_status(Status.PRE_PROCESSED)
 
-    LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
-    LOGGER.debug(
+    _LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
+    _LOGGER.debug(
         "%s - Total time to preprocess: %s", payload.uuid, time.perf_counter() - _start_time
     )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

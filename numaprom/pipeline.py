@@ -11,7 +11,7 @@ from typing import Sequence, Callable, Optional, Union, BinaryIO, List, Dict
 from numaprom._constants import DEFAULT_PROMETHEUS_SERVER
 from numaprom.prometheus import Prometheus
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 # TODO allow saving of preprocessor functions
@@ -92,13 +92,13 @@ class PrometheusPipeline:
         df.drop("hash_id", axis=1, inplace=True)
         df = df.sort_values(by=["timestamp"], ascending=True)
         if len(df) < (1.5 * 60 * 12):
-            LOGGER.exception("Not enough training points to initiate training")
+            _LOGGER.exception("Not enough training points to initiate training")
             return None
         return df
 
     def preprocess(self, X: NDArray, train=True) -> NDArray[float]:
         if not self.preprocess_pipeline:
-            LOGGER.warning("No preprocess steps provided.")
+            _LOGGER.warning("No preprocess steps provided.")
             return X
         if train:
             return self.preprocess_pipeline.fit_transform(X)

@@ -20,7 +20,7 @@ from numaprom.prometheus import Prometheus
 from numaprom.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -48,7 +48,7 @@ def clean_data(_id, df: pd.DataFrame, limit=12) -> pd.DataFrame:
     df.drop("hash_id", axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
     if len(df) < (1.5 * 60 * 12):
-        LOGGER.exception("%s - Not enough training points to initiate training", _id)
+        _LOGGER.exception("%s - Not enough training points to initiate training", _id)
         return pd.DataFrame()
     return df
 
@@ -70,7 +70,7 @@ def _fetch_data(_id: str, metric_name: str, model_config: dict, labels: dict) ->
         end=end_dt.timestamp(),
         step=model_config["scrape_interval"],
     )
-    LOGGER.info(
+    _LOGGER.info(
         "%s - Time taken to fetch data: %s, for df shape: %s",
         _id,
         time.time() - _start_time,
@@ -89,7 +89,7 @@ def _train_model(_id, x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.debug("%s - Time taken to train model: %s", _id, time.time() - _start_train)
+    _LOGGER.debug("%s - Time taken to train model: %s", _id, time.time() - _start_train)
     return model
 
 
@@ -121,13 +121,13 @@ def train_rollout(datums: List[Datum]) -> Responses:
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
-        LOGGER.debug(
+        _LOGGER.debug(
             "%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name
         )
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
-            LOGGER.info(
+            _LOGGER.info(
                 "%s - Skipping rollouts train request with namespace: %s, metric: %s",
                 _id,
                 namespace,
@@ -148,7 +148,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
                 f"{_id} - Skipping training since traindata size: {train_df.shape} "
                 f"is less than winsize: {win_size}"
             )
-            LOGGER.info(_info_msg)
+            _LOGGER.info(_info_msg)
             responses.append(Response.as_failure(_datum.id, err_msg=_info_msg))
             continue
 
@@ -157,7 +157,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
 
         skeys = [namespace, metric_name]
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
-        LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
+        _LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
         responses.append(Response.as_success(_datum.id))
 
     return responses

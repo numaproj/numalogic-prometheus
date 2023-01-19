@@ -17,7 +17,7 @@ from numaprom.tools import (
     get_metric_config,
 )
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 def _run_model(
@@ -30,7 +30,7 @@ def _run_model(
     trainer = AutoencoderTrainer()
     recon_err = trainer.predict(model, dataloaders=stream_loader)
 
-    LOGGER.info("%s - Successfully inferred", payload.uuid)
+    _LOGGER.info("%s - Successfully inferred", payload.uuid)
 
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
@@ -46,7 +46,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
-    LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
 
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
@@ -64,14 +64,14 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     }
 
     if not artifact_data:
-        LOGGER.info(
+        _LOGGER.info(
             "%s - No model found, sending to trainer. Trainer payload: %s",
             payload.uuid,
             train_payload,
         )
         return [("train", orjson.dumps(train_payload))]
 
-    LOGGER.debug("%s - Successfully loaded model from mlflow", payload.uuid)
+    _LOGGER.debug("%s - Successfully loaded model from mlflow", payload.uuid)
 
     messages = []
 
@@ -82,7 +82,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
 
     if date_updated < stale_date:
         train_payload["resume_training"] = True
-        LOGGER.info(
+        _LOGGER.info(
             "%s - Model found is stale, sending to trainer. Trainer payload: %s",
             payload.uuid,
             train_payload,
@@ -91,8 +91,8 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
 
     messages.append(_run_model(payload, artifact_data, model_config))
 
-    LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
-    LOGGER.debug(
+    _LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
+    _LOGGER.debug(
         "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
     )
     return messages
