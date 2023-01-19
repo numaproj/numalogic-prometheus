@@ -54,7 +54,10 @@ def _fetch_data(_id: str, metric_name: str, model_config: dict, labels: dict) ->
         step=model_config["scrape_interval"],
     )
     LOGGER.debug(
-        "%s - Time taken to fetch data: %s, for df shape: %s", _id, time.time() - _start_time, df.shape
+        "%s - Time taken to fetch data: %s, for df shape: %s",
+        _id,
+        time.time() - _start_time,
+        df.shape,
     )
     return df
 
@@ -101,12 +104,17 @@ def train(datums: List[Datum]) -> Responses:
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
-        LOGGER.debug("%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name)
+        LOGGER.debug(
+            "%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name
+        )
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
             LOGGER.info(
-                "%s - Skipping train request with namespace: %s, metric: %s", _id, namespace, metric_name
+                "%s - Skipping train request with namespace: %s, metric: %s",
+                _id,
+                namespace,
+                metric_name,
             )
             responses.append(Response.as_success(_datum.id))
             continue
