@@ -46,7 +46,7 @@ jobs:
         type=$(basename $(dirname $GITHUB_REF))
         tag=$(basename $GITHUB_REF)
         
-        if [$type = "heads"]; then
+        if [[$type == "heads"]]; then
           tag="$(basename $GITHUB_REF)v${{ env.version }}"
         fi
         
