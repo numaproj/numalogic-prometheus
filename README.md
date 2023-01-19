@@ -9,7 +9,6 @@ It installs in a few minutes and is easier to onboard and configure any new metr
 
 ## Prerequisites
 - [Numaflow](https://numaflow.numaproj.io/quick-start/#installation)
-- [Argo Workflows](https://argoproj.github.io/argo-workflows/quick-start/)
 - [Prometheus](docs/prometheus.md)
 
 Run the below command to install all the prerequisites.

@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from numaprom.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model, fetch_data
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -33,7 +33,7 @@ def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
     return df
 
 
-def _train_model(x, model_config):
+def _train_model(uuid, x, model_config):
     _start_train = time.time()
 
     win_size = model_config["win_size"]
@@ -43,7 +43,7 @@ def _train_model(x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.debug("Time taken to train model: %s", time.time() - _start_train)
+    _LOGGER.debug("%s - Time taken to train model: %s", uuid, time.perf_counter() - _start_train)
     return model
 
 
@@ -71,13 +71,21 @@ def train(datums: List[Datum]) -> Responses:
     for _datum in datums:
         payload = orjson.loads(_datum.value)
 
+        _id = payload["uuid"]
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
+        _LOGGER.debug(
+            "%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name
+        )
+
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
-            LOGGER.info(
-                "Skipping train request with namespace: %s, metric: %s", namespace, metric_name
+            _LOGGER.info(
+                "%s - Skipping train request with namespace: %s, metric: %s",
+                _id,
+                namespace,
+                metric_name,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -86,24 +94,24 @@ def train(datums: List[Datum]) -> Responses:
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
 
-        train_df = fetch_data(metric_name, model_config, {"namespace": namespace})
+        train_df = fetch_data(_id, metric_name, model_config, {"namespace": namespace})
         train_df = clean_data(train_df)
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (
-                f"Skipping training since traindata size: {train_df.shape} "
+                f"{_id} - Skipping training since traindata size: {train_df.shape} "
                 f"is less than winsize: {win_size}"
             )
-            LOGGER.info(_info_msg)
+            _LOGGER.info(_info_msg)
             responses.append(Response.as_failure(_datum.id, err_msg=_info_msg))
             continue
 
         x_train = _preprocess(train_df.to_numpy())
-        model = _train_model(x_train, model_config)
+        model = _train_model(_id, x_train, model_config)
 
         skeys = [namespace, metric_name]
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
-        LOGGER.info("Model saved with skeys: %s with version: %s", skeys, version)
+        _LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
         responses.append(Response.as_success(_datum.id))
 
     return responses

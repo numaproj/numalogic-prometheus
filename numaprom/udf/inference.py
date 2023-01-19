@@ -17,7 +17,7 @@ from numaprom.tools import (
     get_metric_config,
 )
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 def _run_model(
@@ -25,12 +25,12 @@ def _run_model(
 ) -> Tuple[str, str]:
     model = artifact_data.artifact
     stream_data = payload.get_streamarray()
-    streamloader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
+    stream_loader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
 
     trainer = AutoencoderTrainer()
-    recon_err = trainer.predict(model, dataloaders=streamloader)
+    recon_err = trainer.predict(model, dataloaders=stream_loader)
 
-    LOGGER.info("%s - Succesfully inferred", payload.uuid)
+    _LOGGER.info("%s - Successfully inferred", payload.uuid)
 
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
@@ -41,14 +41,15 @@ def _run_model(
 
 @conditional_forward
 def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
-    _start_time = time.time()
+
+    _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
+    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
-
-    LOGGER.debug("%s - Starting inference", payload.uuid)
 
     artifact_data = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
@@ -63,14 +64,14 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     }
 
     if not artifact_data:
-        LOGGER.info(
+        _LOGGER.info(
             "%s - No model found, sending to trainer. Trainer payload: %s",
             payload.uuid,
             train_payload,
         )
         return [("train", orjson.dumps(train_payload))]
 
-    LOGGER.debug("%s - Successfully loaded model from mlflow", payload.uuid)
+    _LOGGER.debug("%s - Successfully loaded model from mlflow", payload.uuid)
 
     messages = []
 
@@ -81,7 +82,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
 
     if date_updated < stale_date:
         train_payload["resume_training"] = True
-        LOGGER.info(
+        _LOGGER.info(
             "%s - Model found is stale, sending to trainer. Trainer payload: %s",
             payload.uuid,
             train_payload,
@@ -90,9 +91,8 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
 
     messages.append(_run_model(payload, artifact_data, model_config))
 
-    LOGGER.debug(
-        "%s - Total time in inference: %s sec",
-        payload.uuid,
-        time.time() - _start_time,
+    _LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
+    _LOGGER.debug(
+        "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
     )
     return messages

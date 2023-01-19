@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from numaprom.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model, fetch_data
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -25,7 +25,7 @@ EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
-def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
+def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
@@ -44,12 +44,12 @@ def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     df.drop(hash_col, axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
     if len(df) < (1.5 * 60 * 12):
-        LOGGER.exception("Not enough training points to initiate training")
+        _LOGGER.exception("%s - Not enough training points to initiate training", uuid)
         return pd.DataFrame()
     return df
 
 
-def _train_model(x, model_config):
+def _train_model(uuid, x, model_config):
     _start_train = time.time()
 
     win_size = model_config["win_size"]
@@ -59,7 +59,7 @@ def _train_model(x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.debug("Time taken to train model: %s", time.time() - _start_train)
+    _LOGGER.debug("%s - Time taken to train model: %s", uuid, time.time() - _start_train)
     return model
 
 
@@ -91,9 +91,13 @@ def train_rollout(datums: List[Datum]) -> Responses:
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
+        _LOGGER.debug(
+            "%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name
+        )
+
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
-            LOGGER.info(
+            _LOGGER.info(
                 "%s - Skipping rollouts train request with namespace: %s, metric: %s",
                 _id,
                 namespace,
@@ -107,25 +111,25 @@ def train_rollout(datums: List[Datum]) -> Responses:
         win_size = model_config["win_size"]
 
         train_df = fetch_data(
-            metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
+            _id, metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
         )
-        train_df = clean_data(train_df, "hash_id")
+        train_df = clean_data(_id, train_df, "hash_id")
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (
                 f"{_id} - Skipping training since traindata size: {train_df.shape} "
                 f"is less than winsize: {win_size}"
             )
-            LOGGER.info(_info_msg)
+            _LOGGER.info(_info_msg)
             responses.append(Response.as_failure(_datum.id, err_msg=_info_msg))
             continue
 
         x_train = _preprocess(train_df.to_numpy())
-        model = _train_model(x_train, model_config)
+        model = _train_model(_id, x_train, model_config)
 
         skeys = [namespace, metric_name]
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
-        LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
+        _LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
         responses.append(Response.as_success(_datum.id))
 
     return responses

@@ -12,7 +12,7 @@ from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import msgs_forward, get_metric_config
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -98,29 +98,12 @@ def __construct_unified_payload(
     )
 
 
-@msgs_forward
-def postprocess(_: str, datum: Datum) -> List[bytes]:
-    _in_msg = datum.value.decode("utf-8")
-    payload = StreamPayload(**orjson.loads(_in_msg))
-
-    raw_scores = payload.get_streamarray()
-    raw_mean_score = np.mean(raw_scores)
-
-    postproc_clf = TanhNorm()
-    norm_score = postproc_clf.transform(raw_mean_score)
-
-    payload.set_status(Status.POST_PROCESSED)
-    LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
-
-    return _publish(norm_score, payload)
-
-
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
     metric_name = payload.composite_keys["name"]
     model_config = get_metric_config(metric_name)["model_config"]
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
-    LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
+    _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
 
     if model_config["name"] == "default":
         return [publisher_json]
@@ -130,15 +113,35 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
             payload=payload, final_score=final_score, recreate=False
         )
     except RedisConnectionError:
-        LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
+        _LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
         max_anomaly, anomalies = save_to_redis(
             payload=payload, final_score=final_score, recreate=True
         )
 
     if max_anomaly > -1:
         unified_json = __construct_unified_payload(payload, max_anomaly).as_json()
-        LOGGER.info(
+        _LOGGER.info(
             "%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json
         )
         return [publisher_json, unified_json]
     return [publisher_json]
+
+
+@msgs_forward
+def postprocess(_: str, datum: Datum) -> List[bytes]:
+    _in_msg = datum.value.decode("utf-8")
+    payload = StreamPayload(**orjson.loads(_in_msg))
+
+    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+
+    raw_scores = payload.get_streamarray()
+    raw_mean_score = np.mean(raw_scores)
+
+    postproc_clf = TanhNorm()
+    norm_score = postproc_clf.transform(raw_mean_score)
+
+    payload.set_status(Status.POST_PROCESSED)
+    _LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
+    _LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
+
+    return _publish(norm_score, payload)

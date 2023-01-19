@@ -19,7 +19,7 @@ from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PRO
 from numaprom.entities import Metric
 from numaprom.prometheus import Prometheus
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 def catch_exception(func):
@@ -28,9 +28,9 @@ def catch_exception(func):
         try:
             return func(*args, **kwargs)
         except JSONDecodeError as err:
-            LOGGER.exception("Error in json decode for %s: %r", func.__name__, err)
+            _LOGGER.exception("Error in json decode for %s: %r", func.__name__, err)
         except Exception as ex:
-            LOGGER.exception("Error in %s: %r", func.__name__, ex)
+            _LOGGER.exception("Error in %s: %r", func.__name__, ex)
 
     return inner_function
 
@@ -122,11 +122,13 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
             get_ipv4_by_hostname(hostname, port)
         except socket.gaierror as ex:
             retries += 1
-            LOGGER.warning("Failed to resolve hostname: %s: error: %r", hostname, ex, exc_info=True)
+            _LOGGER.warning(
+                "Failed to resolve hostname: %s: error: %r", hostname, ex, exc_info=True
+            )
             time.sleep(sleep_sec)
         else:
             return True
-    LOGGER.error("Failed to resolve hostname: %s even after retries!")
+    _LOGGER.error("Failed to resolve hostname: %s even after retries!")
     return False
 
 
@@ -138,9 +140,9 @@ def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactD
     except RestException as warn:
         if warn.error_code == 404:
             return None
-        LOGGER.warning("Non 404 error from mlflow: %r", warn)
+        _LOGGER.warning("Non 404 error from mlflow: %r", warn)
     except Exception as ex:
-        LOGGER.error("Unexpected error while loading model from MLflow database: %r", ex)
+        _LOGGER.error("Unexpected error while loading model from MLflow database: %r", ex)
         return None
 
 
@@ -160,7 +162,7 @@ def get_metric_config(metric_name: str):
 
 
 def fetch_data(
-    metric_name: str, model_config: dict, labels: dict, return_labels=None
+    uuid: str, metric_name: str, model_config: dict, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 
@@ -178,7 +180,10 @@ def fetch_data(
         end=end_dt.timestamp(),
         step=model_config["scrape_interval"],
     )
-    LOGGER.info(
-        "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
+    _LOGGER.info(
+        "%s - Time taken to fetch data: %s, for df shape: %s",
+        uuid,
+        time.time() - _start_time,
+        df.shape,
     )
     return df

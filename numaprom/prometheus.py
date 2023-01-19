@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class Prometheus:
@@ -25,7 +25,7 @@ class Prometheus:
             label_list = [str(key + "=" + "'" + labels_map[key] + "'") for key in labels_map]
             query = metric_name + "{" + ",".join(label_list) + "}"
 
-        LOGGER.debug("Prometheus Query: %s", query)
+        _LOGGER.debug("Prometheus Query: %s", query)
 
         if end < start:
             raise ValueError("end_time must not be before start_time")
@@ -66,6 +66,7 @@ class Prometheus:
             if results:
                 results["values"] = results["values"] + response["values"]
             else:
+                _LOGGER.debug("Prometheus query has returned empty results.")
                 results = response
 
         return results
@@ -76,7 +77,7 @@ class Prometheus:
         data_points = (end - start) / step
 
         if data_points > 11000:
-            LOGGER.info("Limit query only supports 11,000 data points")
+            _LOGGER.info("Limit query only supports 11,000 data points")
             return None
 
         results = None
@@ -87,12 +88,20 @@ class Prometheus:
             )
             results = response.json()["data"]["result"][0]
         except Exception as ex:
-            LOGGER.exception("error: %r", ex)
+            _LOGGER.exception("Prometheus error: %r", ex)
         return results
 
     def query(self, query: str) -> Optional[Dict]:
         results = []
-        response = requests.get(self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query})
-        if response:
-            results = response.json()["data"]["result"]
+        try:
+            response = requests.get(
+                self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query}
+            )
+            if response:
+                results = response.json()["data"]["result"]
+            else:
+                _LOGGER.debug("Prometheus query has returned empty results.")
+        except Exception as ex:
+            _LOGGER.exception("error: %r", ex)
+
         return results
