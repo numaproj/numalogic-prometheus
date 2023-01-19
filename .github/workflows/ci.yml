@@ -50,9 +50,6 @@ jobs:
           tag="$(basename $GITHUB_REF)v${{ env.version }}"
         fi
         
-        echo "tag: $tag"
-        echo "type: $type"
-        
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
         
         docker buildx build \
