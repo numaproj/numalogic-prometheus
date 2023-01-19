@@ -43,15 +43,19 @@ jobs:
         PLATFORM: linux/x86_64
         TARGET: numalogic-prometheus/udf
       run: |
-        branch=$(basename $GITHUB_REF)
         type=$(basename $(dirname $GITHUB_REF))
-        tag="v${{ env.version }}"
+        tag=$(basename $GITHUB_REF)
+        
+        if [$type != "tags"]; then
+          tag="${tag}v${{ env.version }}"
+        fi
+        
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
         
-        echo "type: $type"
-        echo "branch: $branch"
-        echo "tag: $tag"
-        echo "image_name: $image_name"
+        docker buildx build \
+          --output "type=image,push=true" \
+          --platform="${PLATFORM}" \
+          --tag $image_name .
         
         
         
