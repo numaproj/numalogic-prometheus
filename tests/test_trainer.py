@@ -8,17 +8,14 @@ from unittest.mock import patch, Mock
 from numalogic.registry import MLflowRegistry
 from pynumaflow.sink import Datum
 
-import trainer
-
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
 from numaprom.prometheus import Prometheus
 from tests.tools import (
     return_mock_metric_config,
-    return_mock_lstmae,
     mock_argocd_query_metric,
     mock_rollout_query_metric,
 )
-from tests import train, redis_client
+from tests import train, redis_client, train_rollout
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
@@ -38,8 +35,10 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())
 class TestTrainer(unittest.TestCase):
     train_payload = {
+        "uuid": "123124543",
         "namespace": "sandbox_numalogic_demo",
         "name": "metric_1",
+        "hash_id": "123456789",
         "resume_training": False,
     }
 
@@ -67,32 +66,24 @@ class TestTrainer(unittest.TestCase):
         self.assertEqual("2", _out.items()[1].id)
         self.assertEqual(2, len(_out.items()))
 
-    @unittest.skip("Need to update for rollouts")
+    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
-    def test_rollout_trainer(self):
-        _out = trainer.rollout_trainer(
-            {
-                "namespace": "sandbox_numalogic_demo",
-                "name": "metric_2",
-                "hash_id": "123456789",
-                "resume_training": False,
-            }
-        )
-        self.assertEqual(_out, 1)
+    def test_argo_rollout_trainer_01(self):
+        _out = train_rollout([as_datum(self.train_payload)])
+        self.assertTrue(_out.items()[0].success)
+        self.assertEqual("1", _out.items()[0].id)
 
-    @unittest.skip("Need to update for rollouts")
+    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
-    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
-    def test_rollout_trainer2(self):
-        _out = trainer.rollout_trainer(
-            {
-                "namespace": "sandbox_numalogic_demo",
-                "name": "metric_2",
-                "hash_id": "123456789",
-                "resume_training": True,
-            }
-        )
-        self.assertEqual(_out, 1)
+    def test_argo_rollout_trainer_02(self):
+        datums = [as_datum(self.train_payload), as_datum(self.train_payload, msg_id="2")]
+        _out = train_rollout(datums)
+        self.assertTrue(_out.items()[0].success)
+        self.assertEqual("1", _out.items()[0].id)
+
+        self.assertTrue(_out.items()[1].success)
+        self.assertEqual("2", _out.items()[1].id)
+        self.assertEqual(2, len(_out.items()))
 
 
 if __name__ == "__main__":

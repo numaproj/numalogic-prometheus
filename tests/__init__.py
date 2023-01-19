@@ -22,7 +22,7 @@ LOGGER.addHandler(stream_handler)
 with patch("numaprom.redis.get_redis_client") as mock_get_redis_client:
     mock_get_redis_client.return_value = redis_client
     from numaprom.udf import window
-    from numaprom.udsink import train
+    from numaprom.udsink import train, train_rollout
 
 
-__all__ = ["redis_client", "window", "train"]
+__all__ = ["redis_client", "window", "train", "train_rollout"]

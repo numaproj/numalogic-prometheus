@@ -56,6 +56,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     )
 
     train_payload = {
+        "uuid": payload.uuid,
         **payload.composite_keys,
         "model_config": model_config["name"],
         "resume_training": False,

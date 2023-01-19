@@ -9,6 +9,7 @@ from typing import List, Optional, Any, Dict, Sequence
 
 import pandas as pd
 from mlflow.entities.model_registry import ModelVersion
+from mlflow.exceptions import RestException
 from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
@@ -131,8 +132,12 @@ def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactD
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
         ml_registry = MLflowRegistry(tracking_uri=tracking_uri)
         return ml_registry.load(skeys=skeys, dkeys=dkeys)
+    except RestException as warn:
+        if warn.error_code == 404:
+            return None
+        LOGGER.warning("Non 404 error from mlflow: %r", warn)
     except Exception as ex:
-        LOGGER.error("Error while loading model from MLflow database: %r", ex)
+        LOGGER.error("Unexpected error while loading model from MLflow database: %r", ex)
         return None
 
 
