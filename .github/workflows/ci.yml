@@ -46,12 +46,12 @@ jobs:
         type=$(basename $(dirname $GITHUB_REF))
         tag=$(basename $GITHUB_REF)
         
+        if [$type != "tags"]; then
+          tag="$(basename $GITHUB_REF)v${{ env.version }}"
+        fi
+        
         echo "tag: $tag"
         echo "type: $type"
-        
-        if [$type != "tags"]; then
-          tag="${tag}v${{ env.version }}"
-        fi
         
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
         
