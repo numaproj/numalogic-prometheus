@@ -29,7 +29,7 @@ EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
-def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
+def clean_data(_id, df: pd.DataFrame, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
@@ -48,12 +48,12 @@ def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
     df.drop("hash_id", axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
     if len(df) < (1.5 * 60 * 12):
-        LOGGER.exception("Not enough training points to initiate training")
+        LOGGER.exception("%s - Not enough training points to initiate training", _id)
         return pd.DataFrame()
     return df
 
 
-def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFrame:
+def _fetch_data(_id: str, metric_name: str, model_config: dict, labels: dict) -> pd.DataFrame:
     _start_time = time.time()
 
     prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
@@ -71,12 +71,12 @@ def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFr
         step=model_config["scrape_interval"],
     )
     LOGGER.info(
-        "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
+        "%s - Time taken to fetch data: %s, for df shape: %s", _id, time.time() - _start_time, df.shape
     )
     return df
 
 
-def _train_model(x, model_config):
+def _train_model(_id, x, model_config):
     _start_train = time.time()
 
     win_size = model_config["win_size"]
@@ -86,7 +86,7 @@ def _train_model(x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.debug("Time taken to train model: %s", time.time() - _start_train)
+    LOGGER.debug("%s - Time taken to train model: %s", _id, time.time() - _start_train)
     return model
 
 
@@ -118,6 +118,8 @@ def train_rollout(datums: List[Datum]) -> Responses:
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
+        LOGGER.debug("%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name)
+
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
             LOGGER.info(
@@ -133,8 +135,8 @@ def train_rollout(datums: List[Datum]) -> Responses:
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
 
-        train_df = _fetch_data(metric_name, model_config, {"namespace": namespace})
-        train_df = clean_data(train_df)
+        train_df = _fetch_data(_id, metric_name, model_config, {"namespace": namespace})
+        train_df = clean_data(_id, train_df)
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (
@@ -146,7 +148,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             continue
 
         x_train = _preprocess(train_df.to_numpy())
-        model = _train_model(x_train, model_config)
+        model = _train_model(_id, x_train, model_config)
 
         skeys = [namespace, metric_name]
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)

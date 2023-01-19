@@ -37,7 +37,7 @@ def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
     return df
 
 
-def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFrame:
+def _fetch_data(_id: str, metric_name: str, model_config: dict, labels: dict) -> pd.DataFrame:
     _start_time = time.time()
 
     prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
@@ -54,12 +54,12 @@ def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFr
         step=model_config["scrape_interval"],
     )
     LOGGER.debug(
-        "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
+        "%s - Time taken to fetch data: %s, for df shape: %s", _id, time.time() - _start_time, df.shape
     )
     return df
 
 
-def _train_model(x, model_config):
+def _train_model(_id, x, model_config):
     _start_train = time.perf_counter()
 
     win_size = model_config["win_size"]
@@ -69,7 +69,7 @@ def _train_model(x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.debug("Time taken to train model: %s", time.perf_counter() - _start_train)
+    LOGGER.debug("%s - Time taken to train model: %s", _id, time.perf_counter() - _start_train)
     return model
 
 
@@ -97,15 +97,16 @@ def train(datums: List[Datum]) -> Responses:
     for _datum in datums:
         payload = orjson.loads(_datum.value)
 
+        _id = payload["uuid"]
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
-        LOGGER.info("Starting Training for Keys: { %s, %s } ", namespace, metric_name)
+        LOGGER.debug("%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name)
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
             LOGGER.info(
-                "Skipping train request with namespace: %s, metric: %s", namespace, metric_name
+                "%s - Skipping train request with namespace: %s, metric: %s", _id, namespace, metric_name
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -114,12 +115,12 @@ def train(datums: List[Datum]) -> Responses:
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
 
-        train_df = _fetch_data(metric_name, model_config, {"namespace": namespace})
+        train_df = _fetch_data(_id, metric_name, model_config, {"namespace": namespace})
         train_df = clean_data(train_df)
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (
-                f"Skipping training since traindata size: {train_df.shape} "
+                f"{_id} - Skipping training since traindata size: {train_df.shape} "
                 f"is less than winsize: {win_size}"
             )
             LOGGER.info(_info_msg)
@@ -127,11 +128,11 @@ def train(datums: List[Datum]) -> Responses:
             continue
 
         x_train = _preprocess(train_df.to_numpy())
-        model = _train_model(x_train, model_config)
+        model = _train_model(_id, x_train, model_config)
 
         skeys = [namespace, metric_name]
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
-        LOGGER.info("Model saved with skeys: %s with version: %s", skeys, version)
+        LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
         responses.append(Response.as_success(_datum.id))
 
     return responses

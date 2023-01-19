@@ -13,6 +13,9 @@ LOGGER = logging.getLogger(__name__)
 @catch_exception
 @msg_forward
 def metric_filter(_: str, datum: Datum) -> Optional[Messages]:
+    """
+    UDF to filter metrics by labels
+    """
     LOGGER.debug("Received Msg: %s ", datum.value)
 
     msg = datum.value.decode("utf-8")

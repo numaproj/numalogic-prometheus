@@ -25,12 +25,12 @@ def _run_model(
 ) -> Tuple[str, str]:
     model = artifact_data.artifact
     stream_data = payload.get_streamarray()
-    streamloader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
+    stream_loader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
 
     trainer = AutoencoderTrainer()
-    recon_err = trainer.predict(model, dataloaders=streamloader)
+    recon_err = trainer.predict(model, dataloaders=stream_loader)
 
-    LOGGER.info("%s - Succesfully inferred", payload.uuid)
+    LOGGER.info("%s - Successfully inferred", payload.uuid)
 
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
@@ -41,16 +41,15 @@ def _run_model(
 
 @conditional_forward
 def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
-    LOGGER.debug("Received Msg: %s ", datum.value)
 
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
+    LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
-
-    LOGGER.debug("%s - Starting inference", payload.uuid)
 
     artifact_data = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
@@ -92,9 +91,8 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
 
     messages.append(_run_model(payload, artifact_data, model_config))
 
+    LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
     LOGGER.debug(
         "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
     )
-    LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
-
     return messages
