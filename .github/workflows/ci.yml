@@ -44,7 +44,7 @@ jobs:
         TARGET: numalogic-prometheus/udf
       run: |
         branch=$(basename $GITHUB_REF)
-        type = $(basename $(dirname $GITHUB_REF))
+        type=$(basename $(dirname $GITHUB_REF))
         tag="v${{ env.version }}"
         image_name="${QUAYIO_ORG}/numalogic-prometheus/udf:${tag}"
         
