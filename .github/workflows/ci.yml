@@ -46,6 +46,9 @@ jobs:
         branch=$(basename $GITHUB_REF)
         type = $(basename $(dirname $GITHUB_REF))
         
+        echo "type: $type"
+        echo "branch: $branch"
+        
         tag="v${{ env.version }}"
         if [ $branch != "main" ] && [ $type != "tags" ]; then
           tag="${branch}${tag}"
