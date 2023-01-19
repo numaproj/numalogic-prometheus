@@ -119,7 +119,9 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
             get_ipv4_by_hostname(hostname, port)
         except socket.gaierror as ex:
             retries += 1
-            _LOGGER.warning("Failed to resolve hostname: %s: error: %r", hostname, ex, exc_info=True)
+            _LOGGER.warning(
+                "Failed to resolve hostname: %s: error: %r", hostname, ex, exc_info=True
+            )
             time.sleep(sleep_sec)
         else:
             return True
