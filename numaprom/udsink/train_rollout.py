@@ -1,12 +1,10 @@
 import logging
 import os
 import time
-from datetime import datetime, timedelta
 from typing import List
 
 import numpy as np
 import pandas as pd
-import pytz
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
 from numalogic.preprocess.transformer import LogTransformer
@@ -15,10 +13,8 @@ from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
 from torch.utils.data import DataLoader
 
-from numaprom._constants import DEFAULT_PROMETHEUS_SERVER
-from numaprom.prometheus import Prometheus
 from numaprom.redis import get_redis_client
-from numaprom.tools import get_metric_config, save_model
+from numaprom.tools import get_metric_config, save_model, fetch_data
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +25,7 @@ EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
-def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
+def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
@@ -45,34 +41,11 @@ def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
         .drop("_merge", axis=1)
     )
     df.set_index("timestamp", inplace=True)
-    df.drop("hash_id", axis=1, inplace=True)
+    df.drop(hash_col, axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
     if len(df) < (1.5 * 60 * 12):
         LOGGER.exception("Not enough training points to initiate training")
         return pd.DataFrame()
-    return df
-
-
-def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFrame:
-    _start_time = time.time()
-
-    prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
-    datafetcher = Prometheus(prometheus_server)
-
-    end_dt = datetime.now(pytz.utc)
-    start_dt = end_dt - timedelta(hours=15)
-
-    df = datafetcher.query_metric(
-        metric_name=metric_name,
-        labels_map=labels,
-        return_labels=["hash_id"],
-        start=start_dt.timestamp(),
-        end=end_dt.timestamp(),
-        step=model_config["scrape_interval"],
-    )
-    LOGGER.info(
-        "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
-    )
     return df
 
 
@@ -133,8 +106,10 @@ def train_rollout(datums: List[Datum]) -> Responses:
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
 
-        train_df = _fetch_data(metric_name, model_config, {"namespace": namespace})
-        train_df = clean_data(train_df)
+        train_df = fetch_data(
+            metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
+        )
+        train_df = clean_data(train_df, "hash_id")
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (

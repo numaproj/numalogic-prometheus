@@ -3,18 +3,21 @@ import logging
 import os
 import socket
 import time
+from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
 from typing import List, Optional, Any, Dict, Sequence
 
 import pandas as pd
+import pytz
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
 from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
-from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG
+from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
 from numaprom.entities import Metric
+from numaprom.prometheus import Prometheus
 
 LOGGER = logging.getLogger(__name__)
 
@@ -153,5 +156,29 @@ def save_model(
 def get_metric_config(metric_name: str):
     if metric_name in METRIC_CONFIG:
         return METRIC_CONFIG[metric_name]
-    else:
-        return METRIC_CONFIG["default"]
+    return METRIC_CONFIG["default"]
+
+
+def fetch_data(
+    metric_name: str, model_config: dict, labels: dict, return_labels=None
+) -> pd.DataFrame:
+    _start_time = time.time()
+
+    prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
+    datafetcher = Prometheus(prometheus_server)
+
+    end_dt = datetime.now(pytz.utc)
+    start_dt = end_dt - timedelta(hours=15)
+
+    df = datafetcher.query_metric(
+        metric_name=metric_name,
+        labels_map=labels,
+        return_labels=return_labels,
+        start=start_dt.timestamp(),
+        end=end_dt.timestamp(),
+        step=model_config["scrape_interval"],
+    )
+    LOGGER.info(
+        "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
+    )
+    return df
