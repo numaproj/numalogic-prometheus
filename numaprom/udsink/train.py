@@ -5,7 +5,6 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-import pytz
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
 from numalogic.preprocess.transformer import LogTransformer
