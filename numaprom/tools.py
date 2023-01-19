@@ -153,5 +153,4 @@ def save_model(
 def get_metric_config(metric_name: str):
     if metric_name in METRIC_CONFIG:
         return METRIC_CONFIG[metric_name]
-    else:
-        return METRIC_CONFIG["default"]
+    return METRIC_CONFIG["default"]
