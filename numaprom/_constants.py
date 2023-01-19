@@ -95,7 +95,7 @@ METRIC_CONFIG = {
         "model": "VanillaAE",
     },
     "default": {
-        "keys": ["namespace", "name"],
+        "keys": ["namespace", "name", "hash_id"],
         "model_config": MODEL_CONFIG["default"],
         "model": "VanillaAE",
     },

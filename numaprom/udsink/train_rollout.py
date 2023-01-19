@@ -25,15 +25,31 @@ LOGGER = logging.getLogger(__name__)
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
-EXPIRY = int(os.getenv("REDIS_EXPIRY", 300))
+EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
 
 
+# TODO: extract all good hashes, including when there are 2 hashes at a time
 def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
     if df.columns[df.isna().any()].tolist():
         df.dropna(inplace=True)
+
+    if df.empty:
+        return pd.DataFrame()
+    df = df.reset_index()
+    df = (
+        pd.merge(df, df[df.duplicated("timestamp", keep=False)], indicator=True, how="outer")
+        .query('_merge=="left_only"')
+        .drop("_merge", axis=1)
+    )
+    df.set_index("timestamp", inplace=True)
+    df.drop("hash_id", axis=1, inplace=True)
+    df = df.sort_values(by=["timestamp"], ascending=True)
+    if len(df) < (1.5 * 60 * 12):
+        LOGGER.exception("Not enough training points to initiate training")
+        return pd.DataFrame()
     return df
 
 
@@ -49,18 +65,19 @@ def _fetch_data(metric_name: str, model_config: dict, labels: dict) -> pd.DataFr
     df = datafetcher.query_metric(
         metric_name=metric_name,
         labels_map=labels,
+        return_labels=["hash_id"],
         start=start_dt.timestamp(),
         end=end_dt.timestamp(),
         step=model_config["scrape_interval"],
     )
-    LOGGER.debug(
+    LOGGER.info(
         "Time taken to fetch data: %s, for df shape: %s", time.time() - _start_time, df.shape
     )
     return df
 
 
 def _train_model(x, model_config):
-    _start_train = time.perf_counter()
+    _start_train = time.time()
 
     win_size = model_config["win_size"]
     dataset = StreamingDataset(x, win_size)
@@ -69,7 +86,7 @@ def _train_model(x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    LOGGER.debug("Time taken to train model: %s", time.perf_counter() - _start_train)
+    LOGGER.debug("Time taken to train model: %s", time.time() - _start_train)
     return model
 
 
@@ -81,7 +98,7 @@ def _preprocess(x_raw):
 
 def _is_new_request(namespace: str, metric: str) -> bool:
     redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=False)
-    r_key = f"train::{namespace}:{metric}"
+    r_key = f"trainrollout::{namespace}:{metric}"
 
     value = redis_client.get(r_key)
     if value:
@@ -91,21 +108,23 @@ def _is_new_request(namespace: str, metric: str) -> bool:
     return True
 
 
-def train(datums: List[Datum]) -> Responses:
+def train_rollout(datums: List[Datum]) -> Responses:
     responses = Responses()
 
     for _datum in datums:
         payload = orjson.loads(_datum.value)
 
+        _id = payload.get("uuid")
         namespace = payload["namespace"]
         metric_name = payload["name"]
-
-        LOGGER.info("Starting Training for Keys: { %s, %s } ", namespace, metric_name)
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
             LOGGER.info(
-                "Skipping train request with namespace: %s, metric: %s", namespace, metric_name
+                "%s - Skipping rollouts train request with namespace: %s, metric: %s",
+                _id,
+                namespace,
+                metric_name,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -119,7 +138,7 @@ def train(datums: List[Datum]) -> Responses:
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (
-                f"Skipping training since traindata size: {train_df.shape} "
+                f"{_id} - Skipping training since traindata size: {train_df.shape} "
                 f"is less than winsize: {win_size}"
             )
             LOGGER.info(_info_msg)
@@ -131,7 +150,7 @@ def train(datums: List[Datum]) -> Responses:
 
         skeys = [namespace, metric_name]
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
-        LOGGER.info("Model saved with skeys: %s with version: %s", skeys, version)
+        LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
         responses.append(Response.as_success(_datum.id))
 
     return responses

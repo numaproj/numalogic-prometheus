@@ -12,6 +12,16 @@
 
 ## v0.1.0a0 (2023-01-17)
 
+
+### Contributors
+
+
+## v0.1.0 (2023-01-18)
+
+ * [1e8fa6c](https://github.com/numaproj/numalogic-prometheus/commit/1e8fa6c2445af9a52ab66b87fbbd27d1dc7b4ad2) fix: set skipped msg as success (#46)
+ * [5e1e233](https://github.com/numaproj/numalogic-prometheus/commit/5e1e2334fcc0b3cd47d4ad871995b22cda64e08c) fix: branch name (#44)
+ * [a37d581](https://github.com/numaproj/numalogic-prometheus/commit/a37d581f9f47339f2cce607b2caa2638aee269ba) fix: install pytorch-lightning in docker (#42)
+ * [1fc7daf](https://github.com/numaproj/numalogic-prometheus/commit/1fc7daf0dd5983865627503e869bc2e74f1fbe0c) fix: tag for release (#40)
  * [4789b19](https://github.com/numaproj/numalogic-prometheus/commit/4789b1989e175b55d3247486cc173f60ad23b23f) feat: train udsink request deduplication (#39)
  * [d27bf45](https://github.com/numaproj/numalogic-prometheus/commit/d27bf45bd1db1881bd879eeaf8cc16f33f925712) fix: docker image size (#36)
  * [ee9f223](https://github.com/numaproj/numalogic-prometheus/commit/ee9f22395cce8faa69a29de2ffd572a00d1c6411) fix: build ci typo (#34)
