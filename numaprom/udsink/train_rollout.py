@@ -53,7 +53,9 @@ def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     return df
 
 
-def _fetch_data(metric_name: str, model_config: dict, labels: dict, return_labels=None) -> pd.DataFrame:
+def _fetch_data(
+    metric_name: str, model_config: dict, labels: dict, return_labels=None
+) -> pd.DataFrame:
     _start_time = time.time()
 
     prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
@@ -133,8 +135,9 @@ def train_rollout(datums: List[Datum]) -> Responses:
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
 
-        train_df = _fetch_data(metric_name, model_config, {"namespace": namespace},
-                               return_labels=["hash_id"])
+        train_df = _fetch_data(
+            metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
+        )
         train_df = clean_data(train_df, "hash_id")
 
         if len(train_df) < model_config["win_size"]:
