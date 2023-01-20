@@ -17,7 +17,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
-    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload.__repr__())
 
     x_raw = payload.get_streamarray()
     preproc_clf = LogTransformer()
@@ -26,7 +26,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
     payload.set_win_arr(x_scaled)
     payload.set_status(Status.PRE_PROCESSED)
 
-    _LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
+    _LOGGER.info("%s - Sending Payload: %s ", payload.uuid, payload.__repr__())
     _LOGGER.debug(
         "%s - Total time to preprocess: %s", payload.uuid, time.perf_counter() - _start_time
     )

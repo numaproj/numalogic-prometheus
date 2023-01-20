@@ -74,10 +74,11 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         uuid=uuid.uuid4().hex,
         composite_keys=create_composite_keys(msg),
         status=Status.EXTRACTED,
-        win_arr=np.asarray(win_list).reshape(-1, 1),
+        win_arr=np.asarray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).reshape(-1, 1),
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )
-    _LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
+
+    _LOGGER.info("%s - Sending Payload: %s ", payload.uuid, payload.__repr__())
     _LOGGER.debug("%s - Total time to window: %s", payload.uuid, time.perf_counter() - _start_time)
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

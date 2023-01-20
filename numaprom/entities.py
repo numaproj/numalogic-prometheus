@@ -57,6 +57,15 @@ class StreamPayload:
     def set_metadata(self, key: str, value):
         self.metadata[key] = value
 
+    def __repr__(self):
+        return "{uuid: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}" % (
+            self.uuid,
+            self.win_arr.tolist(),
+            self.win_ts_arr,
+            self.composite_keys,
+            self.metadata,
+        )
+
 
 @dataclass
 class PrometheusPayload:
@@ -92,4 +101,15 @@ class PrometheusPayload:
             type=obj["Type"],
             value=obj["Value"],
             labels=obj["Labels"],
+        )
+
+    def __repr__(self):
+        return "{timestamp_ms: %s, name: %s, namespace: %s, subsystem: %s, type: %s, value: %s, labels: %s}" % (
+            self.timestamp_ms,
+            self.name,
+            self.namespace,
+            self.subsystem,
+            self.type,
+            self.value,
+            self.labels
         )

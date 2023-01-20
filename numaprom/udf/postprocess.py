@@ -132,7 +132,7 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
-    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload.__repr__())
 
     raw_scores = payload.get_streamarray()
     raw_mean_score = np.mean(raw_scores)
@@ -142,6 +142,5 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
 
     payload.set_status(Status.POST_PROCESSED)
     _LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
-    _LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
 
     return _publish(norm_score, payload)

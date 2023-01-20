@@ -46,7 +46,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
-    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload)
+    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload.__repr__())
 
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
@@ -91,7 +91,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
 
     messages.append(_run_model(payload, artifact_data, model_config))
 
-    _LOGGER.debug("%s - Sending Messages: %s ", payload.uuid, messages)
+    _LOGGER.info("%s - Sending Messages: %s ", payload.uuid, messages)
     _LOGGER.debug(
         "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
     )
