@@ -168,7 +168,7 @@ def return_mock_metric_config():
                 "retrain_freq_hr": 8,
                 "resume_training": True,
                 "num_epochs": 10,
-                "keys": ["namespace", "name"],
+                "training_keys": ["namespace", "name"],
                 "metrics": [
                     "metric_1",
                 ],
@@ -186,7 +186,7 @@ def return_mock_metric_config():
                 "retrain_freq_hr": 8,
                 "resume_training": True,
                 "num_epochs": 10,
-                "keys": ["namespace", "name"],
+                "training_keys": ["namespace", "name"],
                 "metrics": [
                     "metric_2",
                 ],

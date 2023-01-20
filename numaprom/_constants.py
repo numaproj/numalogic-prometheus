@@ -19,7 +19,7 @@ MODEL_CONFIG = {
         "retrain_freq_hr": 8,
         "resume_training": "True",
         "num_epochs": 100,
-        "keys": ["namespace", "name"],
+        "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
         "metrics": [
             "namespace_app_pod_http_server_requests_errors",
@@ -37,7 +37,7 @@ MODEL_CONFIG = {
         "retrain_freq_hr": 8,
         "resume_training": "True",
         "num_epochs": 50,
-        "keys": ["namespace", "name"],
+        "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
         "metrics": [
             "namespace_hash_pod_http_server_requests_error_rate",
@@ -52,7 +52,7 @@ MODEL_CONFIG = {
         "retrain_freq_hr": 8,
         "resume_training": "True",
         "num_epochs": 100,
-        "keys": ["namespace", "name"],
+        "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
         "metrics": [
             "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_latency",
@@ -67,7 +67,7 @@ MODEL_CONFIG = {
         "retrain_freq_hr": 8,
         "resume_training": "True",
         "num_epochs": 50,
-        "keys": ["namespace", "name"],
+        "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
         "metrics": [
             "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_latency",
@@ -82,7 +82,7 @@ MODEL_CONFIG = {
         "retrain_freq_hr": 8,
         "resume_training": "True",
         "num_epochs": 100,
-        "keys": ["namespace", "name"],
+        "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
         "metrics": [],
     },
