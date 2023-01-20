@@ -1216,14 +1216,14 @@ files = [
 
 [[package]]
 name = "numalogic"
-version = "0.3.1"
+version = "0.3.2"
 description = "Collection of operational Machine Learning models and tools."
 category = "main"
 optional = false
 python-versions = ">=3.8,<3.11"
 files = [
-    {file = "numalogic-0.3.1-py3-none-any.whl", hash = "sha256:5c578956366658c034b7f27810409900cc15f997e084656d1012925411cc59ba"},
-    {file = "numalogic-0.3.1.tar.gz", hash = "sha256:6dcd0dde5504c925f94b0733fce35bcc08e786205373d46d3a21a0ba5b4c1edd"},
+    {file = "numalogic-0.3.2-py3-none-any.whl", hash = "sha256:2ff94a0675d8de0f6fcd2feceac94687107de37b877dfad32adedee96a3206fb"},
+    {file = "numalogic-0.3.2.tar.gz", hash = "sha256:af67e8c885e4c47dbf1cfa3c5ffbcaab6fc6eb1050521b229b9eb8e38945d8e4"},
 ]
 
 [package.dependencies]
