@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.2 (2023-01-20)
+
+ * [7780dc3](https://github.com/numaproj/numalogic-prometheus/commit/7780dc314cb47411ba9b4e47a3dc0e798a98027c) fix: avoid setting as failure in udsink (#57)
+ * [be4a1d2](https://github.com/numaproj/numalogic-prometheus/commit/be4a1d2a27fb428ea101b880145f07dc31e0d35e) fix: logs (#55)
+ * [f87122e](https://github.com/numaproj/numalogic-prometheus/commit/f87122ecbd7556054454068d4c25a0a8f3024175) fix: allow hash_id column name as an argument (#53)
+ * [b4d5188](https://github.com/numaproj/numalogic-prometheus/commit/b4d518881c7276ba55c6c801d267d16100eea6a1) fix: build (#52)
+
+### Contributors
+
+ * Avik Basu
+ * Nandita Koppisetty
+
 ## v0.1.1a0 (2023-01-18)
 
 
