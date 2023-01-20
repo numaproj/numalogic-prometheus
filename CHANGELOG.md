@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.1.1a0 (2023-01-18)
+
+
+### Contributors
+
+
+## v0.1.1 (2023-01-19)
+
+ * [f87122e](https://github.com/numaproj/numalogic-prometheus/commit/f87122ecbd7556054454068d4c25a0a8f3024175) fix: allow hash_id column name as an argument (#53)
+ * [b4d5188](https://github.com/numaproj/numalogic-prometheus/commit/b4d518881c7276ba55c6c801d267d16100eea6a1) fix: build (#52)
+ * [ea0d4d8](https://github.com/numaproj/numalogic-prometheus/commit/ea0d4d8f53356ad66e5cf45ce31f1d26f85c8386) feat: rollouts anomaly (#51)
+ * [1e8fa6c](https://github.com/numaproj/numalogic-prometheus/commit/1e8fa6c2445af9a52ab66b87fbbd27d1dc7b4ad2) fix: set skipped msg as success (#46)
+ * [5e1e233](https://github.com/numaproj/numalogic-prometheus/commit/5e1e2334fcc0b3cd47d4ad871995b22cda64e08c) fix: branch name (#44)
+
+### Contributors
+
+ * Avik Basu
+ * Nandita Koppisetty
+
 ## v0.1.0a1 (2023-01-17)
 
  * [a37d581](https://github.com/numaproj/numalogic-prometheus/commit/a37d581f9f47339f2cce607b2caa2638aee269ba) fix: install pytorch-lightning in docker (#42)
