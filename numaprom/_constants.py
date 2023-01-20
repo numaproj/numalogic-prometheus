@@ -21,6 +21,7 @@ MODEL_CONFIG = {
         "num_epochs": 100,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
+        "unified_anomaly": "namespace_app_pod_http_server_requests_unified_anomaly",
         "metrics": [
             "namespace_app_pod_http_server_requests_errors",
             "namespace_app_pod_http_server_requests_error_rate",
@@ -39,6 +40,7 @@ MODEL_CONFIG = {
         "num_epochs": 50,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
+        "unified_anomaly": "namespace_hash_pod_http_server_requests_unified_anomaly",
         "metrics": [
             "namespace_hash_pod_http_server_requests_error_rate",
             "namespace_hash_pod_http_server_requests_latency",
@@ -54,9 +56,10 @@ MODEL_CONFIG = {
         "num_epochs": 100,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
+        "unified_anomaly": "namespace_argocd_o11yfuzzygqlfederation_segment_api_unified_anomaly",
         "metrics": [
-            "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_latency",
-            "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_error_count",
+            "namespace_argocd_o11yfuzzygqlfederation_segment_api_latency",
+            "namespace_argocd_o11yfuzzygqlfederation_segment_api_error_count",
         ],
     },
     "fuzzy_rollouts": {
@@ -69,9 +72,10 @@ MODEL_CONFIG = {
         "num_epochs": 50,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
+        "unified_anomaly": "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly",
         "metrics": [
-            "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_latency",
-            "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_error_count",
+            "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency",
+            "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_count",
         ],
     },
     "default": {
@@ -84,6 +88,7 @@ MODEL_CONFIG = {
         "num_epochs": 100,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
+        "unified_anomaly": None,
         "metrics": [],
     },
 }
@@ -124,22 +129,22 @@ METRIC_CONFIG = {
         "model_config": MODEL_CONFIG["argo_rollouts"],
         "model": "VanillaAE",
     },
-    "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_latency": {
+    "namespace_argocd_o11yfuzzygqlfederation_segment_api_latency": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["fuzzy_argocd"],
         "model": "VanillaAE",
     },
-    "namespace_http_numalogic_o11yfuzzygqlfederation_segment_api_error_count": {
+    "namespace_argocd_o11yfuzzygqlfederation_segment_api_error_count": {
         "keys": ["namespace", "name"],
         "model_config": MODEL_CONFIG["fuzzy_argocd"],
         "model": "VanillaAE",
     },
-    "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_latency": {
+    "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency": {
         "keys": ["namespace", "name", "hash_id"],
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "model": "VanillaAE",
     },
-    "namespace_http_numalogic_rollout_o11yfuzzygqlfederation_segment_api_error_count": {
+    "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_count": {
         "keys": ["namespace", "name", "hash_id"],
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "model": "VanillaAE",
