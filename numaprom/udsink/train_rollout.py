@@ -119,14 +119,17 @@ def train_rollout(datums: List[Datum]) -> Responses:
             _LOGGER.exception(
                 "%s - KeyError while data cleaning for train payload: %s", _id, payload
             )
+            responses.append(Response.as_success(_datum.id))
+            continue
 
         if len(train_df) < model_config["win_size"]:
-            _info_msg = (
-                f"{_id} - Skipping training since traindata size: {train_df.shape} "
-                f"is less than winsize: {win_size}"
+            _LOGGER.info(
+                "%s - Skipping training since traindata size: %s is less than winsize: %s",
+                _id,
+                train_df.shape,
+                win_size,
             )
-            _LOGGER.info(_info_msg)
-            responses.append(Response.as_failure(_datum.id, err_msg=_info_msg))
+            responses.append(Response.as_success(_datum.id))
             continue
 
         x_train = _preprocess(train_df.to_numpy())
