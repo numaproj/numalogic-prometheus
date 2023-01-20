@@ -104,12 +104,15 @@ class PrometheusPayload:
         )
 
     def __repr__(self):
-        return "{timestamp_ms: %s, name: %s, namespace: %s, subsystem: %s, type: %s, value: %s, labels: %s}" % (
-            self.timestamp_ms,
-            self.name,
-            self.namespace,
-            self.subsystem,
-            self.type,
-            self.value,
-            self.labels
+        return (
+            "{timestamp_ms: %s, name: %s, namespace: %s, subsystem: %s, type: %s, value: %s, labels: %s}"
+            % (
+                self.timestamp_ms,
+                self.name,
+                self.namespace,
+                self.subsystem,
+                self.type,
+                self.value,
+                self.labels,
+            )
         )
