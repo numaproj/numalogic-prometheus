@@ -76,7 +76,6 @@ def __construct_publisher_payload(
 def __construct_unified_payload(
     stream_payload: StreamPayload, max_anomaly: float, model_config: Dict
 ) -> PrometheusPayload:
-    metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
 
     labels = {
