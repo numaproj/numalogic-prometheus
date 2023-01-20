@@ -74,7 +74,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         uuid=uuid.uuid4().hex,
         composite_keys=create_composite_keys(msg),
         status=Status.EXTRACTED,
-        win_arr=np.asarray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).reshape(-1, 1),
+        win_arr=np.asarray(win_list).reshape(-1, 1),
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )
