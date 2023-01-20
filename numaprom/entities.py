@@ -1,3 +1,4 @@
+import json
 from copy import copy
 from dataclasses import dataclass
 from enum import Enum
@@ -60,7 +61,7 @@ class StreamPayload:
     def __repr__(self):
         return "{uuid: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}" % (
             self.uuid,
-            self.win_arr.tolist(),
+            list(self.win_arr),
             self.win_ts_arr,
             self.composite_keys,
             self.metadata,
@@ -105,7 +106,8 @@ class PrometheusPayload:
 
     def __repr__(self):
         return (
-            "{timestamp_ms: %s, name: %s, namespace: %s, subsystem: %s, type: %s, value: %s, labels: %s}"
+            "{timestamp_ms: %s, name: %s, namespace: %s, "
+            "subsystem: %s, type: %s, value: %s, labels: %s}"
             % (
                 self.timestamp_ms,
                 self.name,

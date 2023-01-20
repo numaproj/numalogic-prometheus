@@ -46,7 +46,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
-    _LOGGER.debug("%s - Received Payload: %s ", payload.uuid, payload.__repr__())
+    _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload.__repr__())
 
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
