@@ -113,7 +113,12 @@ def train_rollout(datums: List[Datum]) -> Responses:
         train_df = fetch_data(
             _id, metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
         )
-        train_df = clean_data(_id, train_df, "hash_id")
+        try:
+            train_df = clean_data(_id, train_df, "hash_id")
+        except KeyError:
+            _LOGGER.exception(
+                "%s - KeyError while data cleaning for train payload: %s", _id, payload
+            )
 
         if len(train_df) < model_config["win_size"]:
             _info_msg = (
