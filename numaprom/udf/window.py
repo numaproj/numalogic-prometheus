@@ -78,6 +78,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )
-    _LOGGER.debug("%s - Sending Payload: %s ", payload.uuid, payload)
+
+    _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
     _LOGGER.debug("%s - Total time to window: %s", payload.uuid, time.perf_counter() - _start_time)
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
