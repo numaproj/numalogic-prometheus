@@ -56,8 +56,7 @@ MODEL_CONFIG = {
         "num_epochs": 100,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
-        "unified_anomaly":
-            "namespace_argocd_o11yfuzzygqlfederation_segment_api_unified_anomaly_qal",
+        "unified_anomaly": "namespace_argocd_o11yfuzzygqlfederation_segment_api_unified_anomaly_qal",
         "metrics": [
             "namespace_argocd_o11yfuzzygqlfederation_segment_api_latency_qal",
             "namespace_argocd_o11yfuzzygqlfederation_segment_api_error_count_qal",
@@ -73,8 +72,7 @@ MODEL_CONFIG = {
         "num_epochs": 100,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
-        "unified_anomaly":
-            "namespace_argocd_o11yfuzzygqlfederation_segment_api_unified_anomaly_ppd",
+        "unified_anomaly": "namespace_argocd_o11yfuzzygqlfederation_segment_api_unified_anomaly_ppd",
         "metrics": [
             "namespace_argocd_o11yfuzzygqlfederation_segment_api_latency_ppd",
             "namespace_argocd_o11yfuzzygqlfederation_segment_api_error_count_ppd",
@@ -90,8 +88,7 @@ MODEL_CONFIG = {
         "num_epochs": 50,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
-        "unified_anomaly":
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_qal",
+        "unified_anomaly": "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_qal",
         "metrics": [
             "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_qal",
             "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_count_qal",
@@ -107,8 +104,7 @@ MODEL_CONFIG = {
         "num_epochs": 50,
         "training_keys": ["namespace", "name"],
         "scrape_interval": 5,
-        "unified_anomaly":
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_ppd",
+        "unified_anomaly": "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_ppd",
         "metrics": [
             "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_ppd",
             "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_count_ppd",

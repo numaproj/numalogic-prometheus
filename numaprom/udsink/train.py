@@ -75,9 +75,7 @@ def train(datums: List[Datum]) -> Responses:
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
-        _LOGGER.debug(
-            "%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name
-        )
+        _LOGGER.debug("%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name)
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
