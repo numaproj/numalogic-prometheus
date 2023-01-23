@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
-from numalogic.preprocess.transformer import LogTransformer
 from numalogic.tools.data import StreamingDataset
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
+from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
 from numaprom.redis import get_redis_client
@@ -64,9 +64,9 @@ def _train_model(uuid, x, model_config):
 
 
 def _preprocess(x_raw):
-    clf = LogTransformer()
+    clf = StandardScaler()
     x_scaled = clf.fit_transform(x_raw)
-    return x_scaled
+    return x_scaled, clf
 
 
 def _is_new_request(namespace: str, metric: str) -> bool:
@@ -132,10 +132,18 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        x_train = _preprocess(train_df.to_numpy())
+        x_train, preproc_clf = _preprocess(train_df.to_numpy())
         model = _train_model(_id, x_train, model_config)
 
         skeys = [namespace, metric_name]
+
+        version = save_model(
+            skeys=skeys, dkeys=["preproc"], model=preproc_clf, artifact_type="sklearn"
+        )
+        _LOGGER.info(
+            "%s - Preproc model saved with skeys: %s with version: %s", _id, skeys, version
+        )
+
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
         _LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
         responses.append(Response.as_success(_datum.id))

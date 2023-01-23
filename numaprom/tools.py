@@ -147,10 +147,10 @@ def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactD
 
 
 def save_model(
-    skeys: Sequence[str], dkeys: Sequence[str], model, **metadata
+    skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-    ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type="pytorch")
+    ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
 
