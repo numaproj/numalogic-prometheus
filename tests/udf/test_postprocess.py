@@ -11,7 +11,6 @@ from tests.tools import (
     get_postproc_input,
     return_mock_metric_config,
     get_datum,
-    return_mock_lstmae,
 )
 from numaprom.udf.postprocess import postprocess, save_to_redis
 
@@ -35,8 +34,6 @@ class TestPostProcess(unittest.TestCase):
 
     @classmethod
     @freeze_time("2022-02-20 12:00:00")
-    @patch.dict(METRIC_CONFIG, return_mock_metric_config())
-    @patch("numalogic.registry.MLflowRegistry.load", return_mock_lstmae)
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.postproc_input = get_postproc_input(STREAM_DATA_PATH)

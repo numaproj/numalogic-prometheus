@@ -20,7 +20,9 @@ from numaprom.tools import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def _run_model(payload: StreamPayload, artifact_data: ArtifactData, model_config: Dict) -> Tuple[str, str]:
+def _run_model(
+    payload: StreamPayload, artifact_data: ArtifactData, model_config: Dict
+) -> Tuple[str, str]:
     model = artifact_data.artifact
     stream_data = payload.get_streamarray()
     stream_loader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
@@ -49,17 +51,25 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
 
-    artifact_data = load_model(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
-        dkeys=[model_config["model_name"]],
-    )
-
     train_payload = {
         "uuid": payload.uuid,
         **payload.composite_keys,
         "model_config": model_config["name"],
         "resume_training": False,
     }
+
+    if payload.status == Status.ARTIFACT_NOT_FOUND:
+        _LOGGER.info(
+            "%s - No artifact found in prev vtx, sending to trainer. Trainer payload: %s",
+            payload.uuid,
+            train_payload,
+        )
+        return [("train", orjson.dumps(train_payload))]
+
+    artifact_data = load_model(
+        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+        dkeys=[model_config["model_name"]],
+    )
 
     if not artifact_data:
         _LOGGER.info(
@@ -74,7 +84,9 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     messages = []
 
     date_updated = artifact_data.extras["last_updated_timestamp"] / 1000
-    stale_date = (datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))).timestamp()
+    stale_date = (
+        datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))
+    ).timestamp()
 
     if date_updated < stale_date:
         train_payload["resume_training"] = True
@@ -88,5 +100,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     messages.append(_run_model(payload, artifact_data, model_config))
 
     _LOGGER.info("%s - Sending Messages: %s ", payload.uuid, messages)
-    _LOGGER.debug("%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time)
+    _LOGGER.debug(
+        "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
+    )
     return messages

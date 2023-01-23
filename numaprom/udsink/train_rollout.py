@@ -91,7 +91,9 @@ def train_rollout(datums: List[Datum]) -> Responses:
         namespace = payload["namespace"]
         metric_name = payload["name"]
 
-        _LOGGER.debug("%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name)
+        _LOGGER.debug(
+            "%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name
+        )
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
@@ -114,7 +116,9 @@ def train_rollout(datums: List[Datum]) -> Responses:
         try:
             train_df = clean_data(_id, train_df, "hash_id")
         except KeyError:
-            _LOGGER.exception("%s - KeyError while data cleaning for train payload: %s", _id, payload)
+            _LOGGER.exception(
+                "%s - KeyError while data cleaning for train payload: %s", _id, payload
+            )
             responses.append(Response.as_success(_datum.id))
             continue
 

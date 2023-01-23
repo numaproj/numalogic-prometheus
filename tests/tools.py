@@ -3,15 +3,17 @@ import json
 import os
 import sys
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, Mock
 
+import numpy as np
 import pandas as pd
 import torch
 from mlflow.entities.model_registry import ModelVersion
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
-from numalogic.registry import ArtifactData
+from numalogic.registry import ArtifactData, MLflowRegistry
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
+from sklearn.preprocessing import MinMaxScaler
 
 from numaprom._constants import TESTS_DIR
 from numaprom.factory import HandlerFactory
@@ -48,27 +50,30 @@ def get_prepoc_input(data_path: str) -> Messages:
     return out
 
 
-def get_inference_input(data_path: str) -> Messages:
+def get_inference_input(data_path: str, prev_artifact_found=True) -> Messages:
     out = Messages()
     preproc_input = get_prepoc_input(data_path)
-    for msg in preproc_input.items():
-        _in = get_datum(msg.value)
-        handler_ = HandlerFactory.get_handler("preprocess")
-        _out = handler_(None, _in)
-        if _out.items()[0].key != DROP:
-            out.append(_out.items()[0])
+    mock_mlflow_return = return_preproc_clf() if prev_artifact_found else None
+    with patch.object(MLflowRegistry, "load", Mock(return_value=mock_mlflow_return)):
+        for msg in preproc_input.items():
+            _in = get_datum(msg.value)
+            handler_ = HandlerFactory.get_handler("preprocess")
+            _out = handler_(None, _in)
+            if _out.items()[0].key != DROP:
+                out.append(_out.items()[0])
     return out
 
 
 def get_postproc_input(data_path: str) -> Messages:
     out = Messages()
     inference_input = get_inference_input(data_path)
-    for msg in inference_input.items():
-        _in = get_datum(msg.value)
-        handler_ = HandlerFactory.get_handler("inference")
-        _out = handler_(None, _in)
-        if _out.items()[0].key != DROP:
-            out.append(_out.items()[0])
+    with patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae())):
+        for msg in inference_input.items():
+            _in = get_datum(msg.value)
+            handler_ = HandlerFactory.get_handler("inference")
+            _out = handler_(None, _in)
+            if _out.items()[0].key != DROP:
+                out.append(_out.items()[0])
     return out
 
 
@@ -134,6 +139,31 @@ def return_stale_model(*_, **__):
             "tags": {},
             "user_id": "",
             "version": "5",
+        },
+    )
+
+
+def return_preproc_clf(n_feat=1):
+    x = np.random.randn(100, n_feat)
+    clf = MinMaxScaler()
+    clf.fit(x)
+    return ArtifactData(
+        artifact=clf,
+        metadata={},
+        extras={
+            "creation_timestamp": 1653402941169,
+            "current_stage": "Production",
+            "description": "",
+            "last_updated_timestamp": 1656615600000,
+            "name": "test::preproc",
+            "run_id": "a7c0b376530b40d7b23e6ce2081c899c",
+            "run_link": "",
+            "source": "mlflow-artifacts:/0/a7c0b376530b40d7b23e6ce2081c899c/artifacts/preproc",
+            "status": "READY",
+            "status_message": "",
+            "tags": {},
+            "user_id": "",
+            "version": "1",
         },
     )
 

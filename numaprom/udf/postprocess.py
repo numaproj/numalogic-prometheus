@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from typing import List, Dict
 
 import numpy as np
@@ -50,7 +51,9 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
     return max_anomaly, anomalies
 
 
-def __construct_publisher_payload(stream_payload: StreamPayload, final_score: float) -> PrometheusPayload:
+def __construct_publisher_payload(
+    stream_payload: StreamPayload, final_score: float
+) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
 
@@ -106,20 +109,28 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         return [publisher_json]
 
     try:
-        max_anomaly, anomalies = save_to_redis(payload=payload, final_score=final_score, recreate=False)
+        max_anomaly, anomalies = save_to_redis(
+            payload=payload, final_score=final_score, recreate=False
+        )
     except RedisConnectionError:
         _LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
-        max_anomaly, anomalies = save_to_redis(payload=payload, final_score=final_score, recreate=True)
+        max_anomaly, anomalies = save_to_redis(
+            payload=payload, final_score=final_score, recreate=True
+        )
 
     if max_anomaly > -1:
         unified_json = __construct_unified_payload(payload, max_anomaly, model_config).as_json()
-        _LOGGER.info("%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json)
+        _LOGGER.info(
+            "%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json
+        )
         return [publisher_json, unified_json]
     return [publisher_json]
 
 
 @msgs_forward
 def postprocess(_: str, datum: Datum) -> List[bytes]:
+    _start_time = time.perf_counter()
+
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
@@ -134,4 +145,7 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     payload.set_status(Status.POST_PROCESSED)
     _LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
 
+    _LOGGER.debug(
+        "%s - Total time in postprocess: %s sec", payload.uuid, time.perf_counter() - _start_time
+    )
     return _publish(norm_score, payload)

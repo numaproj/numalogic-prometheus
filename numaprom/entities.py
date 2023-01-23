@@ -16,7 +16,9 @@ class Status(str, Enum):
     EXTRACTED = "extracted"
     PRE_PROCESSED = "pre_processed"
     INFERRED = "inferred"
+    THRESHOLD = "threshold_complete"
     POST_PROCESSED = "post_processed"
+    ARTIFACT_NOT_FOUND = "artifact_not_found"
 
 
 @dataclass(frozen=True)
@@ -25,7 +27,7 @@ class Metric:
     value: float
 
 
-@dataclass
+@dataclass(repr=False)
 class StreamPayload:
     uuid: str
     win_arr: Matrix
@@ -67,7 +69,7 @@ class StreamPayload:
         )
 
 
-@dataclass
+@dataclass(repr=False)
 class PrometheusPayload:
     timestamp_ms: int
     name: str
