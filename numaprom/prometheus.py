@@ -71,9 +71,7 @@ class Prometheus:
 
         return results
 
-    def query_range_limit(
-        self, query: str, start: float, end: float, step: int = 30
-    ) -> Optional[Dict]:
+    def query_range_limit(self, query: str, start: float, end: float, step: int = 30) -> Optional[Dict]:
         data_points = (end - start) / step
 
         if data_points > 11000:
@@ -94,9 +92,7 @@ class Prometheus:
     def query(self, query: str) -> Optional[Dict]:
         results = []
         try:
-            response = requests.get(
-                self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query}
-            )
+            response = requests.get(self.PROMETHEUS_SERVER + "/api/v1/query", params={"query": query})
             if response:
                 results = response.json()["data"]["result"]
             else:

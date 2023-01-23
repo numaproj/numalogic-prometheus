@@ -169,6 +169,7 @@ def return_mock_metric_config():
                 "resume_training": True,
                 "num_epochs": 10,
                 "training_keys": ["namespace", "name"],
+                "unified_anomaly": "unified_anomaly",
                 "metrics": [
                     "metric_1",
                 ],
@@ -187,6 +188,7 @@ def return_mock_metric_config():
                 "resume_training": True,
                 "num_epochs": 10,
                 "training_keys": ["namespace", "name"],
+                "unified_anomaly": "unified_anomaly",
                 "metrics": [
                     "metric_2",
                 ],
@@ -205,6 +207,7 @@ def return_mock_metric_config():
                 "resume_training": True,
                 "num_epochs": 10,
                 "keys": ["namespace", "name"],
+                "unified_anomaly": None,
                 "metrics": [],
                 "scrape_interval": 5,
             },

@@ -20,9 +20,7 @@ from numaprom.tools import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def _run_model(
-    payload: StreamPayload, artifact_data: ArtifactData, model_config: Dict
-) -> Tuple[str, str]:
+def _run_model(payload: StreamPayload, artifact_data: ArtifactData, model_config: Dict) -> Tuple[str, str]:
     model = artifact_data.artifact
     stream_data = payload.get_streamarray()
     stream_loader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
@@ -76,9 +74,7 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     messages = []
 
     date_updated = artifact_data.extras["last_updated_timestamp"] / 1000
-    stale_date = (
-        datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))
-    ).timestamp()
+    stale_date = (datetime.now() - timedelta(hours=int(model_config["retrain_freq_hr"]))).timestamp()
 
     if date_updated < stale_date:
         train_payload["resume_training"] = True
@@ -92,7 +88,5 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
     messages.append(_run_model(payload, artifact_data, model_config))
 
     _LOGGER.info("%s - Sending Messages: %s ", payload.uuid, messages)
-    _LOGGER.debug(
-        "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
-    )
+    _LOGGER.debug("%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time)
     return messages
