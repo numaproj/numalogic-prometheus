@@ -27,9 +27,11 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())
 class TestInference(unittest.TestCase):
     @classmethod
-    def setUpClass(cls) -> None:
+    @patch.dict(METRIC_CONFIG, return_mock_metric_config())
+    def setUp(cls) -> None:
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)
+        assert cls.inference_input.items(), print("input items is empty", cls.inference_input)
 
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))

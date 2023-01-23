@@ -58,7 +58,7 @@ def get_inference_input(data_path: str, prev_artifact_found=True) -> Messages:
         for msg in preproc_input.items():
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("preprocess")
-            _out = handler_(None, _in)
+            _out = handler_("", _in)
             if _out.items()[0].key != DROP:
                 out.append(_out.items()[0])
     return out

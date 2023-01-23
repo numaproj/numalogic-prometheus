@@ -33,10 +33,12 @@ class TestPostProcess(unittest.TestCase):
     )
 
     @classmethod
+    @patch.dict(METRIC_CONFIG, return_mock_metric_config())
     @freeze_time("2022-02-20 12:00:00")
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.postproc_input = get_postproc_input(STREAM_DATA_PATH)
+        assert cls.postproc_input.items(), print("input items is empty", cls.postproc_input)
 
     def setUp(self) -> None:
         redis_client.flushall()
