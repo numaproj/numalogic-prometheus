@@ -28,7 +28,7 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 class TestInference(unittest.TestCase):
     @classmethod
     @patch.dict(METRIC_CONFIG, return_mock_metric_config())
-    def setUp(cls) -> None:
+    def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)
         assert cls.inference_input.items(), print("input items is empty", cls.inference_input)
