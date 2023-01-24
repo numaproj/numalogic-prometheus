@@ -31,6 +31,7 @@ class TestInference(unittest.TestCase):
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)
+        assert cls.inference_input.items(), print("input items is empty", cls.inference_input)
 
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
@@ -44,6 +45,15 @@ class TestInference(unittest.TestCase):
             self.assertEqual(payload.status, Status.INFERRED)
             self.assertTrue(payload.win_arr)
             self.assertTrue(payload.win_ts_arr)
+
+    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
+    def test_inference_no_preproc_model(self):
+        inference_input = get_inference_input(STREAM_DATA_PATH, prev_artifact_found=False)
+        for msg in inference_input.items():
+            _in = get_datum(msg.value)
+            _out = inference("", _in)
+            out_data = _out.items()[0].value.decode("utf-8")
+            self.assertTrue(json.loads(out_data))
 
     @patch.object(MLflowRegistry, "load", Mock(return_value=None))
     def test_no_model(self):
@@ -59,7 +69,9 @@ class TestInference(unittest.TestCase):
             _in = get_datum(msg.value)
             _out = inference("", _in)
             train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
-            postprocess_payload = StreamPayload(**orjson.loads(_out.items()[1].value.decode("utf-8")))
+            postprocess_payload = StreamPayload(
+                **orjson.loads(_out.items()[1].value.decode("utf-8"))
+            )
 
             self.assertTrue(train_payload)
             self.assertTrue(postprocess_payload)

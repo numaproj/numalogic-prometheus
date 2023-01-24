@@ -48,7 +48,9 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 
     if buff_size < win_size:
-        raise ValueError(f"Redis list buffer size: {buff_size} is less than window length: {win_size}")
+        raise ValueError(
+            f"Redis list buffer size: {buff_size} is less than window length: {win_size}"
+        )
 
     key_map = create_composite_keys(msg)
     unique_key = ":".join(key_map.values())
@@ -60,7 +62,9 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         )
     except RedisConnectionError:
         _LOGGER.warning("Redis connection failed, recreating the redis client")
-        elements = __aggregate_window(unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True)
+        elements = __aggregate_window(
+            unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
+        )
 
     if len(elements) < win_size:
         return None

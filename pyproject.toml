@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "numalogic-prometheus"
-version = "0.1.3a0"
+version = "0.1.3a1"
 description = "ML inference on numaflow using numalogic on Prometheus metrics"
 authors = ["Numalogic developers"]
 packages = [{ include = "numaprom" }]
@@ -45,7 +45,7 @@ pytest-cov = "^4.0"
 freezegun = "^1.2.2"
 
 [tool.black]
-line-length = 110
+line-length = 100
 include = '\.pyi?$'
 exclude = '''
 /(

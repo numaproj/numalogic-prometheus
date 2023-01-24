@@ -27,7 +27,9 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
     elif type(data) == dict:
         data = json.dumps(data)
 
-    return Datum(sink_msg_id=msg_id, value=data, event_time=datetime.now(), watermark=datetime.now())
+    return Datum(
+        sink_msg_id=msg_id, value=data, event_time=datetime.now(), watermark=datetime.now()
+    )
 
 
 @patch.dict(METRIC_CONFIG, return_mock_metric_config())

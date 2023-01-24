@@ -122,7 +122,9 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
             get_ipv4_by_hostname(hostname, port)
         except socket.gaierror as ex:
             retries += 1
-            _LOGGER.warning("Failed to resolve hostname: %s: error: %r", hostname, ex, exc_info=True)
+            _LOGGER.warning(
+                "Failed to resolve hostname: %s: error: %r", hostname, ex, exc_info=True
+            )
             time.sleep(sleep_sec)
         else:
             return True
@@ -144,9 +146,11 @@ def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactD
         return None
 
 
-def save_model(skeys: Sequence[str], dkeys: Sequence[str], model, **metadata) -> Optional[ModelVersion]:
+def save_model(
+    skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
+) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-    ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type="pytorch")
+    ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
 
