@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import socket
@@ -6,7 +5,7 @@ import time
 from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
-from typing import List, Optional, Any, Dict, Sequence
+from typing import Optional, Dict, Sequence
 
 import pandas as pd
 import pytz
@@ -16,7 +15,6 @@ from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
 from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
-from numaprom.entities import Metric
 from numaprom.prometheus import Prometheus
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,18 +89,6 @@ def create_composite_keys(msg: dict) -> Dict:
         if k in labels:
             result[k] = labels[k]
     return result
-
-
-def get_metrics(df: pd.DataFrame) -> List[Metric]:
-    metrics = [Metric(**kwargs) for kwargs in df.to_dict(orient="records")]
-    return metrics
-
-
-def get_data(file_path: str) -> Any:
-    file = open(file_path)
-    data = json.load(file)
-    file.close()
-    return data
 
 
 def get_ipv4_by_hostname(hostname: str, port=0) -> list:

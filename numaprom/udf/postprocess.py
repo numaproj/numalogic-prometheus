@@ -146,6 +146,6 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     _LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
 
     _LOGGER.debug(
-        "%s - Total time in postprocess: %s sec", payload.uuid, time.perf_counter() - _start_time
+        "%s - Time taken in postprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
     return _publish(norm_score, payload)

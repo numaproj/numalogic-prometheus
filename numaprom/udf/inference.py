@@ -41,8 +41,8 @@ def _run_model(
 
 @conditional_forward
 def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
-
     _start_time = time.perf_counter()
+
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
@@ -101,6 +101,6 @@ def inference(_: str, datum: Datum) -> List[Tuple[str, bytes]]:
 
     _LOGGER.info("%s - Sending Messages: %s ", payload.uuid, messages)
     _LOGGER.debug(
-        "%s - Total time in inference: %s sec", payload.uuid, time.perf_counter() - _start_time
+        "%s - Time taken in inference: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
     return messages

@@ -50,7 +50,7 @@ def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataF
 
 
 def _train_model(uuid, x, model_config):
-    _start_train = time.time()
+    _start_train = time.perf_counter()
 
     win_size = model_config["win_size"]
     dataset = StreamingDataset(x, win_size)
@@ -59,7 +59,9 @@ def _train_model(uuid, x, model_config):
     trainer = AutoencoderTrainer(max_epochs=40)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    _LOGGER.debug("%s - Time taken to train model: %s", uuid, time.time() - _start_train)
+    _LOGGER.debug(
+        "%s - Time taken to train model: %.3f sec", uuid, time.perf_counter() - _start_train
+    )
     return model
 
 
@@ -97,7 +99,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
-            _LOGGER.info(
+            _LOGGER.debug(
                 "%s - Skipping rollouts train request with namespace: %s, metric: %s",
                 _id,
                 namespace,

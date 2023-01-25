@@ -21,12 +21,6 @@ class Status(str, Enum):
     ARTIFACT_NOT_FOUND = "artifact_not_found"
 
 
-@dataclass(frozen=True)
-class Metric:
-    timestamp: str
-    value: float
-
-
 @dataclass(repr=False)
 class StreamPayload:
     uuid: str

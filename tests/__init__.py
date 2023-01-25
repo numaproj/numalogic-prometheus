@@ -26,3 +26,4 @@ with patch("numaprom.redis.get_redis_client") as mock_get_redis_client:
 
 
 __all__ = ["redis_client", "window", "train", "train_rollout"]
+logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
