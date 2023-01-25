@@ -81,7 +81,7 @@ def train(datums: List[Datum]) -> Responses:
 
         is_new = _is_new_request(namespace, metric_name)
         if not is_new:
-            _LOGGER.info(
+            _LOGGER.debug(
                 "%s - Skipping train request with namespace: %s, metric: %s",
                 _id,
                 namespace,

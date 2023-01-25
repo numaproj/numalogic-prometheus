@@ -43,6 +43,6 @@ def preprocess(_: str, datum: Datum) -> bytes:
 
     _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
     _LOGGER.debug(
-        "%s - Total time to preprocess: %s", payload.uuid, time.perf_counter() - _start_time
+        "%s - Time taken in preprocess: %.4f", payload.uuid, time.perf_counter() - _start_time
     )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
