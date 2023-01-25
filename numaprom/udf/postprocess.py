@@ -137,15 +137,15 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 
     raw_scores = payload.get_streamarray()
+    raw_mean_score = np.mean(raw_scores)
 
     postproc_clf = TanhNorm()
-    norm_scores = postproc_clf.transform(raw_scores)
-    mean_norm_score = float(np.mean(norm_scores))
+    norm_score = postproc_clf.transform(raw_mean_score)
 
     payload.set_status(Status.POST_PROCESSED)
-    _LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, mean_norm_score)
+    _LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
 
     _LOGGER.debug(
         "%s - Time taken in postprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return _publish(mean_norm_score, payload)
+    return _publish(norm_score, payload)
