@@ -2,8 +2,8 @@ import logging
 import os
 import time
 
-import orjson
 from numalogic.registry import MLflowRegistry
+from orjson import orjson
 from pynumaflow.function import Datum, Messages, Message
 
 from numaprom._constants import DEFAULT_TRACKING_URI
@@ -12,7 +12,7 @@ from numaprom.tools import get_metric_config
 
 _LOGGER = logging.getLogger(__name__)
 _TRAIN_VTX_KEY = "train"
-_INFERENCE_VTX_KEY = "inference"
+_POSTPROC_VTX_KEY = "postproc"
 
 
 def _construct_train_payload(payload: StreamPayload, model_config: dict) -> dict:
@@ -30,43 +30,42 @@ def _load_artifact(payload: StreamPayload):
     )
     return registry.load(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
-        dkeys=["preproc"],
+        dkeys=["thresh"],
     )
 
 
-def preprocess(_: str, datum: Datum) -> Messages:
+def threshold(_: str, datum: Datum) -> Messages:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
-    x_raw = payload.get_streamarray()
+
+    recon_err = payload.get_streamarray()
 
     # Load config
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
 
-    _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
-
-    # Load artifact
-    preproc_artifact = _load_artifact(payload)
-    if not preproc_artifact:
-        _LOGGER.info("%s - Preproc clf not found for %s", payload.uuid, payload.composite_keys)
+    # Check if model exists
+    thresh_artifact = _load_artifact(payload)
+    if not thresh_artifact:
+        _LOGGER.info("%s - Thresh clf not found for %s", payload.uuid, payload.composite_keys)
         train_payload = _construct_train_payload(payload, model_config)
         return Messages(Message(key=_TRAIN_VTX_KEY, value=orjson.dumps(train_payload)))
 
-    # Perform preprocessing
-    preproc_clf = preproc_artifact.artifact
-    x_scaled = preproc_clf.transform(x_raw)
+    # Calculate anomaly score
+    thresh_clf = thresh_artifact.artifact
+    y_score = thresh_clf.predict(recon_err)
 
     # Prepare payload for forwarding
-    payload.set_win_arr(x_scaled)
-    payload.set_status(Status.PRE_PROCESSED)
+    payload.set_win_arr(y_score)
+    payload.set_status(Status.THRESHOLD)
 
     _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
     _LOGGER.debug(
-        "%s - Time taken in preprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
+        "%s - Time taken in threshold: %.4f", payload.uuid, time.perf_counter() - _start_time
     )
     return Messages(
         Message(
-            key=_INFERENCE_VTX_KEY, value=orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+            key=_POSTPROC_VTX_KEY, value=orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
         )
     )

@@ -19,6 +19,7 @@ class Status(str, Enum):
     THRESHOLD = "threshold_complete"
     POST_PROCESSED = "post_processed"
     ARTIFACT_NOT_FOUND = "artifact_not_found"
+    ARTIFACT_STALE = "artifact_is_stale"
 
 
 @dataclass(repr=False)

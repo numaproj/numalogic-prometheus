@@ -66,8 +66,6 @@ spec:
             - starter.py
             - udf
             - preprocess
-      limits:
-        readBatchSize: 1
     - name: inference
       scale:
         min: 1
@@ -86,6 +84,18 @@ spec:
       metadata:
         annotations:
           iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
+    - name: threshold
+      scale:
+        min: 1
+        max: 5
+      udf:
+        container:
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          args:
+            - python
+            - starter.py
+            - udf
+            - threshold
     - name: postprocess
       scale:
         min: 1
@@ -105,7 +115,55 @@ spec:
               value: "6379"
             - name: REDIS_AUTH
               value: "5rmmfXtsbL"
-    - name: trainer
+    - name: trainer-1
+      scale:
+        min: 1
+        max: 5
+      sink:
+        udsink:
+          container:
+            image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+            args:
+              - python
+              - starter.py
+              - udsink
+              - train
+            env:
+              - name: TRACKING_URI
+                value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+              - name: PROMETHEUS_SERVER
+                value: "http://prometheus-service.monitoring.svc.cluster.local:8080"
+              - name: REDIS_HOST
+                value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
+              - name: REDIS_PORT
+                value: "6379"
+              - name: REDIS_AUTH
+                value: "5rmmfXtsbL"
+    - name: trainer-2
+      scale:
+        min: 1
+        max: 5
+      sink:
+        udsink:
+          container:
+            image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+            args:
+              - python
+              - starter.py
+              - udsink
+              - train
+            env:
+              - name: TRACKING_URI
+                value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+              - name: PROMETHEUS_SERVER
+                value: "http://prometheus-service.monitoring.svc.cluster.local:8080"
+              - name: REDIS_HOST
+                value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
+              - name: REDIS_PORT
+                value: "6379"
+              - name: REDIS_AUTH
+                value: "5rmmfXtsbL"
+    - name: trainer-3
       scale:
         min: 1
         max: 5
@@ -175,17 +233,30 @@ spec:
       to: preprocess
     - from: preprocess
       to: inference
-    - from: inference
-      to: trainer
+      conditions:
+        keyIn:
+          - inference
+    - from: preprocess
+      to: trainer-1
       conditions:
         keyIn:
           - train
     - from: inference
-      to: training-output
+      to: trainer-2
       conditions:
         keyIn:
           - train
     - from: inference
+      to: threshold
+      conditions:
+        keyIn:
+          - threshold
+    - from: threshold
+      to: trainer-3
+      conditions:
+        keyIn:
+          - threshold
+    - from: threshold
       to: postprocess
       conditions:
         keyIn:

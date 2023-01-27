@@ -2,7 +2,7 @@ import unittest
 
 from numaprom.factory import HandlerFactory
 
-from numaprom.udf import metric_filter, preprocess, postprocess, inference
+from numaprom.udf import metric_filter, preprocess, postprocess, inference, threshold
 from numaprom.udsink import train, train_rollout
 
 
@@ -22,6 +22,10 @@ class TestFactory(unittest.TestCase):
     def test_inference(self):
         func = HandlerFactory.get_handler("inference")
         self.assertEqual(func, inference)
+
+    def test_threshold(self):
+        func = HandlerFactory.get_handler("threshold")
+        self.assertEqual(func, threshold)
 
     def test_train(self):
         func = HandlerFactory.get_handler("train")
