@@ -11,11 +11,18 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3.1.0
+        with:
+          go-version: "1.19"
+        id: go
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: "1.18"
           cache: true
+      - name: Get dependencies
+        run: go mod download
       - run: |
           cd prometheus-serde
           make build
@@ -23,11 +30,18 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3.1.0
+        with:
+          go-version: "1.19"
+        id: go
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: "1.18"
           cache: true
+      - name: Get dependencies
+        run: go mod download
       - run: |
           cd prometheus-serde
           make test
