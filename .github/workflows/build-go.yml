@@ -17,9 +17,12 @@ jobs:
           go-version: "1.19"
           cache: true
         id: go
-      - uses: actions/checkout@v3
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
       - name: Get dependencies
-        run: go mod download
+        run: |
+          cd prometheus-serde
+          go mod download
       - run: |
           cd prometheus-serde
           make build
@@ -35,7 +38,9 @@ jobs:
         id: go
       - uses: actions/checkout@v3
       - name: Get dependencies
-        run: go mod download
+        run: |
+          cd prometheus-serde
+          go mod download
       - run: |
           cd prometheus-serde
           make test
