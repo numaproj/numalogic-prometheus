@@ -1,0 +1,41 @@
+name: Release Image
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set output
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: Docker Login
+        uses: docker/login-action@v2
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAYIO_USERNAME }}
+          password: ${{ secrets.QUAYIO_PASSWORD }}
+
+      - name: Docker GO Build
+        env:
+          QUAYIO_ORG: quay.io/numaio
+          PLATFORM: linux/x86_64
+          TARGET: numalogic-prometheus/prometheus-serde
+        run: |
+          tag=$(basename $GITHUB_REF)
+          if [ $tag = "master" ]; then
+            tag="latest"
+          fi
+          
+          image_name="${DOCKERIO_ORG}/numalogic-prometheus/prometheus-serde:${tag}"
+          
+          cd prometheus-serde
+          docker buildx build \
+            --output "type=image,push=true" \
+            --platform="${PLATFORM}" \
+            --tag $image_name .
