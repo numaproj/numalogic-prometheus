@@ -15,12 +15,9 @@ jobs:
         uses: actions/setup-go@v3.1.0
         with:
           go-version: "1.19"
+          cache: true
         id: go
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: "1.18"
-          cache: true
       - name: Get dependencies
         run: go mod download
       - run: |
@@ -34,12 +31,9 @@ jobs:
         uses: actions/setup-go@v3.1.0
         with:
           go-version: "1.19"
+          cache: true
         id: go
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: "1.18"
-          cache: true
       - name: Get dependencies
         run: go mod download
       - run: |
