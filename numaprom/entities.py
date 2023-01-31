@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Optional, Any, Union
+from typing import List, Dict, Optional, Any, Union, OrderedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -19,6 +19,13 @@ class Status(str, Enum):
     THRESHOLD = "threshold_complete"
     POST_PROCESSED = "post_processed"
     ARTIFACT_NOT_FOUND = "artifact_not_found"
+    ARTIFACT_STALE = "artifact_is_stale"
+
+
+@dataclass(frozen=True)
+class TrainerPayload:
+    uuid: str
+    composite_keys: OrderedDict[str, str]
 
 
 @dataclass(repr=False)

@@ -36,10 +36,11 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
 class TestTrainer(unittest.TestCase):
     train_payload = {
         "uuid": "123124543",
-        "namespace": "sandbox_numalogic_demo",
-        "name": "metric_1",
-        "hash_id": "123456789",
-        "resume_training": False,
+        "composite_keys": {
+            "namespace": "sandbox_numalogic_demo",
+            "name": "metric_1",
+            "hash_id": "123456789",
+        },
     }
 
     def setUp(self) -> None:

@@ -3,7 +3,7 @@ from typing import Callable, Union
 from pynumaflow.function import Messages
 from pynumaflow.sink import Responses
 
-from numaprom.udf import preprocess, postprocess, window, metric_filter, inference
+from numaprom.udf import preprocess, postprocess, window, metric_filter, inference, threshold
 from numaprom.udsink import train, train_rollout
 
 
@@ -24,6 +24,9 @@ class HandlerFactory:
 
         if step == "postprocess":
             return postprocess
+
+        if step == "threshold":
+            return threshold
 
         if step == "train":
             return train

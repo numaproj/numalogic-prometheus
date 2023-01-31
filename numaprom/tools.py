@@ -5,7 +5,7 @@ import time
 from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
-from typing import Optional, Dict, Sequence
+from typing import Optional, Dict, Sequence, Any
 
 import pandas as pd
 import pytz
@@ -15,6 +15,7 @@ from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
 from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
+from numaprom.entities import TrainerPayload
 from numaprom.prometheus import Prometheus
 
 _LOGGER = logging.getLogger(__name__)
@@ -141,14 +142,14 @@ def save_model(
     return version
 
 
-def get_metric_config(metric_name: str):
+def get_metric_config(metric_name: str) -> Dict[str, Any]:
     if metric_name in METRIC_CONFIG:
         return METRIC_CONFIG[metric_name]
     return METRIC_CONFIG["default"]
 
 
 def fetch_data(
-    uuid: str, metric_name: str, model_config: dict, labels: dict, return_labels=None
+    payload: TrainerPayload, model_config: dict, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 
@@ -159,7 +160,7 @@ def fetch_data(
     start_dt = end_dt - timedelta(hours=15)
 
     df = datafetcher.query_metric(
-        metric_name=metric_name,
+        metric_name=payload.composite_keys["name"],
         labels_map=labels,
         return_labels=return_labels,
         start=start_dt.timestamp(),
@@ -168,7 +169,7 @@ def fetch_data(
     )
     _LOGGER.info(
         "%s - Time taken to fetch data: %s, for df shape: %s",
-        uuid,
+        payload.uuid,
         time.time() - _start_time,
         df.shape,
     )

@@ -10,6 +10,7 @@ import pandas as pd
 import torch
 from mlflow.entities.model_registry import ModelVersion
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
+from numalogic.models.threshold import StdDevThreshold
 from numalogic.registry import ArtifactData, MLflowRegistry
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
@@ -17,7 +18,6 @@ from sklearn.preprocessing import MinMaxScaler
 
 from numaprom._constants import TESTS_DIR
 from numaprom.factory import HandlerFactory
-from tests import window
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
@@ -44,17 +44,18 @@ def get_prepoc_input(data_path: str) -> Messages:
     out = Messages()
     data = get_stream_data(data_path)
     for obj in data:
-        _out = window("", get_datum(obj))
+        handler_ = HandlerFactory.get_handler("window")
+        _out = handler_("", get_datum(obj))
         if _out.items()[0].key != DROP:
             out.append(_out.items()[0])
     return out
 
 
-def get_inference_input(data_path: str, prev_artifact_found=True) -> Messages:
+def get_inference_input(data_path: str, prev_clf_exists=True) -> Messages:
     out = Messages()
     preproc_input = get_prepoc_input(data_path)
-    mock_mlflow_return = return_preproc_clf() if prev_artifact_found else None
-    with patch.object(MLflowRegistry, "load", Mock(return_value=mock_mlflow_return)):
+    _mock_return = return_preproc_clf() if prev_clf_exists else None
+    with patch.object(MLflowRegistry, "load", Mock(return_value=_mock_return)):
         for msg in preproc_input.items():
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("preprocess")
@@ -64,13 +65,27 @@ def get_inference_input(data_path: str, prev_artifact_found=True) -> Messages:
     return out
 
 
-def get_postproc_input(data_path: str) -> Messages:
+def get_threshold_input(data_path: str, prev_clf_exists=True) -> Messages:
     out = Messages()
     inference_input = get_inference_input(data_path)
-    with patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae())):
+    _mock_return = return_mock_lstmae() if prev_clf_exists else None
+    with patch.object(MLflowRegistry, "load", Mock(return_value=_mock_return)):
         for msg in inference_input.items():
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("inference")
+            _out = handler_(None, _in)
+            if _out.items()[0].key != DROP:
+                out.append(_out.items()[0])
+    return out
+
+
+def get_postproc_input(data_path: str) -> Messages:
+    out = Messages()
+    thresh_input = get_threshold_input(data_path)
+    with patch.object(MLflowRegistry, "load", Mock(return_value=return_threshold_clf())):
+        for msg in thresh_input.items():
+            _in = get_datum(msg.value)
+            handler_ = HandlerFactory.get_handler("threshold")
             _out = handler_(None, _in)
             if _out.items()[0].key != DROP:
                 out.append(_out.items()[0])
@@ -159,6 +174,31 @@ def return_preproc_clf(n_feat=1):
             "run_id": "a7c0b376530b40d7b23e6ce2081c899c",
             "run_link": "",
             "source": "mlflow-artifacts:/0/a7c0b376530b40d7b23e6ce2081c899c/artifacts/preproc",
+            "status": "READY",
+            "status_message": "",
+            "tags": {},
+            "user_id": "",
+            "version": "1",
+        },
+    )
+
+
+def return_threshold_clf(n_feat=1):
+    x = np.random.randn(100, n_feat)
+    clf = StdDevThreshold()
+    clf.fit(x)
+    return ArtifactData(
+        artifact=clf,
+        metadata={},
+        extras={
+            "creation_timestamp": 1653402941169,
+            "current_stage": "Production",
+            "description": "",
+            "last_updated_timestamp": 1656615600000,
+            "name": "test::thresh",
+            "run_id": "a7c0b376530b40d7b23e6ce2081c899c",
+            "run_link": "",
+            "source": "mlflow-artifacts:/0/a7c0b376530b40d7b23e6ce2081c899c/artifacts/thresh",
             "status": "READY",
             "status_message": "",
             "tags": {},

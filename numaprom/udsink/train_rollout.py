@@ -13,6 +13,7 @@ from pynumaflow.sink import Datum, Responses, Response
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
+from numaprom.entities import TrainerPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model, fetch_data
 
@@ -71,10 +72,10 @@ def _preprocess(x_raw):
     return x_scaled, clf
 
 
-def _is_new_request(namespace: str, metric: str) -> bool:
+def _is_new_request(payload: TrainerPayload) -> bool:
     redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=False)
-    r_key = f"trainrollout::{namespace}:{metric}"
-
+    _ckeys = ":".join([payload.composite_keys["namespace"], payload.composite_keys["name"]])
+    r_key = f"trainrollout::{_ckeys}"
     value = redis_client.get(r_key)
     if value:
         return False
@@ -87,39 +88,35 @@ def train_rollout(datums: List[Datum]) -> Responses:
     responses = Responses()
 
     for _datum in datums:
-        payload = orjson.loads(_datum.value)
+        payload = TrainerPayload(**orjson.loads(_datum.value))
 
-        _id = payload.get("uuid")
-        namespace = payload["namespace"]
-        metric_name = payload["name"]
+        _LOGGER.debug("%s - Starting Training for keys: %s", payload.uuid, payload.composite_keys)
 
-        _LOGGER.debug(
-            "%s - Starting Training for namespace: %s, metric: %s", _id, namespace, metric_name
-        )
-
-        is_new = _is_new_request(namespace, metric_name)
+        is_new = _is_new_request(payload)
         if not is_new:
             _LOGGER.debug(
-                "%s - Skipping rollouts train request with namespace: %s, metric: %s",
-                _id,
-                namespace,
-                metric_name,
+                "%s - Skipping rollouts train request with keys: %s",
+                payload.uuid,
+                payload.composite_keys,
             )
             responses.append(Response.as_success(_datum.id))
             continue
 
-        metric_config = get_metric_config(metric_name)
+        metric_config = get_metric_config(payload.composite_keys["name"])
         model_config = metric_config["model_config"]
         win_size = model_config["win_size"]
 
         train_df = fetch_data(
-            _id, metric_name, model_config, {"namespace": namespace}, return_labels=["hash_id"]
+            payload,
+            model_config,
+            {"namespace": payload.composite_keys["namespace"]},
+            return_labels=["hash_id"],
         )
         try:
-            train_df = clean_data(_id, train_df, "hash_id")
+            train_df = clean_data(payload.uuid, train_df, "hash_id")
         except KeyError:
             _LOGGER.exception(
-                "%s - KeyError while data cleaning for train payload: %s", _id, payload
+                "%s - KeyError while data cleaning for train payload: %s", payload.uuid, payload
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -127,7 +124,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         if len(train_df) < model_config["win_size"]:
             _LOGGER.info(
                 "%s - Skipping training since traindata size: %s is less than winsize: %s",
-                _id,
+                payload.uuid,
                 train_df.shape,
                 win_size,
             )
@@ -135,19 +132,22 @@ def train_rollout(datums: List[Datum]) -> Responses:
             continue
 
         x_train, preproc_clf = _preprocess(train_df.to_numpy())
-        model = _train_model(_id, x_train, model_config)
+        model = _train_model(payload.uuid, x_train, model_config)
 
-        skeys = [namespace, metric_name]
+        # TODO change this to just use **composite_keys
+        skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
 
         version = save_model(
             skeys=skeys, dkeys=["preproc"], model=preproc_clf, artifact_type="sklearn"
         )
         _LOGGER.info(
-            "%s - Preproc model saved with skeys: %s with version: %s", _id, skeys, version
+            "%s - Preproc model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
 
         version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
-        _LOGGER.info("%s - Model saved with skeys: %s with version: %s", _id, skeys, version)
+        _LOGGER.info(
+            "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
+        )
         responses.append(Response.as_success(_datum.id))
 
     return responses
