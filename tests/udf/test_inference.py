@@ -8,7 +8,7 @@ from numalogic.registry import MLflowRegistry
 from orjson import orjson
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.entities import Status, StreamPayload
+from numaprom.entities import Status, StreamPayload, TrainerPayload
 from tests import redis_client
 from tests.tools import (
     get_inference_input,
@@ -41,6 +41,7 @@ class TestInference(unittest.TestCase):
             _out = inference("", _in)
             out_data = _out.items()[0].value.decode("utf-8")
             payload = StreamPayload(**orjson.loads(out_data))
+            print(payload)
 
             self.assertEqual(payload.status, Status.INFERRED)
             self.assertTrue(payload.win_arr)
@@ -51,8 +52,21 @@ class TestInference(unittest.TestCase):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
             _out = inference("", _in)
-            train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
-            self.assertFalse(train_payload["resume_training"])
+            out_data = _out.items()[0].value.decode("utf-8")
+            train_payload = TrainerPayload(**orjson.loads(out_data))
+            self.assertTrue(train_payload)
+
+    @freeze_time("2022-02-20 12:00:00")
+    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
+    def test_no_prev_model(self):
+        inference_input = get_inference_input(STREAM_DATA_PATH, prev_clf_exists=False)
+        assert self.inference_input.items(), print("input items is empty", self.inference_input)
+        for msg in inference_input.items():
+            _in = get_datum(msg.value)
+            _out = inference("", _in)
+            out_data = _out.items()[0].value.decode("utf-8")
+            trainer_payload = TrainerPayload(**orjson.loads(out_data))
+            self.assertIsInstance(trainer_payload, TrainerPayload)
 
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):

@@ -1,5 +1,6 @@
 import logging
 import time
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 
@@ -10,25 +11,14 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from torch.utils.data import DataLoader
 
-from numaprom.entities import Status, StreamPayload
+from numaprom.entities import Status, StreamPayload, TrainerPayload
 from numaprom.tools import (
     load_model,
     get_metric_config,
-    conditional_forward,
+    msgs_forward,
 )
 
 _LOGGER = logging.getLogger(__name__)
-_TRAIN_VTX_KEY = "train"
-_THRESHOLD_VTX_KEY = "threshold"
-
-
-def _construct_train_payload(payload: StreamPayload, model_config: dict) -> dict:
-    return {
-        "uuid": payload.uuid,
-        **payload.composite_keys,
-        "model_config": model_config["name"],
-        "resume_training": False,
-    }
 
 
 def _run_inference(
@@ -50,7 +40,6 @@ def _run_inference(
 
 
 def _get_model(payload: StreamPayload, model_config: dict) -> Optional[ArtifactData]:
-    print(model_config)
     artifact_data = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
         dkeys=[model_config["model_name"]],
@@ -84,34 +73,49 @@ def _is_model_stale(
     return False
 
 
-@conditional_forward
-def inference(_: str, datum: Datum) -> list[tuple[str, bytes]]:
+@msgs_forward
+def inference(_: str, datum: Datum) -> list[bytes]:
     _start_time = time.perf_counter()
 
+    stream_payload = None
+    train_payload = None
     _in_msg = datum.value.decode("utf-8")
-    payload = StreamPayload(**orjson.loads(_in_msg))
+
+    # Construct payload object
+    try:
+        stream_payload = StreamPayload(**orjson.loads(_in_msg))
+    except TypeError:
+        train_payload = TrainerPayload(**orjson.loads(_in_msg))
+
+    # Check if trainer payload is passed on from previous vtx
+    if train_payload:
+        _LOGGER.debug("%s - Relaying forward trainer payload")
+        return [orjson.dumps(train_payload)]
 
     messages = []
 
     # Load config
-    metric_config = get_metric_config(payload.composite_keys["name"])
+    metric_config = get_metric_config(stream_payload.composite_keys["name"])
     model_config = metric_config["model_config"]
 
     # Check if model exists
-    artifact_data = _get_model(payload, model_config)
+    artifact_data = _get_model(stream_payload, model_config)
     if not artifact_data:
-        train_payload = _construct_train_payload(payload, model_config)
-        messages.append((_TRAIN_VTX_KEY, orjson.dumps(train_payload)))
-        return messages
+        train_payload = TrainerPayload(
+            uuid=stream_payload.uuid, composite_keys=OrderedDict(stream_payload.composite_keys)
+        )
+        return [orjson.dumps(train_payload)]
 
     # Check if current model is stale
-    if _is_model_stale(payload, artifact_data, model_config):
-        train_payload = _construct_train_payload(payload, model_config)
-        messages.append((_TRAIN_VTX_KEY, orjson.dumps(train_payload)))
+    if _is_model_stale(stream_payload, artifact_data, model_config):
+        train_payload = TrainerPayload(
+            uuid=stream_payload.uuid, composite_keys=OrderedDict(stream_payload.composite_keys)
+        )
+        messages.append(orjson.dumps(train_payload))
 
     # Generate predictions
-    payload = _run_inference(payload, artifact_data, model_config)
-    messages.append((_THRESHOLD_VTX_KEY, orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)))
+    payload = _run_inference(stream_payload, artifact_data, model_config)
+    messages.append(orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY))
 
     _LOGGER.info("%s - Sending Payload: %s ", payload.uuid, payload)
     _LOGGER.debug(

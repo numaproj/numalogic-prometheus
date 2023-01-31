@@ -6,7 +6,7 @@ from numalogic.registry import MLflowRegistry
 from orjson import orjson
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.entities import Status, StreamPayload
+from numaprom.entities import Status, StreamPayload, TrainerPayload
 from tests.tools import get_prepoc_input, return_mock_metric_config, get_datum, return_preproc_clf
 
 # Make sure to import this in the end
@@ -36,6 +36,7 @@ class TestPreprocess(unittest.TestCase):
             self.assertEqual(payload.status, Status.PRE_PROCESSED)
             self.assertTrue(payload.win_arr)
             self.assertTrue(payload.win_ts_arr)
+            self.assertIsInstance(payload, StreamPayload)
 
     @patch.object(MLflowRegistry, "load", Mock(return_value=None))
     def test_preprocess_no_clf(self):
@@ -43,8 +44,9 @@ class TestPreprocess(unittest.TestCase):
             _in = get_datum(msg.value)
             _out = preprocess("", _in)
             out_data = _out.items()[0].value.decode("utf-8")
-            train_payload = orjson.loads(out_data)
+            train_payload = TrainerPayload(**orjson.loads(out_data))
             self.assertTrue(train_payload)
+            self.assertIsInstance(train_payload, TrainerPayload)
 
 
 if __name__ == "__main__":

@@ -6,4 +6,4 @@ from numaprom.udf.window import window
 from numaprom.udf.threshold import threshold
 
 
-__all__ = ["preprocess", "metric_filter", "inference", "window", "postprocess", threshold]
+__all__ = ["preprocess", "metric_filter", "inference", "window", "postprocess", "threshold"]

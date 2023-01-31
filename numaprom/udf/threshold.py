@@ -1,27 +1,17 @@
 import logging
 import os
 import time
+from collections import OrderedDict
 
 from numalogic.registry import MLflowRegistry
 from orjson import orjson
-from pynumaflow.function import Datum, Messages, Message
+from pynumaflow.function import Datum
 
-from numaprom._constants import DEFAULT_TRACKING_URI
-from numaprom.entities import Status, StreamPayload
-from numaprom.tools import get_metric_config
+from numaprom._constants import DEFAULT_TRACKING_URI, TRAIN_VTX_KEY, POSTPROC_VTX_KEY
+from numaprom.entities import Status, StreamPayload, TrainerPayload
+from numaprom.tools import conditional_forward
 
 _LOGGER = logging.getLogger(__name__)
-_TRAIN_VTX_KEY = "train"
-_POSTPROC_VTX_KEY = "postproc"
-
-
-def _construct_train_payload(payload: StreamPayload, model_config: dict) -> dict:
-    return {
-        "uuid": payload.uuid,
-        **payload.composite_keys,
-        "model_config": model_config["name"],
-        "resume_training": False,
-    }
 
 
 def _load_artifact(payload: StreamPayload):
@@ -34,38 +24,50 @@ def _load_artifact(payload: StreamPayload):
     )
 
 
-def threshold(_: str, datum: Datum) -> Messages:
+@conditional_forward
+def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
-    payload = StreamPayload(**orjson.loads(_in_msg))
 
-    recon_err = payload.get_streamarray()
+    stream_payload = None
+    train_payload = None
 
-    # Load config
-    metric_config = get_metric_config(payload.composite_keys["name"])
-    model_config = metric_config["model_config"]
+    # Construct payload object
+    try:
+        stream_payload = StreamPayload(**orjson.loads(_in_msg))
+    except TypeError:
+        train_payload = TrainerPayload(**orjson.loads(_in_msg))
+
+    # Check if trainer payload is passed on from previous vtx
+    if train_payload:
+        _LOGGER.debug("%s - Previous clf not found. Sending to trainer..")
+        return [(TRAIN_VTX_KEY, orjson.dumps(train_payload))]
+
+    recon_err = stream_payload.get_streamarray()
 
     # Check if model exists
-    thresh_artifact = _load_artifact(payload)
+    thresh_artifact = _load_artifact(stream_payload)
     if not thresh_artifact:
-        _LOGGER.info("%s - Thresh clf not found for %s", payload.uuid, payload.composite_keys)
-        train_payload = _construct_train_payload(payload, model_config)
-        return Messages(Message(key=_TRAIN_VTX_KEY, value=orjson.dumps(train_payload)))
+        _LOGGER.info(
+            "%s - Thresh clf not found for %s. Sending to trainer..",
+            stream_payload.uuid,
+            stream_payload.composite_keys,
+        )
+        train_payload = TrainerPayload(
+            uuid=stream_payload.uuid, composite_keys=OrderedDict(stream_payload.composite_keys)
+        )
+        return [(TRAIN_VTX_KEY, orjson.dumps(train_payload))]
 
     # Calculate anomaly score
     thresh_clf = thresh_artifact.artifact
     y_score = thresh_clf.predict(recon_err)
 
     # Prepare payload for forwarding
-    payload.set_win_arr(y_score)
-    payload.set_status(Status.THRESHOLD)
+    stream_payload.set_win_arr(y_score)
+    stream_payload.set_status(Status.THRESHOLD)
 
-    _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
+    _LOGGER.info("%s - Sending Payload: %r ", stream_payload.uuid, stream_payload)
     _LOGGER.debug(
-        "%s - Time taken in threshold: %.4f", payload.uuid, time.perf_counter() - _start_time
+        "%s - Time taken in threshold: %.4f", stream_payload.uuid, time.perf_counter() - _start_time
     )
-    return Messages(
-        Message(
-            key=_POSTPROC_VTX_KEY, value=orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
-        )
-    )
+    return [(POSTPROC_VTX_KEY, orjson.dumps(stream_payload, option=orjson.OPT_SERIALIZE_NUMPY))]

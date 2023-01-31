@@ -51,10 +51,11 @@ def get_prepoc_input(data_path: str) -> Messages:
     return out
 
 
-def get_inference_input(data_path: str) -> Messages:
+def get_inference_input(data_path: str, prev_clf_exists=True) -> Messages:
     out = Messages()
     preproc_input = get_prepoc_input(data_path)
-    with patch.object(MLflowRegistry, "load", Mock(return_value=return_preproc_clf())):
+    _mock_return = return_preproc_clf() if prev_clf_exists else None
+    with patch.object(MLflowRegistry, "load", Mock(return_value=_mock_return)):
         for msg in preproc_input.items():
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("preprocess")
@@ -64,10 +65,11 @@ def get_inference_input(data_path: str) -> Messages:
     return out
 
 
-def get_threshold_input(data_path: str) -> Messages:
+def get_threshold_input(data_path: str, prev_clf_exists=True) -> Messages:
     out = Messages()
     inference_input = get_inference_input(data_path)
-    with patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae())):
+    _mock_return = return_mock_lstmae() if prev_clf_exists else None
+    with patch.object(MLflowRegistry, "load", Mock(return_value=_mock_return)):
         for msg in inference_input.items():
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("inference")

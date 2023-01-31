@@ -1,27 +1,17 @@
 import logging
 import os
 import time
+from collections import OrderedDict
 
 import orjson
 from numalogic.registry import MLflowRegistry
-from pynumaflow.function import Datum, Messages, Message
+from pynumaflow.function import Datum
 
 from numaprom._constants import DEFAULT_TRACKING_URI
-from numaprom.entities import Status, StreamPayload
-from numaprom.tools import get_metric_config
+from numaprom.entities import Status, StreamPayload, TrainerPayload
+from numaprom.tools import msg_forward
 
 _LOGGER = logging.getLogger(__name__)
-_TRAIN_VTX_KEY = "train"
-_INFERENCE_VTX_KEY = "inference"
-
-
-def _construct_train_payload(payload: StreamPayload, model_config: dict) -> dict:
-    return {
-        "uuid": payload.uuid,
-        **payload.composite_keys,
-        "model_config": model_config["name"],
-        "resume_training": False,
-    }
 
 
 def _load_artifact(payload: StreamPayload):
@@ -34,15 +24,12 @@ def _load_artifact(payload: StreamPayload):
     )
 
 
-def preprocess(_: str, datum: Datum) -> Messages:
+@msg_forward
+def preprocess(_: str, datum: Datum) -> bytes:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
     x_raw = payload.get_streamarray()
-
-    # Load config
-    metric_config = get_metric_config(payload.composite_keys["name"])
-    model_config = metric_config["model_config"]
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 
@@ -50,8 +37,10 @@ def preprocess(_: str, datum: Datum) -> Messages:
     preproc_artifact = _load_artifact(payload)
     if not preproc_artifact:
         _LOGGER.info("%s - Preproc clf not found for %s", payload.uuid, payload.composite_keys)
-        train_payload = _construct_train_payload(payload, model_config)
-        return Messages(Message(key=_TRAIN_VTX_KEY, value=orjson.dumps(train_payload)))
+        train_payload = TrainerPayload(
+            uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
+        )
+        return orjson.dumps(train_payload)
 
     # Perform preprocessing
     preproc_clf = preproc_artifact.artifact
@@ -65,8 +54,4 @@ def preprocess(_: str, datum: Datum) -> Messages:
     _LOGGER.debug(
         "%s - Time taken in preprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return Messages(
-        Message(
-            key=_INFERENCE_VTX_KEY, value=orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
-        )
-    )
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
