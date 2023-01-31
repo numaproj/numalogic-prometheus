@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.1.4a0 (2023-01-31)
+
+ * [c5102ef](https://github.com/numaproj/numalogic-prometheus/commit/c5102ef4cd76000d397f7019d4eb9b98e36c5386) feat!: threshold udf with multiple trainers (#66)
+ * [576e9da](https://github.com/numaproj/numalogic-prometheus/commit/576e9dad9ae63d5fba64528bb13c5087a6cb9652) fix: profile logging (v0.1.3) (#63)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.1.3a1 (2023-01-23)
+
+ * [290ca60](https://github.com/numaproj/numalogic-prometheus/commit/290ca60bc902e8d8f02be4c378ba059cbcd395d2) feat: allow stateful preproc artifacts (#61)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.1.3a0 (2023-01-23)
+
+
+### Contributors
+
+
+## v0.1.3 (2023-01-25)
+
+ * [576e9da](https://github.com/numaproj/numalogic-prometheus/commit/576e9dad9ae63d5fba64528bb13c5087a6cb9652) fix: profile logging (v0.1.3) (#63)
+ * [290ca60](https://github.com/numaproj/numalogic-prometheus/commit/290ca60bc902e8d8f02be4c378ba059cbcd395d2) feat: allow stateful preproc artifacts (#61)
+
+### Contributors
+
+ * Avik Basu
+
 ## v0.1.2 (2023-01-20)
 
  * [7780dc3](https://github.com/numaproj/numalogic-prometheus/commit/7780dc314cb47411ba9b4e47a3dc0e798a98027c) fix: avoid setting as failure in udsink (#57)
