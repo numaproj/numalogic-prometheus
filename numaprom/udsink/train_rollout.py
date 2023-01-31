@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
+from numalogic.models.threshold import StdDevThreshold
 from numalogic.tools.data import StreamingDataset
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
@@ -63,13 +64,21 @@ def _train_model(uuid, x, model_config):
     _LOGGER.debug(
         "%s - Time taken to train model: %.3f sec", uuid, time.perf_counter() - _start_train
     )
-    return model
+
+    train_reconerr = trainer.predict(model, dataloaders=DataLoader(dataset, batch_size=64))
+    return train_reconerr.numpy(), model
 
 
 def _preprocess(x_raw):
     clf = StandardScaler()
     x_scaled = clf.fit_transform(x_raw)
     return x_scaled, clf
+
+
+def _find_threshold(x_reconerr):
+    clf = StdDevThreshold()
+    clf.fit(x_reconerr)
+    return clf
 
 
 def _is_new_request(payload: TrainerPayload) -> bool:
@@ -132,11 +141,13 @@ def train_rollout(datums: List[Datum]) -> Responses:
             continue
 
         x_train, preproc_clf = _preprocess(train_df.to_numpy())
-        model = _train_model(payload.uuid, x_train, model_config)
+        x_reconerr, model = _train_model(payload.uuid, x_train, model_config)
+        thresh_clf = _find_threshold(x_reconerr)
 
         # TODO change this to just use **composite_keys
         skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
 
+        # TODO catch mlflow exception
         version = save_model(
             skeys=skeys, dkeys=["preproc"], model=preproc_clf, artifact_type="sklearn"
         )
@@ -148,6 +159,17 @@ def train_rollout(datums: List[Datum]) -> Responses:
         _LOGGER.info(
             "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
+
+        version = save_model(
+            skeys=skeys, dkeys=["thresh"], model=thresh_clf, artifact_type="sklearn"
+        )
+        _LOGGER.info(
+            "%s - Threshold model saved with skeys: %s with version: %s",
+            payload.uuid,
+            skeys,
+            version,
+        )
+
         responses.append(Response.as_success(_datum.id))
 
     return responses

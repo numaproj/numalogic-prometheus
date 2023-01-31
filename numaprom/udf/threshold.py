@@ -40,7 +40,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
 
     # Check if trainer payload is passed on from previous vtx
     if train_payload:
-        _LOGGER.debug("%s - Previous clf not found. Sending to trainer..")
+        _LOGGER.debug("%s - Previous clf not found. Sending to trainer..", train_payload.uuid)
         return [(TRAIN_VTX_KEY, orjson.dumps(train_payload))]
 
     recon_err = stream_payload.get_streamarray()
