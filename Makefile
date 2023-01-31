@@ -38,4 +38,3 @@ requirements-dev:
 pipeline:
 	kustomize build manifests/prerequisites | kubectl apply -f -
 	kustomize build manifests/ | kubectl apply -f -
-	kubectl apply -f manifests/pipeline/numalogic-prometheus-pipeline.yaml
