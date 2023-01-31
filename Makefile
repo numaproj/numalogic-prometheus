@@ -31,3 +31,11 @@ test:
 
 requirements:
 	poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+requirements-dev:
+	poetry export -f requirements.txt --with dev --output requirements-dev.txt --without-hashes
+
+pipeline:
+	kustomize build manifests/prerequisites | kubectl apply -f -
+	kustomize build manifests/ | kubectl apply -f -
+	kubectl apply -f manifests/pipeline/numalogic-prometheus-pipeline.yaml
