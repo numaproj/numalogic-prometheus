@@ -22,10 +22,18 @@ AUTH = os.getenv("REDIS_AUTH")
 
 
 # TODO get the replace value from config
-def _clean_arr(id_: str, arr: npt.NDArray[float], replace_val: float = 0.0) -> npt.NDArray[float]:
+def _clean_arr(
+    id_: str,
+    ckeys: dict,
+    arr: npt.NDArray[float],
+    replace_val: float = 0.0,
+    inf_replace: float = 1e10,
+) -> npt.NDArray[float]:
     if not np.isfinite(arr).any():
-        _LOGGER.warning("%s - Non finite values encountered: %s", id_, list(arr))
-    return np.nan_to_num(arr, nan=replace_val, posinf=replace_val, neginf=replace_val)
+        _LOGGER.warning(
+            "%s - Non finite values encountered: %s for keys: %s", id_, list(arr), ckeys
+        )
+    return np.nan_to_num(arr, nan=replace_val, posinf=inf_replace, neginf=-inf_replace)
 
 
 def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tuple[float, float]]:
@@ -80,12 +88,13 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     win_list = [float(_val) for _val, _ in elements]
     win_arr = np.asarray(win_list).reshape(-1, 1)
     _uuid = uuid.uuid4().hex
+    composite_keys = create_composite_keys(msg)
 
     payload = StreamPayload(
         uuid=uuid.uuid4().hex,
-        composite_keys=create_composite_keys(msg),
+        composite_keys=composite_keys,
         status=Status.EXTRACTED,
-        win_arr=_clean_arr(_uuid, win_arr),
+        win_arr=_clean_arr(_uuid, composite_keys, win_arr),
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )
