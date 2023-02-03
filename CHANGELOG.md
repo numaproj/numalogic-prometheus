@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.4a1 (2023-01-31)
+
+ * [c7f7289](https://github.com/numaproj/numalogic-prometheus/commit/c7f728984a3a1d87a2e4782b06f0844500c55a49) fix: train threshold clf
+
+### Contributors
+
+ * Avik Basu
+
 ## v0.1.4a0 (2023-01-31)
 
  * [c5102ef](https://github.com/numaproj/numalogic-prometheus/commit/c5102ef4cd76000d397f7019d4eb9b98e36c5386) feat!: threshold udf with multiple trainers (#66)
