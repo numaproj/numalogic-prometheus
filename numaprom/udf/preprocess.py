@@ -3,6 +3,7 @@ import os
 import time
 from collections import OrderedDict
 
+import numpy as np
 import orjson
 from numalogic.registry import MLflowRegistry
 from pynumaflow.function import Datum

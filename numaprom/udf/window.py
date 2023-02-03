@@ -5,6 +5,7 @@ import uuid
 from typing import List, Tuple, Optional
 
 import numpy as np
+import numpy.typing as npt
 from orjson import orjson
 from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -18,6 +19,13 @@ _LOGGER = logging.getLogger(__name__)
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
+
+
+# TODO get the replace value from config
+def _clean_arr(id_: str, arr: npt.NDArray[float], replace_val: float = 0.0) -> npt.NDArray[float]:
+    if not np.isfinite(arr).any():
+        _LOGGER.warning("%s - Non finite values encountered: %s", id_, list(arr))
+    return np.nan_to_num(arr, nan=replace_val, posinf=replace_val, neginf=replace_val)
 
 
 def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tuple[float, float]]:
@@ -70,11 +78,14 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         return None
 
     win_list = [float(_val) for _val, _ in elements]
+    win_arr = np.asarray(win_list).reshape(-1, 1)
+    _uuid = uuid.uuid4().hex
+
     payload = StreamPayload(
         uuid=uuid.uuid4().hex,
         composite_keys=create_composite_keys(msg),
         status=Status.EXTRACTED,
-        win_arr=np.asarray(win_list).reshape(-1, 1),
+        win_arr=_clean_arr(_uuid, win_arr),
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )
