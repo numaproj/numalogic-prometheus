@@ -8,7 +8,7 @@ import numpy.typing as npt
 import orjson
 
 Vector = List[float]
-Matrix = Union[Vector, List[Vector], npt.NDArray]
+Matrix = Union[Vector, List[Vector], npt.NDArray[float]]
 
 
 class Status(str, Enum):
