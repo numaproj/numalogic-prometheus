@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from freezegun import freeze_time
 
-from numaprom._constants import TESTS_DIR, METRIC_CONFIG, MODEL_CONFIG
+from numaprom._constants import TESTS_DIR, METRIC_CONFIG, OUTPUT_CONFIG
 from numaprom.entities import PrometheusPayload, StreamPayload
 from tests import redis_client
 from tests.tools import (
@@ -65,7 +65,7 @@ class TestPostProcess(unittest.TestCase):
         max_score, scores = None, []
         score = 1
 
-        for m in MODEL_CONFIG["argo_cd"]["metrics"]:
+        for m in OUTPUT_CONFIG["argo_cd"]["unified_metrics"]:
             payload = self.stream_payload
             payload.composite_keys = {"name": m}
             max_score, scores = save_to_redis(payload, score, recreate=False)

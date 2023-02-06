@@ -149,7 +149,7 @@ def get_metric_config(metric_name: str) -> Dict[str, Any]:
 
 
 def fetch_data(
-    payload: TrainerPayload, model_config: dict, labels: dict, return_labels=None
+    payload: TrainerPayload, metric_config: dict, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 
@@ -165,7 +165,7 @@ def fetch_data(
         return_labels=return_labels,
         start=start_dt.timestamp(),
         end=end_dt.timestamp(),
-        step=model_config["scrape_interval"],
+        step=metric_config["scrape_interval"],
     )
     _LOGGER.info(
         "%s - Time taken to fetch data: %s, for df shape: %s",

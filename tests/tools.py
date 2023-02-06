@@ -230,6 +230,7 @@ def return_mock_metric_config():
     return {
         "metric_1": {
             "keys": ["namespace", "name"],
+            "scrape_interval": 5,
             "model_config": {
                 "name": "argo_cd",
                 "win_size": 2,
@@ -239,16 +240,18 @@ def return_mock_metric_config():
                 "resume_training": True,
                 "num_epochs": 10,
                 "training_keys": ["namespace", "name"],
-                "unified_anomaly": "unified_anomaly",
-                "metrics": [
+            },
+            "output_config": {
+                "unified_strategy": "max",
+                "unified_metric_name": "unified_anomaly",
+                "unified_metrics": [
                     "metric_1",
                 ],
-                "scrape_interval": 5,
             },
-            "model": "VanillaAE",
         },
         "metric_2": {
             "keys": ["namespace", "name", "hash_id"],
+            "scrape_interval": 5,
             "model_config": {
                 "name": "argo_rollouts",
                 "win_size": 2,
@@ -258,16 +261,18 @@ def return_mock_metric_config():
                 "resume_training": True,
                 "num_epochs": 10,
                 "training_keys": ["namespace", "name"],
-                "unified_anomaly": "unified_anomaly",
-                "metrics": [
+            },
+            "output_config": {
+                "unified_strategy": "max",
+                "unified_metric_name": "unified_anomaly",
+                "unified_metrics": [
                     "metric_2",
                 ],
-                "scrape_interval": 5,
             },
-            "model": "VanillaAE",
         },
         "default": {
             "keys": ["namespace", "name"],
+            "scrape_interval": 5,
             "model_config": {
                 "name": "default",
                 "win_size": 2,
@@ -277,10 +282,11 @@ def return_mock_metric_config():
                 "resume_training": True,
                 "num_epochs": 10,
                 "keys": ["namespace", "name"],
-                "unified_anomaly": None,
-                "metrics": [],
-                "scrape_interval": 5,
             },
-            "model": "VanillaAE",
+            "output_config": {
+                "unified_strategy": None,
+                "unified_metric_name": None,
+                "unified_metrics": None,
+            },
         },
     }

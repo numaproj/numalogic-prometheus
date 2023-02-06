@@ -97,7 +97,7 @@ def train(datums: List[Datum]) -> Responses:
         win_size = model_config["win_size"]
 
         train_df = fetch_data(
-            payload, model_config, {"namespace": payload.composite_keys["namespace"]}
+            payload, metric_config, {"namespace": payload.composite_keys["namespace"]}
         )
         train_df = clean_data(train_df)
 

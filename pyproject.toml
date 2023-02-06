@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "numalogic-prometheus"
-version = "0.1.4"
+version = "0.1.5a0"
 description = "ML inference on numaflow using numalogic on Prometheus metrics"
 authors = ["Numalogic developers"]
 packages = [{ include = "numaprom" }]
