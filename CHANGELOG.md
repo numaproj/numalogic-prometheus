@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.5a0 (2023-02-06)
+
+ * [5b15bc8](https://github.com/numaproj/numalogic-prometheus/commit/5b15bc80d8b5ab29bb16132a41627831c690d0e1) fix: cleaning nan & inf values to 0.0 (#71)
+ * [f19fcec](https://github.com/numaproj/numalogic-prometheus/commit/f19fcec936619812b80c995a410b0604665d43a3) fix: train threshold clf (#69)
+
+### Contributors
+
+ * Avik Basu
+
 ## v0.1.4a1 (2023-01-31)
 
  * [c7f7289](https://github.com/numaproj/numalogic-prometheus/commit/c7f728984a3a1d87a2e4782b06f0844500c55a49) fix: train threshold clf
@@ -10,6 +19,14 @@
 
 ## v0.1.4a0 (2023-01-31)
 
+
+### Contributors
+
+
+## v0.1.4 (2023-02-03)
+
+ * [5b15bc8](https://github.com/numaproj/numalogic-prometheus/commit/5b15bc80d8b5ab29bb16132a41627831c690d0e1) fix: cleaning nan & inf values to 0.0 (#71)
+ * [f19fcec](https://github.com/numaproj/numalogic-prometheus/commit/f19fcec936619812b80c995a410b0604665d43a3) fix: train threshold clf (#69)
  * [c5102ef](https://github.com/numaproj/numalogic-prometheus/commit/c5102ef4cd76000d397f7019d4eb9b98e36c5386) feat!: threshold udf with multiple trainers (#66)
  * [576e9da](https://github.com/numaproj/numalogic-prometheus/commit/576e9dad9ae63d5fba64528bb13c5087a6cb9652) fix: profile logging (v0.1.3) (#63)
 
