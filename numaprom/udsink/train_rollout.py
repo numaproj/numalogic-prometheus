@@ -117,7 +117,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
 
         train_df = fetch_data(
             payload,
-            model_config,
+            metric_config,
             {"namespace": payload.composite_keys["namespace"]},
             return_labels=["hash_id"],
         )

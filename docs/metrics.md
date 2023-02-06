@@ -52,6 +52,7 @@ Any new metric that is sent to the pipeline, takes in the below default config a
 ```shell
 "default": {
     "keys": ["namespace", "name"],
+    "scrape_interval": 5,
     "model_config": {
         "name": "default",
         "win_size": 12,
@@ -60,11 +61,13 @@ Any new metric that is sent to the pipeline, takes in the below default config a
         "retrain_freq_hr": 8,
         "resume_training": "True",
         "num_epochs": 100,
-        "keys": ["namespace", "name"],
-        "scrape_interval": 5,
-        "metrics": [],
+        "keys": ["namespace", "name"],        
     },
-    "model": "VanillaAE",
+    "output_config":{
+      "unified_strategy": None,
+      "unified_metric_name": None,
+      "unified_metrics": None
+    }
 }
 ```
 

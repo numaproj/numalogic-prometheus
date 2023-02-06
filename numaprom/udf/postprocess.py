@@ -25,9 +25,9 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
 
     metric_name = payload.composite_keys["name"]
     metric_config = get_metric_config(metric_name)
-    model_config = metric_config["model_config"]
+    output_config = metric_config["output_config"]
 
-    metrics_list = model_config["metrics"]
+    metrics_list = output_config["unified_metrics"]
     r_key = f"{':'.join(metric_config['keys'])}:{payload.end_ts}"
 
     if np.isnan(final_score):
@@ -75,7 +75,7 @@ def __construct_publisher_payload(
 
 
 def __construct_unified_payload(
-    stream_payload: StreamPayload, max_anomaly: float, model_config: Dict
+    stream_payload: StreamPayload, max_anomaly: float, output_config: Dict
 ) -> PrometheusPayload:
     namespace = stream_payload.composite_keys["namespace"]
 
@@ -89,7 +89,7 @@ def __construct_unified_payload(
 
     return PrometheusPayload(
         timestamp_ms=int(stream_payload.end_ts),
-        name=model_config["unified_anomaly"],
+        name=output_config["unified_metric_name"],
         namespace=namespace,
         subsystem=subsystem,
         type="Gauge",
@@ -101,6 +101,7 @@ def __construct_unified_payload(
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
     metric_name = payload.composite_keys["name"]
     model_config = get_metric_config(metric_name)["model_config"]
+    output_config = get_metric_config(metric_name)["output_config"]
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
     _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
@@ -119,7 +120,7 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         )
 
     if max_anomaly > -1:
-        unified_json = __construct_unified_payload(payload, max_anomaly, model_config).as_json()
+        unified_json = __construct_unified_payload(payload, max_anomaly, output_config).as_json()
         _LOGGER.info(
             "%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json
         )
