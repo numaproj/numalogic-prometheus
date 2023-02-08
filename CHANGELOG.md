@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.1.5a2 (2023-02-08)
+
+
+### Contributors
+
+
+## v0.1.5a1 (2023-02-06)
+
+ * [b043a5b](https://github.com/numaproj/numalogic-prometheus/commit/b043a5b8706b7d493b51f0015ebd6c7a24dafbc0) fix: metric name for fuzzy error rate (#74)
+
+### Contributors
+
+ * Nandita Koppisetty
+
 ## v0.1.5a0 (2023-02-06)
 
  * [5b15bc8](https://github.com/numaproj/numalogic-prometheus/commit/5b15bc80d8b5ab29bb16132a41627831c690d0e1) fix: cleaning nan & inf values to 0.0 (#71)
