@@ -39,34 +39,30 @@ OUTPUT_CONFIG = {
     },
     "fuzzy_rollouts_qal": {
         "unified_strategy": "max",
-        "unified_metric_name": "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_qal",
+        "unified_metric_name": "namespace_rollout_api_unified_anomaly_qal",
         "unified_metrics": [
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_qal",
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_qal",
+            "namespace_rollout_api_error_rate_qal",
         ],
     },
     "fuzzy_rollouts_ppd": {
         "unified_strategy": "max",
-        "unified_metric_name": "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_ppd",
+        "unified_metric_name": "namespace_rollout_api_unified_anomaly_ppd",
         "unified_metrics": [
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_ppd",
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_ppd",
+            "namespace_rollout_api_error_rate_ppd",
         ],
     },
     "fuzzy_rollouts_stg": {
         "unified_strategy": "max",
-        "unified_metric_name": "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_stg",
+        "unified_metric_name": "namespace_rollout_api_unified_anomaly_stg",
         "unified_metrics": [
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_stg",
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_stg",
+            "namespace_rollout_api_error_rate_stg",
         ],
     },
     "fuzzy_rollouts_prd": {
         "unified_strategy": "max",
-        "unified_metric_name": "namespace_rollout_o11yfuzzygqlfederation_segment_api_unified_anomaly_prd",
+        "unified_metric_name": "namespace_rollout_api_unified_anomaly_prd",
         "unified_metrics": [
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_prd",
-            "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_prd",
+            "namespace_rollout_api_error_rate_prd",
         ],
     },
     "default": {"unified_strategy": None, "unified_metric_name": None, "unified_metrics": None},
@@ -159,49 +155,49 @@ METRIC_CONFIG = {
         "model_config": MODEL_CONFIG["argo_rollouts"],
         "output_config": OUTPUT_CONFIG["argo_rollouts"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_qal": {
+    "namespace_rollout_api_latency_qal": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts_qal"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_qal": {
+    "namespace_rollout_error_rate_qal": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts_qal"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_ppd": {
+    "namespace_rollout_api_latency_ppd": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts_ppd"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_ppd": {
+    "namespace_rollout_api_error_rate_ppd": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts_ppd"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_stg": {
+    "namespace_rollout_api_latency_stg": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts_stg"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_stg": {
+    "namespace_rollout_api_error_rate_stg": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts_stg"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_latency_prd": {
+    "namespace_rollout_api_latency_prd": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts_prd"],
     },
-    "namespace_rollout_o11yfuzzygqlfederation_segment_api_error_rate_prd": {
+    "namespace_rollout_api_error_rate_prd": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
