@@ -9,7 +9,7 @@ from pynumaflow.function import Datum
 
 from numaprom._constants import DEFAULT_TRACKING_URI
 from numaprom.entities import Status, StreamPayload, TrainerPayload
-from numaprom.tools import msg_forward
+from numaprom.tools import msg_forward, msgs_forward
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,8 +24,8 @@ def _load_artifact(payload: StreamPayload):
     )
 
 
-@msg_forward
-def preprocess(_: str, datum: Datum) -> bytes:
+@msgs_forward
+def preprocess(_: str, datum: Datum) -> list[bytes]:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
@@ -40,7 +40,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
         train_payload = TrainerPayload(
             uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
         )
-        return orjson.dumps(train_payload)
+        return [orjson.dumps(train_payload)]
 
     # Perform preprocessing
     preproc_clf = preproc_artifact.artifact
@@ -54,4 +54,4 @@ def preprocess(_: str, datum: Datum) -> bytes:
     _LOGGER.debug(
         "%s - Time taken in preprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+    return [orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)]

@@ -95,7 +95,7 @@ class PayloadFactory:
     __HEADER_MAP = {Header.MODEL_INFERENCE: StreamPayload, Header.TRAIN_REQUEST: TrainerPayload}
 
     @classmethod
-    def from_json(cls, json_data: bytes | str) -> PayloadType:
+    def from_json(cls, json_data: Union[bytes, str]) -> PayloadType:
         data = orjson.loads(json_data)
         header = data.get("header")
         if not header:
@@ -128,7 +128,7 @@ class PrometheusPayload:
         )
 
     @classmethod
-    def from_json(cls, json_obj: bytes | str) -> Self:
+    def from_json(cls, json_obj: Union[bytes, str]) -> Self:
         obj = orjson.loads(json_obj)
         return cls(
             timestamp_ms=obj["TimestampMs"],
