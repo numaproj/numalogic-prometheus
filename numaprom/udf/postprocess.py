@@ -39,6 +39,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
         "%s - Saved to redis, redis_key: %s, metric: %s, anomaly_score: %d",
         payload.uuid,
         r_key,
+        metric_name,
         final_score,
     )
 
@@ -52,7 +53,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
             )
             return -1, []
 
-    _LOGGER.debug("%s - Received all metrics, generating unified anomaly: %s", payload.uuid)
+    _LOGGER.debug("%s - Received all metrics, generating unified anomaly", payload.uuid)
     max_anomaly = -1
     anomalies = []
     for m in metrics_list:
