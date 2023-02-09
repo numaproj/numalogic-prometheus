@@ -140,7 +140,7 @@ METRIC_CONFIG = {
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
         "output_config": OUTPUT_CONFIG["fuzzy_rollouts"],
     },
-    "namespace_rollout_error_rate": {
+    "namespace_rollout_api_error_rate": {
         "keys": ["namespace", "name", "hash_id"],
         "scrape_interval": 30,
         "model_config": MODEL_CONFIG["fuzzy_rollouts"],
