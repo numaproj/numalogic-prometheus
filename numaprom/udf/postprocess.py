@@ -40,7 +40,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
         payload.uuid,
         r_key,
         metric_name,
-        final_score
+        final_score,
     )
 
     for m in metrics_list:
@@ -49,7 +49,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
                 "%s - Unable to generate unified anomaly, missing metric: %s, redis_key: %s",
                 payload.uuid,
                 m,
-                r_key
+                r_key,
             )
             return -1, []
 
