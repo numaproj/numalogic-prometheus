@@ -1,11 +1,12 @@
 from copy import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Any, Union, OrderedDict
+from typing import List, Dict, Optional, Any, Union, OrderedDict, TypeVar
 
 import numpy as np
 import numpy.typing as npt
 import orjson
+from typing_extensions import Self
 
 Vector = List[float]
 Matrix = Union[Vector, List[Vector], npt.NDArray[float]]
@@ -22,52 +23,85 @@ class Status(str, Enum):
     ARTIFACT_STALE = "artifact_is_stale"
 
 
-@dataclass(frozen=True)
-class TrainerPayload:
+class Header(str, Enum):
+    STATIC_INFERENCE = "static_threshold"
+    MODEL_INFERENCE = "model_inference"
+    TRAIN_REQUEST = "request_training"
+
+
+@dataclass
+class _BasePayload:
+    pass
+
+
+PayloadType = TypeVar("PayloadType", bound=_BasePayload)
+
+
+@dataclass
+class TrainerPayload(_BasePayload):
     uuid: str
     composite_keys: OrderedDict[str, str]
+    header: Header = Header.TRAIN_REQUEST
 
 
 @dataclass(repr=False)
-class StreamPayload:
+class StreamPayload(_BasePayload):
     uuid: str
     win_arr: Matrix
     win_ts_arr: List[str]
-    composite_keys: Dict[str, str]
+    composite_keys: OrderedDict[str, str]
     status: Status = Status.RAW
-    metadata: Dict[str, Any] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    header: Header = Header.MODEL_INFERENCE
 
     @property
-    def start_ts(self):
+    def start_ts(self) -> str:
         return self.win_ts_arr[0]
 
     @property
-    def end_ts(self):
+    def end_ts(self) -> str:
         return self.win_ts_arr[-1]
 
-    def get_streamarray(self):
+    def get_streamarray(self) -> npt.NDArray[float]:
         return np.asarray(self.win_arr)
 
-    def get_metadata(self, key: str):
+    def get_metadata(self, key: str) -> Dict[str, Any]:
         return copy(self.metadata[key])
 
-    def set_win_arr(self, arr):
+    def set_win_arr(self, arr: Matrix) -> None:
         self.win_arr = arr
 
-    def set_status(self, status: Status):
+    def set_status(self, status: Status) -> None:
         self.status = status
 
-    def set_metadata(self, key: str, value):
+    def set_metadata(self, key: str, value) -> None:
         self.metadata[key] = value
 
-    def __repr__(self):
-        return "{uuid: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}" % (
-            self.uuid,
-            list(self.win_arr),
-            self.win_ts_arr,
-            self.composite_keys,
-            self.metadata,
+    def __repr__(self) -> str:
+        return (
+            "{uuid: %s, header: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}"
+            % (
+                self.uuid,
+                self.header,
+                list(self.win_arr),
+                self.win_ts_arr,
+                self.composite_keys,
+                self.metadata,
+            )
         )
+
+
+class PayloadFactory:
+    __HEADER_MAP = {Header.MODEL_INFERENCE: StreamPayload, Header.TRAIN_REQUEST: TrainerPayload}
+
+    @classmethod
+    def from_json(cls, json_data: bytes | str) -> PayloadType:
+        data = orjson.loads(json_data)
+        header = data.get("header")
+        if not header:
+            raise RuntimeError(f"Header not present in json: {json_data}")
+        payload_cls = cls.__HEADER_MAP[header]
+        return payload_cls(**data)
 
 
 @dataclass(repr=False)
@@ -94,7 +128,7 @@ class PrometheusPayload:
         )
 
     @classmethod
-    def from_json(cls, json_obj) -> "PrometheusPayload":
+    def from_json(cls, json_obj: bytes | str) -> Self:
         obj = orjson.loads(json_obj)
         return cls(
             timestamp_ms=obj["TimestampMs"],
@@ -106,7 +140,7 @@ class PrometheusPayload:
             labels=obj["Labels"],
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "{timestamp_ms: %s, name: %s, namespace: %s, "
             "subsystem: %s, type: %s, value: %s, labels: %s}"

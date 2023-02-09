@@ -2,6 +2,7 @@ import logging
 import os
 import socket
 import time
+from collections import OrderedDict
 from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
@@ -78,12 +79,12 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def create_composite_keys(msg: dict) -> Dict:
+def create_composite_keys(msg: dict) -> OrderedDict:
     labels = msg.get("labels")
     metric_name = msg["name"]
 
     keys = get_metric_config(metric_name)["keys"]
-    result = {}
+    result = OrderedDict()
     for k in keys:
         if k in msg:
             result[k] = msg[k]

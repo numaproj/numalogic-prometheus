@@ -10,7 +10,7 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from numaprom.entities import StreamPayload, Status
+from numaprom.entities import StreamPayload, Status, Header
 from numaprom.redis import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys, get_metric_config
 
@@ -92,6 +92,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
 
     payload = StreamPayload(
         uuid=uuid.uuid4().hex,
+        header=Header.MODEL_INFERENCE,
         composite_keys=composite_keys,
         status=Status.EXTRACTED,
         win_arr=_clean_arr(_uuid, composite_keys, win_arr),

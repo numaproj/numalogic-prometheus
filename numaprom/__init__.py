@@ -17,4 +17,6 @@ stream_handler.setFormatter(formatter)
 
 
 LOGGER.addHandler(stream_handler)
-logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
+pl_logger = logging.getLogger("pytorch_lightning")
+pl_logger.propagate = False
+pl_logger.setLevel(logging.ERROR)
