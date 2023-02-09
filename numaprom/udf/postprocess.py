@@ -122,7 +122,9 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
     _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
 
     if model_config["name"] == "default":
-        _LOGGER.debug("%s - Using default config, cannot generate a unified anomaly score", payload.uuid)
+        _LOGGER.debug(
+            "%s - Using default config, cannot generate a unified anomaly score", payload.uuid
+        )
         return [publisher_json]
 
     try:
