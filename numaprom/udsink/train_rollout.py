@@ -48,7 +48,7 @@ def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataF
     df.drop(hash_col, axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
     if len(df) < MIN_TRAIN_SIZE:
-        _LOGGER.exception(
+        _LOGGER.error(
             "%s - Train data less than minimum required: %s, df shape: %s",
             uuid,
             MIN_TRAIN_SIZE,
@@ -131,7 +131,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         try:
             train_df = clean_data(payload.uuid, train_df, "hash_id")
         except KeyError:
-            _LOGGER.exception(
+            _LOGGER.error(
                 "%s - KeyError while data cleaning for train payload: %s", payload.uuid, payload
             )
             responses.append(Response.as_success(_datum.id))
