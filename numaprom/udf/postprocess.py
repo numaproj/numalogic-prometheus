@@ -155,7 +155,7 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 
-    raw_scores = payload.get_streamarray()
+    raw_scores = payload.get_stream_array()
     raw_mean_score = np.mean(raw_scores)
 
     postproc_clf = TanhNorm()

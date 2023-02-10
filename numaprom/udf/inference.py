@@ -29,7 +29,7 @@ def _run_inference(
     payload: StreamPayload, artifact_data: ArtifactData, model_config: Dict
 ) -> StreamPayload:
     model = artifact_data.artifact
-    stream_data = payload.get_streamarray()
+    stream_data = payload.get_stream_array()
     stream_loader = DataLoader(StreamingDataset(stream_data, model_config["win_size"]))
 
     trainer = AutoencoderTrainer()

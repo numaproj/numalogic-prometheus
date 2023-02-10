@@ -20,3 +20,4 @@ LOGGER.addHandler(stream_handler)
 pl_logger = logging.getLogger("pytorch_lightning")
 pl_logger.propagate = False
 pl_logger.setLevel(logging.ERROR)
+pl_logger.addHandler(stream_handler)

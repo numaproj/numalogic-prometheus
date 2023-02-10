@@ -43,7 +43,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         _LOGGER.debug("%s - Relaying forward static threshold payload")
         return [orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)]
 
-    recon_err = payload.get_streamarray()
+    recon_err = payload.get_stream_array()
 
     # Check if model exists
     thresh_artifact = _load_artifact(payload)

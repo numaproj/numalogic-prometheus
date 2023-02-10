@@ -30,7 +30,7 @@ def preprocess(_: str, datum: Datum) -> list[bytes]:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
-    x_raw = payload.get_streamarray()
+    x_raw = payload.get_stream_array()
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 

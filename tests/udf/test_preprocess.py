@@ -72,7 +72,7 @@ class TestPreprocess(unittest.TestCase):
             _out = preprocess("", _in)
             out_data = _out.items()[0].value.decode("utf-8")
             payload = StreamPayload(**orjson.loads(out_data))
-            stream_arr = payload.get_streamarray()
+            stream_arr = payload.get_stream_array()
 
             self.assertEqual(payload.status, Status.PRE_PROCESSED)
             self.assertEqual(payload.header, Header.MODEL_INFERENCE)

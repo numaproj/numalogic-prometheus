@@ -72,6 +72,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     unique_key = ":".join(key_map.values())
     value = float(msg["value"])
 
+    # Create sliding window
     try:
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=False
@@ -82,20 +83,25 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
 
+    # Drop message if no of elements is less than sequence length needed
     if len(elements) < win_size:
         return None
 
-    win_list = [float(_val) for _val, _ in elements]
-    win_arr = np.asarray(win_list).reshape(-1, 1)
+    # Construct payload object
     _uuid = uuid.uuid4().hex
     composite_keys = create_composite_keys(msg)
+
+    win_list = [float(_val) for _val, _ in elements]
+    win_arr = np.asarray(win_list).reshape(-1, 1)
+    win_arr = _clean_arr(_uuid, composite_keys, win_arr)
 
     payload = StreamPayload(
         uuid=uuid.uuid4().hex,
         header=Header.MODEL_INFERENCE,
         composite_keys=composite_keys,
         status=Status.EXTRACTED,
-        win_arr=_clean_arr(_uuid, composite_keys, win_arr),
+        win_raw_arr=win_arr,
+        win_arr=win_arr.copy(),
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),
     )

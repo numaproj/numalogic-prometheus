@@ -183,7 +183,7 @@ def calculate_static_thresh(payload: StreamPayload, upper_limit: float) -> bytes
     """
     Calculates static thresholding, and returns a serialized json bytes payload.
     """
-    x = payload.get_streamarray()
+    x = payload.get_stream_array(original=True)
     static_clf = StaticThreshold(upper_limit=upper_limit)
     static_scores = static_clf.score_samples(x)
 

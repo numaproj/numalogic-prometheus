@@ -17,6 +17,10 @@ formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 stream_handler.setFormatter(formatter)
 
 LOGGER.addHandler(stream_handler)
+pl_logger = logging.getLogger("pytorch_lightning")
+pl_logger.propagate = True
+pl_logger.setLevel(logging.ERROR)
+pl_logger.addHandler(stream_handler)
 
 
 with patch("numaprom.redis.get_redis_client") as mock_get_redis_client:
@@ -26,4 +30,3 @@ with patch("numaprom.redis.get_redis_client") as mock_get_redis_client:
 
 
 __all__ = ["redis_client", "window", "train", "train_rollout"]
-logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)

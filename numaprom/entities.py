@@ -27,11 +27,13 @@ class Header(str, Enum):
     STATIC_INFERENCE = "static_threshold"
     MODEL_INFERENCE = "model_inference"
     TRAIN_REQUEST = "request_training"
+    MODEL_STALE = "model_stale"
 
 
 @dataclass
 class _BasePayload:
-    pass
+    uuid: str
+    composite_keys: OrderedDict[str, str]
 
 
 PayloadType = TypeVar("PayloadType", bound=_BasePayload)
@@ -39,17 +41,14 @@ PayloadType = TypeVar("PayloadType", bound=_BasePayload)
 
 @dataclass
 class TrainerPayload(_BasePayload):
-    uuid: str
-    composite_keys: OrderedDict[str, str]
     header: Header = Header.TRAIN_REQUEST
 
 
 @dataclass(repr=False)
 class StreamPayload(_BasePayload):
-    uuid: str
+    win_raw_arr: Matrix
     win_arr: Matrix
     win_ts_arr: List[str]
-    composite_keys: OrderedDict[str, str]
     status: Status = Status.RAW
     metadata: Dict[str, Any] = field(default_factory=dict)
     header: Header = Header.MODEL_INFERENCE
@@ -62,7 +61,9 @@ class StreamPayload(_BasePayload):
     def end_ts(self) -> str:
         return self.win_ts_arr[-1]
 
-    def get_streamarray(self) -> npt.NDArray[float]:
+    def get_stream_array(self, original=False) -> npt.NDArray[float]:
+        if original:
+            return np.asarray(self.win_raw_arr)
         return np.asarray(self.win_arr)
 
     def get_metadata(self, key: str) -> Dict[str, Any]:
@@ -82,10 +83,10 @@ class StreamPayload(_BasePayload):
 
     def __repr__(self) -> str:
         return (
-            "{uuid: %s, header: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}"
+            "header: %s, raw_input: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}"
             % (
-                self.uuid,
                 self.header,
+                list(self.win_raw_arr),
                 list(self.win_arr),
                 self.win_ts_arr,
                 self.composite_keys,

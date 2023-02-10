@@ -1,5 +1,6 @@
 import os
 import unittest
+from collections import OrderedDict
 from unittest.mock import patch
 
 from freezegun import freeze_time
@@ -25,11 +26,14 @@ class TestPostProcess(unittest.TestCase):
 
     stream_payload = StreamPayload(
         uuid="1234",
+        win_raw_arr=[[3.2123, 5.32132]],
         win_arr=[[3.2123, 5.32132]],
         win_ts_arr=["1654121191689", "1654121213989"],
-        composite_keys={
-            "name": "metric_1",
-        },
+        composite_keys=OrderedDict(
+            {
+                "name": "metric_1",
+            }
+        ),
     )
 
     @classmethod
