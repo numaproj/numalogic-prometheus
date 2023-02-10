@@ -74,6 +74,9 @@ class StreamPayload(_BasePayload):
     def set_status(self, status: Status) -> None:
         self.status = status
 
+    def set_header(self, header: Header) -> None:
+        self.header = header
+
     def set_metadata(self, key: str, value) -> None:
         self.metadata[key] = value
 

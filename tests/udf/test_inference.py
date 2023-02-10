@@ -8,7 +8,7 @@ from numalogic.registry import MLflowRegistry
 from orjson import orjson
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.entities import Status, StreamPayload, TrainerPayload
+from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
 from tests import redis_client
 from tests.tools import (
     get_inference_input,
@@ -39,22 +39,30 @@ class TestInference(unittest.TestCase):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
             _out = inference("", _in)
-            out_data = _out.items()[0].value.decode("utf-8")
-            payload = StreamPayload(**orjson.loads(out_data))
-            print(payload)
+            for _datum in _out.items():
+                out_data = _datum.value.decode("utf-8")
+                payload = StreamPayload(**orjson.loads(out_data))
 
-            self.assertEqual(payload.status, Status.INFERRED)
-            self.assertTrue(payload.win_arr)
-            self.assertTrue(payload.win_ts_arr)
+                self.assertEqual(payload.status, Status.INFERRED)
+                self.assertEqual(payload.header, Header.MODEL_INFERENCE)
+                self.assertTrue(payload.win_arr)
+                self.assertTrue(payload.win_ts_arr)
 
     @patch.object(MLflowRegistry, "load", Mock(return_value=None))
     def test_no_model(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
             _out = inference("", _in)
+            print(_out.items())
             out_data = _out.items()[0].value.decode("utf-8")
             train_payload = TrainerPayload(**orjson.loads(out_data))
             self.assertTrue(train_payload)
+            self.assertEqual(Header.TRAIN_REQUEST, train_payload.header)
+
+            out_data = _out.items()[1].value.decode("utf-8")
+            stream_payload = StreamPayload(**orjson.loads(out_data))
+            self.assertEqual(Header.STATIC_INFERENCE, stream_payload.header)
+            self.assertIsInstance(stream_payload, StreamPayload)
 
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
@@ -67,17 +75,19 @@ class TestInference(unittest.TestCase):
             out_data = _out.items()[0].value.decode("utf-8")
             trainer_payload = TrainerPayload(**orjson.loads(out_data))
             self.assertIsInstance(trainer_payload, TrainerPayload)
+            self.assertEqual(Header.TRAIN_REQUEST, trainer_payload.header)
 
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
             _out = inference("", _in)
-            train_payload = json.loads(_out.items()[0].value.decode("utf-8"))
-            postprocess_payload = StreamPayload(
-                **orjson.loads(_out.items()[1].value.decode("utf-8"))
-            )
+            for _datum in _out.items():
+                train_payload = json.loads(_datum.value.decode("utf-8"))
+                postprocess_payload = StreamPayload(
+                    **orjson.loads(_out.items()[1].value.decode("utf-8"))
+                )
 
-            self.assertTrue(train_payload)
-            self.assertTrue(postprocess_payload)
-            self.assertEqual(postprocess_payload.status, Status.INFERRED)
+                self.assertTrue(train_payload)
+                self.assertTrue(postprocess_payload)
+                self.assertEqual(postprocess_payload.status, Status.INFERRED)

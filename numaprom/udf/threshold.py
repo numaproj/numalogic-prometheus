@@ -8,10 +8,11 @@ from orjson import orjson
 from pynumaflow.function import Datum
 
 from numaprom._constants import DEFAULT_TRACKING_URI, TRAIN_VTX_KEY, POSTPROC_VTX_KEY
-from numaprom.entities import Status, StreamPayload, TrainerPayload, PayloadFactory
-from numaprom.tools import conditional_forward
+from numaprom.entities import Status, StreamPayload, TrainerPayload, PayloadFactory, Header
+from numaprom.tools import conditional_forward, calculate_static_thresh
 
 _LOGGER = logging.getLogger(__name__)
+STATIC_LIMIT: float = float(os.getenv("STATIC_LIMIT", 3.0))
 
 
 def _load_artifact(payload: StreamPayload):
@@ -37,11 +38,17 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         _LOGGER.debug("%s - Previous clf not found. Sending to trainer..", payload.uuid)
         return [(TRAIN_VTX_KEY, orjson.dumps(payload))]
 
+    # Check if this payload has performed static thresholding
+    if payload.header == Header.STATIC_INFERENCE:
+        _LOGGER.debug("%s - Relaying forward static threshold payload")
+        return [orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)]
+
     recon_err = payload.get_streamarray()
 
     # Check if model exists
     thresh_artifact = _load_artifact(payload)
     if not thresh_artifact:
+        msgs = []
         _LOGGER.info(
             "%s - Thresh clf not found for %s. Sending to trainer..",
             payload.uuid,
@@ -50,7 +57,11 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         train_payload = TrainerPayload(
             uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
         )
-        return [(TRAIN_VTX_KEY, orjson.dumps(train_payload))]
+        msgs.append((TRAIN_VTX_KEY, orjson.dumps(train_payload)))
+
+        # Calculate scores using static threshold
+        msgs.append((POSTPROC_VTX_KEY, calculate_static_thresh(payload, STATIC_LIMIT)))
+        return msgs
 
     # Calculate anomaly score
     thresh_clf = thresh_artifact.artifact

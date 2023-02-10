@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from collections import OrderedDict
 from datetime import datetime, timedelta
@@ -11,15 +12,17 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from torch.utils.data import DataLoader
 
-from numaprom.entities import Status, StreamPayload, TrainerPayload
+from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
 from numaprom.entities import PayloadFactory
 from numaprom.tools import (
     load_model,
     get_metric_config,
     msgs_forward,
+    calculate_static_thresh,
 )
 
 _LOGGER = logging.getLogger(__name__)
+STATIC_LIMIT: float = float(os.getenv("STATIC_LIMIT", 3.0))
 
 
 def _run_inference(
@@ -88,6 +91,11 @@ def inference(_: str, datum: Datum) -> list[bytes]:
         _LOGGER.debug("%s - Relaying forward trainer payload")
         return [orjson.dumps(payload)]
 
+    # Check if this payload has performed static thresholding
+    if payload.header == Header.STATIC_INFERENCE:
+        _LOGGER.debug("%s - Relaying forward static threshold payload")
+        return [orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)]
+
     messages = []
 
     # Load config
@@ -97,10 +105,15 @@ def inference(_: str, datum: Datum) -> list[bytes]:
     # Check if model exists
     artifact_data = _get_model(payload, model_config)
     if not artifact_data:
+        msgs = []
         train_payload = TrainerPayload(
             uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
         )
-        return [orjson.dumps(train_payload)]
+        msgs.append(orjson.dumps(train_payload))
+
+        # Calculate scores using static threshold
+        msgs.append(calculate_static_thresh(payload, STATIC_LIMIT))
+        return msgs
 
     # Check if current model is stale
     if _is_model_stale(payload, artifact_data, model_config):

@@ -12,11 +12,13 @@ import pandas as pd
 import pytz
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
+from numalogic.models.threshold import StaticThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
+from orjson import orjson
 from pynumaflow.function import Messages, Message
 
 from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
-from numaprom.entities import TrainerPayload
+from numaprom.entities import TrainerPayload, Status, Header, StreamPayload
 from numaprom.prometheus import Prometheus
 
 _LOGGER = logging.getLogger(__name__)
@@ -175,3 +177,20 @@ def fetch_data(
         df.shape,
     )
     return df
+
+
+def calculate_static_thresh(payload: StreamPayload, upper_limit: float) -> bytes:
+    """
+    Calculates static thresholding, and returns a serialized json bytes payload.
+    """
+    x = payload.get_streamarray()
+    static_clf = StaticThreshold(upper_limit=upper_limit)
+    static_scores = static_clf.score_samples(x)
+
+    payload.set_win_arr(static_scores)
+    payload.set_header(Header.STATIC_INFERENCE)
+    payload.set_status(Status.ARTIFACT_NOT_FOUND)
+    payload.set_metadata("version", -1)
+
+    _LOGGER.info("%s - Static thresholding complete for payload: %s", payload.uuid, payload)
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

@@ -9,9 +9,10 @@ from pynumaflow.function import Datum
 
 from numaprom._constants import DEFAULT_TRACKING_URI
 from numaprom.entities import Status, StreamPayload, TrainerPayload
-from numaprom.tools import msg_forward
+from numaprom.tools import msgs_forward, calculate_static_thresh
 
 _LOGGER = logging.getLogger(__name__)
+STATIC_LIMIT: float = float(os.getenv("STATIC_LIMIT", 3.0))
 
 
 def _load_artifact(payload: StreamPayload):
@@ -24,8 +25,8 @@ def _load_artifact(payload: StreamPayload):
     )
 
 
-@msg_forward
-def preprocess(_: str, datum: Datum) -> bytes:
+@msgs_forward
+def preprocess(_: str, datum: Datum) -> list[bytes]:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
@@ -36,11 +37,18 @@ def preprocess(_: str, datum: Datum) -> bytes:
     # Load artifact
     preproc_artifact = _load_artifact(payload)
     if not preproc_artifact:
+        msgs = []
         _LOGGER.info("%s - Preproc clf not found for %s", payload.uuid, payload.composite_keys)
+
+        # Prepare trainer payload
         train_payload = TrainerPayload(
             uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
         )
-        return orjson.dumps(train_payload)
+        msgs.append(orjson.dumps(train_payload))
+
+        # Calculate scores using static threshold
+        msgs.append(calculate_static_thresh(payload, STATIC_LIMIT))
+        return msgs
 
     # Perform preprocessing
     preproc_clf = preproc_artifact.artifact
@@ -54,4 +62,4 @@ def preprocess(_: str, datum: Datum) -> bytes:
     _LOGGER.debug(
         "%s - Time taken in preprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+    return [orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)]
