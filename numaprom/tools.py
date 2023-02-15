@@ -122,10 +122,12 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
     return False
 
 
-def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactData]:
+def load_model(
+    skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
+) -> Optional[ArtifactData]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-        ml_registry = MLflowRegistry(tracking_uri=tracking_uri)
+        ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
         return ml_registry.load(skeys=skeys, dkeys=dkeys)
     except RestException as warn:
         if warn.error_code == 404:

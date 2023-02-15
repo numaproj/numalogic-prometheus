@@ -1,13 +1,13 @@
 import os
 import unittest
+import numpy as np
+from orjson import orjson
 from unittest.mock import patch, Mock
 
-import numpy as np
 from numalogic.registry import MLflowRegistry
-from orjson import orjson
 
 from numaprom._constants import TESTS_DIR, METRIC_CONFIG
-from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
+from numaprom.entities import Status, StreamPayload, Header
 from tests.tools import get_prepoc_input, return_mock_metric_config, get_datum, return_preproc_clf
 
 # Make sure to import this in the end
@@ -52,14 +52,10 @@ class TestPreprocess(unittest.TestCase):
             _in = get_datum(msg.value)
             _out = preprocess("", _in)
             out_data = _out.items()[0].value.decode("utf-8")
-            train_payload = TrainerPayload(**orjson.loads(out_data))
-            self.assertEqual(Header.TRAIN_REQUEST, train_payload.header)
-            self.assertIsInstance(train_payload, TrainerPayload)
-
-            out_data = _out.items()[1].value.decode("utf-8")
-            stream_payload = StreamPayload(**orjson.loads(out_data))
-            self.assertEqual(Header.STATIC_INFERENCE, stream_payload.header)
-            self.assertIsInstance(stream_payload, StreamPayload)
+            payload = StreamPayload(**orjson.loads(out_data))
+            self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
+            self.assertEqual(payload.header, Header.STATIC_INFERENCE)
+            self.assertIsInstance(payload, StreamPayload)
 
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_preproc_clf()))
     @patch.dict(METRIC_CONFIG, return_mock_metric_config())

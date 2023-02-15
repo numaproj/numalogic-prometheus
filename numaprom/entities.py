@@ -96,7 +96,12 @@ class StreamPayload(_BasePayload):
 
 
 class PayloadFactory:
-    __HEADER_MAP = {Header.MODEL_INFERENCE: StreamPayload, Header.TRAIN_REQUEST: TrainerPayload}
+    __HEADER_MAP = {
+        Header.MODEL_INFERENCE: StreamPayload,
+        Header.TRAIN_REQUEST: TrainerPayload,
+        Header.STATIC_INFERENCE: StreamPayload,
+        Header.MODEL_STALE: StreamPayload,
+    }
 
     @classmethod
     def from_json(cls, json_data: Union[bytes, str]) -> PayloadType:

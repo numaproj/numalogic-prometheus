@@ -1,56 +1,39 @@
-import logging
-import os
 import time
-from collections import OrderedDict
-
 import orjson
-from numalogic.registry import MLflowRegistry
+import logging
+
 from pynumaflow.function import Datum
 
-from numaprom._constants import DEFAULT_TRACKING_URI
-from numaprom.entities import Status, StreamPayload, TrainerPayload
-from numaprom.tools import msgs_forward, calculate_static_thresh
+from numaprom.entities import Status, StreamPayload, Header
+from numaprom.tools import msg_forward, load_model
 
 _LOGGER = logging.getLogger(__name__)
-STATIC_LIMIT: float = float(os.getenv("STATIC_LIMIT", 3.0))
 
 
-def _load_artifact(payload: StreamPayload):
-    registry = MLflowRegistry(
-        tracking_uri=os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI), artifact_type="sklearn"
-    )
-    return registry.load(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
-        dkeys=["preproc"],
-    )
-
-
-@msgs_forward
-def preprocess(_: str, datum: Datum) -> list[bytes]:
+@msg_forward
+def preprocess(_: str, datum: Datum) -> bytes:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
+
     payload = StreamPayload(**orjson.loads(_in_msg))
-    x_raw = payload.get_stream_array()
+    _LOGGER.info("%s - Received Payload: %r ", payload.uuid, payload)
 
-    _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
-
-    # Load artifact
-    preproc_artifact = _load_artifact(payload)
+    # Load preprocess artifact
+    preproc_artifact = load_model(
+        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+        dkeys=["preproc"],
+        artifact_type="sklearn",
+    )
     if not preproc_artifact:
-        msgs = []
-        _LOGGER.info("%s - Preproc clf not found for %s", payload.uuid, payload.composite_keys)
-
-        # Prepare trainer payload
-        train_payload = TrainerPayload(
-            uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
+        _LOGGER.info(
+            "%s - Preprocess artifact not found for keys: %s", payload.uuid, payload.composite_keys
         )
-        msgs.append(orjson.dumps(train_payload))
-
-        # Calculate scores using static threshold
-        msgs.append(calculate_static_thresh(payload, STATIC_LIMIT))
-        return msgs
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.ARTIFACT_NOT_FOUND)
+        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Perform preprocessing
+    x_raw = payload.get_stream_array(original=True)
     preproc_clf = preproc_artifact.artifact
     x_scaled = preproc_clf.transform(x_raw)
 
@@ -62,4 +45,4 @@ def preprocess(_: str, datum: Datum) -> list[bytes]:
     _LOGGER.debug(
         "%s - Time taken in preprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return [orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)]
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

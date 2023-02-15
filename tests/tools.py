@@ -65,10 +65,15 @@ def get_inference_input(data_path: str, prev_clf_exists=True) -> Messages:
     return out
 
 
-def get_threshold_input(data_path: str, prev_clf_exists=True) -> Messages:
+def get_threshold_input(data_path: str, prev_clf_exists=True, prev_model_stale=False) -> Messages:
     out = Messages()
     inference_input = get_inference_input(data_path)
-    _mock_return = return_mock_lstmae() if prev_clf_exists else None
+    if prev_clf_exists:
+        _mock_return = return_mock_lstmae()
+    elif prev_model_stale:
+        _mock_return = return_stale_model()
+    else:
+        _mock_return = None
     with patch.object(MLflowRegistry, "load", Mock(return_value=_mock_return)):
         for msg in inference_input.items():
             _in = get_datum(msg.value)
@@ -248,6 +253,7 @@ def return_mock_metric_config():
                     "metric_1",
                 ],
             },
+            "static_threshold": 3.0,
         },
         "metric_2": {
             "keys": ["namespace", "name", "hash_id"],
@@ -269,6 +275,7 @@ def return_mock_metric_config():
                     "metric_2",
                 ],
             },
+            "static_threshold": 3.0,
         },
         "default": {
             "keys": ["namespace", "name"],
@@ -288,5 +295,6 @@ def return_mock_metric_config():
                 "unified_metric_name": None,
                 "unified_metrics": None,
             },
+            "static_threshold": 3.0,
         },
     }

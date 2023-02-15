@@ -1,13 +1,13 @@
-import logging
 import os
 import time
-from typing import List, Dict
-
+import logging
 import numpy as np
-from numalogic.postprocess import TanhNorm
 from orjson import orjson
-from pynumaflow.function import Datum
+from typing import List, Dict
 from redis.exceptions import ConnectionError as RedisConnectionError
+
+from pynumaflow.function import Datum
+from numalogic.postprocess import TanhNorm
 
 from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client

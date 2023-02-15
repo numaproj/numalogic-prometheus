@@ -1,28 +1,24 @@
-import logging
-import os
 import time
-from collections import OrderedDict
+import logging
+from orjson import orjson
+from typing import Dict
+from torch.utils.data import DataLoader
 from datetime import datetime, timedelta
-from typing import Dict, Optional
 
-from numalogic.models.autoencoder import AutoencoderTrainer
+from pynumaflow.function import Datum
 from numalogic.registry import ArtifactData
 from numalogic.tools.data import StreamingDataset
-from orjson import orjson
-from pynumaflow.function import Datum
-from torch.utils.data import DataLoader
+from numalogic.models.autoencoder import AutoencoderTrainer
 
-from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
+from numaprom.entities import Status, StreamPayload, Header
 from numaprom.entities import PayloadFactory
 from numaprom.tools import (
     load_model,
     get_metric_config,
-    msgs_forward,
-    calculate_static_thresh,
+    msg_forward,
 )
 
 _LOGGER = logging.getLogger(__name__)
-STATIC_LIMIT: float = float(os.getenv("STATIC_LIMIT", 3.0))
 
 
 def _run_inference(
@@ -43,23 +39,6 @@ def _run_inference(
     return payload
 
 
-def _get_model(payload: StreamPayload, model_config: dict) -> Optional[ArtifactData]:
-    artifact_data = load_model(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
-        dkeys=[model_config["model_name"]],
-    )
-    if not artifact_data:
-        payload.set_status(Status.ARTIFACT_NOT_FOUND)
-        _LOGGER.info(
-            "%s - Model not found for %s",
-            payload.uuid,
-            payload.composite_keys,
-        )
-        return None
-    _LOGGER.debug("%s - Successfully loaded model from mlflow", payload.uuid)
-    return artifact_data
-
-
 def _is_model_stale(
     payload: StreamPayload, artifact_data: ArtifactData, model_config: dict
 ) -> bool:
@@ -77,8 +56,8 @@ def _is_model_stale(
     return False
 
 
-@msgs_forward
-def inference(_: str, datum: Datum) -> list[bytes]:
+@msg_forward
+def inference(_: str, datum: Datum) -> bytes:
     _start_time = time.perf_counter()
 
     _in_msg = datum.value.decode("utf-8")
@@ -86,48 +65,38 @@ def inference(_: str, datum: Datum) -> list[bytes]:
     # Construct payload object
     payload = PayloadFactory.from_json(_in_msg)
 
-    # Check if trainer payload is passed on from previous vtx
-    if isinstance(payload, TrainerPayload):
-        _LOGGER.debug("%s - Relaying forward trainer payload")
-        return [orjson.dumps(payload)]
-
-    # Check if this payload has performed static thresholding
+    # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
         _LOGGER.debug("%s - Relaying forward static threshold payload")
-        return [orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)]
-
-    messages = []
+        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Load config
     metric_config = get_metric_config(payload.composite_keys["name"])
     model_config = metric_config["model_config"]
 
-    # Check if model exists
-    artifact_data = _get_model(payload, model_config)
+    # Load inference model
+    artifact_data = load_model(
+        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+        dkeys=[model_config["model_name"]],
+    )
     if not artifact_data:
-        msgs = []
-        train_payload = TrainerPayload(
-            uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
+        _LOGGER.info(
+            "%s - Inference artifact not found for keys: %s", payload.uuid, payload.composite_keys
         )
-        msgs.append(orjson.dumps(train_payload))
-
-        # Calculate scores using static threshold
-        msgs.append(calculate_static_thresh(payload, STATIC_LIMIT))
-        return msgs
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.ARTIFACT_NOT_FOUND)
+        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Check if current model is stale
     if _is_model_stale(payload, artifact_data, model_config):
-        train_payload = TrainerPayload(
-            uuid=payload.uuid, composite_keys=OrderedDict(payload.composite_keys)
-        )
-        messages.append(orjson.dumps(train_payload))
+        _LOGGER.info("%s - Preproc clf not found for %s", payload.uuid, payload.composite_keys)
+        payload.set_header(Header.MODEL_STALE)
 
     # Generate predictions
     payload = _run_inference(payload, artifact_data, model_config)
-    messages.append(orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY))
 
     _LOGGER.info("%s - Sending Payload: %s ", payload.uuid, payload)
     _LOGGER.debug(
         "%s - Time taken in inference: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return messages
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
