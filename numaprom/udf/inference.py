@@ -67,7 +67,7 @@ def inference(_: str, datum: Datum) -> bytes:
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
-        _LOGGER.debug("%s - Relaying forward static threshold payload")
+        _LOGGER.debug("%s - Models not found in the previous steps, forwarding for static thresholding. Keys: %s", payload.uuid, payload.composite_keys)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Load config
@@ -81,7 +81,7 @@ def inference(_: str, datum: Datum) -> bytes:
     )
     if not artifact_data:
         _LOGGER.info(
-            "%s - Inference artifact not found for keys: %s", payload.uuid, payload.composite_keys
+            "%s - Inference artifact not found, forwarding for static thresholding. Keys: %s", payload.uuid, payload.composite_keys
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.ARTIFACT_NOT_FOUND)

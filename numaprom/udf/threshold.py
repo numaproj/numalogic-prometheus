@@ -33,7 +33,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
-        _LOGGER.debug("%s - Relaying forward static threshold payload")
+        _LOGGER.debug("%s - Models not found in the previous steps, performing static thresholding. Keys: %s", payload.uuid, payload.composite_keys)
         return [
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
             (POSTPROC_VTX_KEY, calculate_static_thresh(payload, metric_config["static_threshold"])),
@@ -47,7 +47,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     )
     if not thresh_artifact:
         _LOGGER.info(
-            "%s - Threshold artifact not found for keys: %s", payload.uuid, payload.composite_keys
+            "%s - Threshold artifact not found, performing static thresholding. Keys: %s", payload.uuid, payload.composite_keys
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
