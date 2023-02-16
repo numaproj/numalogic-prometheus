@@ -1,10 +1,10 @@
 import time
-import logging
 from orjson import orjson
 from collections import OrderedDict
 
 from pynumaflow.function import Datum
 
+from numaprom import get_logger
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
 from numaprom.tools import (
@@ -14,7 +14,7 @@ from numaprom.tools import (
     get_metric_config,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 @conditional_forward

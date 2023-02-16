@@ -1,13 +1,13 @@
 import time
 import orjson
-import logging
 
 from pynumaflow.function import Datum
 
+from numaprom import get_logger
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward, load_model
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 @msg_forward

@@ -1,4 +1,3 @@
-import logging
 import os
 import socket
 import time
@@ -17,11 +16,12 @@ from numalogic.registry import MLflowRegistry, ArtifactData
 from orjson import orjson
 from pynumaflow.function import Messages, Message
 
+from numaprom import get_logger
 from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
 from numaprom.entities import TrainerPayload, Status, Header, StreamPayload
 from numaprom.prometheus import Prometheus
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 def catch_exception(func):

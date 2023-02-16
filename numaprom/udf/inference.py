@@ -10,6 +10,7 @@ from numalogic.registry import ArtifactData
 from numalogic.tools.data import StreamingDataset
 from numalogic.models.autoencoder import AutoencoderTrainer
 
+from numaprom import get_logger
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.entities import PayloadFactory
 from numaprom.tools import (
@@ -18,7 +19,7 @@ from numaprom.tools import (
     msg_forward,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 def _run_inference(

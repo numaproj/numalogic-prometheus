@@ -1,6 +1,5 @@
 import os
 import time
-import logging
 import numpy as np
 from orjson import orjson
 from typing import List, Dict
@@ -9,11 +8,12 @@ from redis.exceptions import ConnectionError as RedisConnectionError
 from pynumaflow.function import Datum
 from numalogic.postprocess import TanhNorm
 
+from numaprom import get_logger
 from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import msgs_forward, get_metric_config
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
