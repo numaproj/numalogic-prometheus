@@ -46,7 +46,6 @@ class TrainerPayload(_BasePayload):
 
 @dataclass(repr=False)
 class StreamPayload(_BasePayload):
-    win_raw_arr: Matrix
     win_arr: Matrix
     win_ts_arr: List[str]
     status: Status = Status.RAW
@@ -61,9 +60,7 @@ class StreamPayload(_BasePayload):
     def end_ts(self) -> str:
         return self.win_ts_arr[-1]
 
-    def get_stream_array(self, original=False) -> npt.NDArray[float]:
-        if original:
-            return np.asarray(self.win_raw_arr)
+    def get_stream_array(self) -> npt.NDArray[float]:
         return np.asarray(self.win_arr)
 
     def get_metadata(self, key: str) -> Dict[str, Any]:
@@ -82,16 +79,12 @@ class StreamPayload(_BasePayload):
         self.metadata[key] = value
 
     def __repr__(self) -> str:
-        return (
-            "header: %s, raw_input: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}"
-            % (
-                self.header,
-                list(self.win_raw_arr),
-                list(self.win_arr),
-                self.win_ts_arr,
-                self.composite_keys,
-                self.metadata,
-            )
+        return "header: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}" % (
+            self.header,
+            list(self.win_arr),
+            self.win_ts_arr,
+            self.composite_keys,
+            self.metadata,
         )
 
 

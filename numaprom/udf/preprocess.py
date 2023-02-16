@@ -33,7 +33,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Perform preprocessing
-    x_raw = payload.get_stream_array(original=True)
+    x_raw = payload.get_stream_array()
     preproc_clf = preproc_artifact.artifact
     x_scaled = preproc_clf.transform(x_raw)
 
