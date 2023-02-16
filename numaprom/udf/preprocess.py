@@ -26,7 +26,9 @@ def preprocess(_: str, datum: Datum) -> bytes:
     )
     if not preproc_artifact:
         _LOGGER.info(
-            "%s - Preprocess artifact not found, forwarding for static thresholding. Keys: %s", payload.uuid, payload.composite_keys
+            "%s - Preprocess artifact not found, forwarding for static thresholding. Keys: %s",
+            payload.uuid,
+            payload.composite_keys,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
