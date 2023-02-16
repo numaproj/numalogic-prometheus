@@ -162,7 +162,7 @@ def fetch_data(
     datafetcher = Prometheus(prometheus_server)
 
     end_dt = datetime.now(pytz.utc)
-    start_dt = end_dt - timedelta(hours=15)
+    start_dt = end_dt - timedelta(hours=36)
 
     df = datafetcher.query_metric(
         metric_name=payload.composite_keys["name"],
