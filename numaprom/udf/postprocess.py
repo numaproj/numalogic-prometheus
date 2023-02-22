@@ -1,19 +1,19 @@
-import logging
 import os
 import time
-from typing import List, Dict
-
 import numpy as np
-from numalogic.postprocess import TanhNorm
 from orjson import orjson
-from pynumaflow.function import Datum
+from typing import List, Dict
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from pynumaflow.function import Datum
+from numalogic.postprocess import TanhNorm
+
+from numaprom import get_logger
 from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import msgs_forward, get_metric_config
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -155,7 +155,7 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 
-    raw_scores = payload.get_streamarray()
+    raw_scores = payload.get_stream_array()
     raw_mean_score = np.mean(raw_scores)
 
     postproc_clf = TanhNorm()

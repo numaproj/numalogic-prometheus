@@ -1,10 +1,10 @@
 import json
-import logging
 from redis.cluster import RedisCluster
 
+from numaprom import get_logger
 from numaprom.tools import is_host_reachable
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 redis_client: RedisCluster = None
 
 

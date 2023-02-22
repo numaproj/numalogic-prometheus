@@ -1,5 +1,6 @@
 import os
 import unittest
+from collections import OrderedDict
 from unittest.mock import patch
 
 from freezegun import freeze_time
@@ -27,9 +28,11 @@ class TestPostProcess(unittest.TestCase):
         uuid="1234",
         win_arr=[[3.2123, 5.32132]],
         win_ts_arr=["1654121191689", "1654121213989"],
-        composite_keys={
-            "name": "metric_1",
-        },
+        composite_keys=OrderedDict(
+            {
+                "name": "metric_1",
+            }
+        ),
     )
 
     @classmethod
@@ -37,14 +40,14 @@ class TestPostProcess(unittest.TestCase):
     @freeze_time("2022-02-20 12:00:00")
     def setUpClass(cls) -> None:
         redis_client.flushall()
-        cls.postproc_input = get_postproc_input(STREAM_DATA_PATH)
-        assert cls.postproc_input.items(), print("input items is empty", cls.postproc_input)
 
     def setUp(self) -> None:
         redis_client.flushall()
 
     def test_postprocess(self):
-        for msg in self.postproc_input.items():
+        postproc_input = get_postproc_input(STREAM_DATA_PATH)
+        postproc_input.items(), print("input items is empty", postproc_input)
+        for msg in postproc_input.items():
             _in = get_datum(msg.value)
             _out = postprocess("", _in)
             data = _out.items()[0].value.decode("utf-8")
@@ -53,8 +56,42 @@ class TestPostProcess(unittest.TestCase):
             if prom_payload.name != "metric_3_anomaly":
                 self.assertEqual(len(_out.items()), 2)
                 data = _out.items()[1].value.decode("utf-8")
-                uniprom_payload = PrometheusPayload.from_json(data)
-                self.assertTrue(uniprom_payload)
+                unified_payload = PrometheusPayload.from_json(data)
+                self.assertTrue(unified_payload)
+
+    def test_preprocess_prev_stale_model(self):
+        postproc_input = get_postproc_input(STREAM_DATA_PATH, prev_model_stale=True)
+        assert postproc_input.items(), print("input items is empty", postproc_input)
+
+        for msg in postproc_input.items():
+            _in = get_datum(msg.value)
+            _out = postprocess("", _in)
+            data = _out.items()[0].value.decode("utf-8")
+            prom_payload = PrometheusPayload.from_json(data)
+
+            if prom_payload.name != "metric_3_anomaly":
+                self.assertEqual(len(_out.items()), 2)
+                data = _out.items()[1].value.decode("utf-8")
+                unified_payload = PrometheusPayload.from_json(data)
+                self.assertTrue(unified_payload)
+
+    def test_preprocess_no_prev_clf(self):
+        postproc_input = get_postproc_input(STREAM_DATA_PATH, prev_clf_exists=False)
+        assert postproc_input.items(), print("input items is empty", postproc_input)
+
+        for msg in postproc_input.items():
+            _in = get_datum(msg.value)
+            _out = postprocess("", _in)
+            data = _out.items()[0].value.decode("utf-8")
+            prom_payload = PrometheusPayload.from_json(data)
+            self.assertEqual(prom_payload.labels["model_version"], "-1")
+
+            if prom_payload.name != "metric_3_anomaly":
+                self.assertEqual(len(_out.items()), 2)
+                data = _out.items()[1].value.decode("utf-8")
+                unified_payload = PrometheusPayload.from_json(data)
+                self.assertEqual(unified_payload.labels["model_version"], "-1")
+                self.assertTrue(unified_payload)
 
     def test_save_redis1(self):
         score = 5.0

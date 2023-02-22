@@ -1,13 +1,13 @@
-import json
-import logging
 import os
+import json
 from typing import Optional
 
 from pynumaflow.function import Messages, Datum
 
+from numaprom import get_logger
 from numaprom.tools import catch_exception, msg_forward
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 @catch_exception

@@ -1,10 +1,11 @@
-import logging
 import requests
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional
 
-_LOGGER = logging.getLogger(__name__)
+from numaprom import get_logger
+
+_LOGGER = get_logger(__name__)
 
 
 class Prometheus:

@@ -24,9 +24,11 @@ HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
+MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 1000))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
+# TODO avoid filling inf with nan, or at least throw warning
 def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
@@ -45,8 +47,13 @@ def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataF
     df.set_index("timestamp", inplace=True)
     df.drop(hash_col, axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
-    if len(df) < (1.5 * 60 * 12):
-        _LOGGER.exception("%s - Not enough training points to initiate training", uuid)
+    if len(df) < MIN_TRAIN_SIZE:
+        _LOGGER.error(
+            "%s - Train data less than minimum required: %s, df shape: %s",
+            uuid,
+            MIN_TRAIN_SIZE,
+            df.shape,
+        )
         return pd.DataFrame()
     return df
 
@@ -124,7 +131,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         try:
             train_df = clean_data(payload.uuid, train_df, "hash_id")
         except KeyError:
-            _LOGGER.exception(
+            _LOGGER.error(
                 "%s - KeyError while data cleaning for train payload: %s", payload.uuid, payload
             )
             responses.append(Response.as_success(_datum.id))

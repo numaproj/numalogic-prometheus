@@ -1,7 +1,7 @@
-import logging
 import os
 import socket
 import time
+from collections import OrderedDict
 from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
@@ -11,14 +11,17 @@ import pandas as pd
 import pytz
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
+from numalogic.models.threshold import StaticThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
+from orjson import orjson
 from pynumaflow.function import Messages, Message
 
+from numaprom import get_logger
 from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
-from numaprom.entities import TrainerPayload
+from numaprom.entities import TrainerPayload, Status, Header, StreamPayload
 from numaprom.prometheus import Prometheus
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 def catch_exception(func):
@@ -78,12 +81,12 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def create_composite_keys(msg: dict) -> Dict:
+def create_composite_keys(msg: dict) -> OrderedDict:
     labels = msg.get("labels")
     metric_name = msg["name"]
 
     keys = get_metric_config(metric_name)["keys"]
-    result = {}
+    result = OrderedDict()
     for k in keys:
         if k in msg:
             result[k] = msg[k]
@@ -119,10 +122,12 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
     return False
 
 
-def load_model(skeys: Sequence[str], dkeys: Sequence[str]) -> Optional[ArtifactData]:
+def load_model(
+    skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
+) -> Optional[ArtifactData]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-        ml_registry = MLflowRegistry(tracking_uri=tracking_uri)
+        ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
         return ml_registry.load(skeys=skeys, dkeys=dkeys)
     except RestException as warn:
         if warn.error_code == 404:
@@ -157,7 +162,7 @@ def fetch_data(
     datafetcher = Prometheus(prometheus_server)
 
     end_dt = datetime.now(pytz.utc)
-    start_dt = end_dt - timedelta(hours=15)
+    start_dt = end_dt - timedelta(hours=36)
 
     df = datafetcher.query_metric(
         metric_name=payload.composite_keys["name"],
@@ -174,3 +179,20 @@ def fetch_data(
         df.shape,
     )
     return df
+
+
+def calculate_static_thresh(payload: StreamPayload, upper_limit: float) -> bytes:
+    """
+    Calculates static thresholding, and returns a serialized json bytes payload.
+    """
+    x = payload.get_stream_array()
+    static_clf = StaticThreshold(upper_limit=upper_limit)
+    static_scores = static_clf.score_samples(x)
+
+    payload.set_win_arr(static_scores)
+    payload.set_header(Header.STATIC_INFERENCE)
+    payload.set_status(Status.ARTIFACT_NOT_FOUND)
+    payload.set_metadata("version", -1)
+
+    _LOGGER.info("%s - Static thresholding complete for payload: %s", payload.uuid, payload)
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

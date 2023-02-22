@@ -16,7 +16,7 @@ from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 from sklearn.preprocessing import MinMaxScaler
 
-from numaprom._constants import TESTS_DIR
+from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY
 from numaprom.factory import HandlerFactory
 
 sys.modules["numaprom.mlflow"] = MagicMock()
@@ -65,10 +65,15 @@ def get_inference_input(data_path: str, prev_clf_exists=True) -> Messages:
     return out
 
 
-def get_threshold_input(data_path: str, prev_clf_exists=True) -> Messages:
+def get_threshold_input(data_path: str, prev_clf_exists=True, prev_model_stale=False) -> Messages:
     out = Messages()
     inference_input = get_inference_input(data_path)
-    _mock_return = return_mock_lstmae() if prev_clf_exists else None
+    if prev_model_stale:
+        _mock_return = return_stale_model()
+    elif prev_clf_exists:
+        _mock_return = return_mock_lstmae()
+    else:
+        _mock_return = None
     with patch.object(MLflowRegistry, "load", Mock(return_value=_mock_return)):
         for msg in inference_input.items():
             _in = get_datum(msg.value)
@@ -79,16 +84,18 @@ def get_threshold_input(data_path: str, prev_clf_exists=True) -> Messages:
     return out
 
 
-def get_postproc_input(data_path: str) -> Messages:
+def get_postproc_input(data_path: str, prev_clf_exists=True, prev_model_stale=False) -> Messages:
     out = Messages()
-    thresh_input = get_threshold_input(data_path)
-    with patch.object(MLflowRegistry, "load", Mock(return_value=return_threshold_clf())):
+    thresh_input = get_threshold_input(data_path, prev_model_stale=prev_model_stale)
+    _mock_return = return_threshold_clf() if prev_clf_exists else None
+    with patch.object(MLflowRegistry, "load", Mock(return_value=_mock_return)):
         for msg in thresh_input.items():
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("threshold")
             _out = handler_(None, _in)
-            if _out.items()[0].key != DROP:
-                out.append(_out.items()[0])
+            for _msg in _out.items():
+                if _msg.key == bytes(POSTPROC_VTX_KEY, "utf-8"):
+                    out.append(_msg)
     return out
 
 
@@ -248,6 +255,7 @@ def return_mock_metric_config():
                     "metric_1",
                 ],
             },
+            "static_threshold": 3.0,
         },
         "metric_2": {
             "keys": ["namespace", "name", "hash_id"],
@@ -269,6 +277,7 @@ def return_mock_metric_config():
                     "metric_2",
                 ],
             },
+            "static_threshold": 3.0,
         },
         "default": {
             "keys": ["namespace", "name"],
@@ -288,5 +297,6 @@ def return_mock_metric_config():
                 "unified_metric_name": None,
                 "unified_metrics": None,
             },
+            "static_threshold": 3.0,
         },
     }
