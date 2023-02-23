@@ -1,4 +1,4 @@
-name: Release Image
+name: Release SerDe
 
 on:
   push:
