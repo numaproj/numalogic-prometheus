@@ -10,7 +10,6 @@ import (
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/prometheus/prometheus/storage/remote"
 	"go.uber.org/zap"
-	"math"
 	"strconv"
 )
 
@@ -28,11 +27,6 @@ func processPrometheusData(req *prompb.WriteRequest) ([][]byte, error) {
 
 		for _, sample := range ts.Samples {
 			name := labels["__name__"]
-
-			if math.IsNaN(sample.Value) {
-				log.Infof("sample came with NaN value , we are ignoring.", sample)
-				continue
-			}
 
 			epoch := sample.Timestamp
 			m := map[string]interface{}{
