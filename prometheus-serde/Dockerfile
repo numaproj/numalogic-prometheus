@@ -30,14 +30,14 @@ COPY . .
 # It is also a common best practise.
 
 # Build the application.
-RUN CGO_ENABLED=0 go build -o ./bin/main .
+RUN CGO_ENABLED=0 go build -o ./bin/numalogic-prometheus .
 
 # Finally our multi-stage to build a small image
 # Start a new stage from scratch
 FROM scratch
 
 # Copy the Pre-built binary file
-COPY --from=builder /app/bin/main .
+COPY --from=builder /app/bin/numalogic-prometheus .
 
 # Run executable
-CMD ["./main"]
+CMD ["./numalogic-prometheus"]
