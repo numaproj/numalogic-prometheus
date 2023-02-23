@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3.1.0
+        with:
+          go-version: "1.19"
+          cache: true
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+      - name: Get dependencies
+        run: |
+          cd prometheus-serde
+          go mod download
+      - run: |
+          cd prometheus-serde
+          make build
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3.1.0
+        with:
+          go-version: "1.19"
+          cache: true
+        id: go
+      - uses: actions/checkout@v3
+      - name: Get dependencies
+        run: |
+          cd prometheus-serde
+          go mod download
+      - run: |
+          cd prometheus-serde
+          make test
+
+

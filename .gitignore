@@ -26,6 +26,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+prometheus-serde/vendor
+prometheus-serde/dist
+prometheus-serde/coverage.out
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
