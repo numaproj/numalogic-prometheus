@@ -95,7 +95,6 @@ def inference(_: str, datum: Datum) -> bytes:
 
     # Check if current model is stale
     if _is_model_stale(payload, artifact_data, model_config):
-        _LOGGER.info("%s - Preproc clf not found for %s", payload.uuid, payload.composite_keys)
         payload.set_header(Header.MODEL_STALE)
 
     # Generate predictions
