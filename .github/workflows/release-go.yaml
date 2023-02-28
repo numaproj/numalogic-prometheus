@@ -32,7 +32,7 @@ jobs:
             tag="latest"
           fi
           
-          image_name="${DOCKERIO_ORG}/numalogic-prometheus/prometheus-serde:${tag}"
+          image_name="${QUAYIO_ORG}/numalogic-prometheus/prometheus-serde:${tag}"
           
           cd prometheus-serde
           docker buildx build \
