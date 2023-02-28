@@ -25,7 +25,7 @@ jobs:
         env:
           QUAYIO_ORG: quay.io/numaio
           PLATFORM: linux/x86_64
-          TARGET: numalogic-prometheustprometheus-serde
+          TARGET: numalogic-prometheus/udf/prometheus-serde
         run: |
           tag=$(basename $GITHUB_REF)
           if [ $tag = "master" ]; then
