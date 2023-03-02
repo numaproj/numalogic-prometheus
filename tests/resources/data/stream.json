@@ -1,164 +1,216 @@
 [
     {
         "labels": {
-            "__name__": "metric_1",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo"
+            "namespace": "sandbox_numalogic_demo1",
+            "hash_id": "123456789"
         },
-        "name": "metric_1",
+        "name": "rollout_error_rate",
         "timestamp": "1654121158989",
         "value": "1"
     },
     {
         "labels": {
-            "__name__": "metric_2",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
+            "namespace": "sandbox_numalogic_demo1",
             "hash_id": "123456789"
         },
-        "name": "metric_2",
+        "name": "rollout_latency",
         "timestamp": "1654121163989",
         "value": "2"
     },
     {
         "labels": {
-            "__name__": "metric_1",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo"
+            "namespace": "sandbox_numalogic_demo1",
+            "hash_id": "123456789"
         },
-        "name": "metric_1",
+        "name": "rollout_error_rate",
         "timestamp": "1654121168989",
         "value": "3"
     },
     {
         "labels": {
-            "__name__": "metric_2",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
+            "namespace": "sandbox_numalogic_demo1",
             "hash_id": "123456789"
         },
-        "name": "metric_2",
+        "name": "rollout_latency",
         "timestamp": "1654121173989",
         "value": "4"
     },
     {
         "labels": {
-            "__name__": "metric_1",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo"
+            "namespace": "sandbox_numalogic_demo1",
+            "hash_id": "123456789"
         },
-        "name": "metric_1",
+        "name": "rollout_error_rate",
         "timestamp": "1654121188989",
         "value": "5"
     },
     {
         "labels": {
-            "__name__": "metric_2",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
+            "namespace": "sandbox_numalogic_demo1",
             "hash_id": "123456789"
         },
-        "name": "metric_2",
+        "name": "rollout_latency",
         "timestamp": "1654121183989",
         "value": "6"
     },
     {
         "labels": {
-            "__name__": "metric_1",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo"
+            "namespace": "sandbox_numalogic_demo1",
+            "hash_id": "123456789"
         },
-        "name": "metric_1",
+        "name": "rollout_error_rate",
         "timestamp": "1654121188989",
         "value": "7"
     },
     {
         "labels": {
-            "__name__": "metric_2",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
+            "namespace": "sandbox_numalogic_demo1",
             "hash_id": "123456789"
         },
-        "name": "metric_2",
+        "name": "rollout_latency",
         "timestamp": "1654121193989",
         "value": "8"
     },
     {
         "labels": {
-            "__name__": "metric_1",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo"
+            "namespace": "sandbox_numalogic_demo1",
+            "hash_id": "123456789"
         },
-        "name": "metric_1",
+        "name": "rollout_error_rate",
         "timestamp": "1654121198989",
         "value": "9"
     },
     {
         "labels": {
-            "__name__": "metric_2",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
+            "namespace": "sandbox_numalogic_demo1",
             "hash_id": "123456789"
         },
-        "name": "metric_2",
+        "name": "rollout_latency",
         "timestamp": "1654121203989",
         "value": "10"
     },
     {
         "labels": {
-            "__name__": "metric_1",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo"
+            "namespace": "sandbox_numalogic_demo1",
+            "hash_id": "123456789"
         },
-        "name": "metric_1",
+        "name": "rollout_error_rate",
         "timestamp": "1654121208989",
         "value": "11"
     },
     {
         "labels": {
-            "__name__": "metric_2",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
+            "namespace": "sandbox_numalogic_demo1",
             "hash_id": "123456789"
         },
-        "name": "metric_2",
+        "name": "rollout_latency",
         "timestamp": "1654121213989",
         "value": "12"
     },
     {
         "labels": {
-            "__name__": "metric_3",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "argocd_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
-            "hash_id": "123456789"
+            "namespace": "sandbox_numalogic_demo1"
         },
-        "name": "metric_3",
+        "name": "argocd_error_rate",
         "timestamp": "1654121218989",
         "value": "13"
     },
     {
         "labels": {
-            "__name__": "metric_3",
-            "assetAlias": "sandbox.numalogic.demo",
+            "__name__": "argocd_error_rate",
+            "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
-            "namespace": "sandbox_numalogic_demo",
-            "hash_id": "123456789"
+            "namespace": "sandbox_numalogic_demo1"
         },
-        "name": "metric_3",
+        "name": "argocd_error_rate",
         "timestamp": "1654121223989",
         "value": "14"
+    },
+    {
+        "labels": {
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo2",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo2",
+            "hash_id": "123456789"
+        },
+        "name": "rollout_error_rate",
+        "timestamp": "1654121198989",
+        "value": "15"
+    },
+    {
+        "labels": {
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo2",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo2",
+            "hash_id": "123456789"
+        },
+        "name": "rollout_latency",
+        "timestamp": "1654121203989",
+        "value": "16"
+    },
+    {
+        "labels": {
+            "__name__": "rollout_error_rate",
+            "assetAlias": "sandbox.numalogic.demo2",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo2",
+            "hash_id": "123456789"
+        },
+        "name": "rollout_error_rate",
+        "timestamp": "1654121208989",
+        "value": "17"
+    },
+    {
+        "labels": {
+            "__name__": "rollout_latency",
+            "assetAlias": "sandbox.numalogic.demo2",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo2",
+            "hash_id": "123456789"
+        },
+        "name": "rollout_latency",
+        "timestamp": "1654121213989",
+        "value": "18"
     }
 ]

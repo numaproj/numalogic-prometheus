@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import sys
+from typing import List
 from unittest import mock
 from unittest.mock import MagicMock, patch, Mock
 
@@ -9,14 +10,17 @@ import numpy as np
 import pandas as pd
 import torch
 from mlflow.entities.model_registry import ModelVersion
+from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
 from numalogic.models.threshold import StdDevThreshold
 from numalogic.registry import ArtifactData, MLflowRegistry
+from omegaconf import OmegaConf
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 from sklearn.preprocessing import MinMaxScaler
 
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY
+from numaprom.config._config import NamespaceConf, NumapromConf
 from numaprom.factory import HandlerFactory
 
 sys.modules["numaprom.mlflow"] = MagicMock()
@@ -231,6 +235,18 @@ def mock_rollout_query_metric(*_, **__):
         parse_dates=["timestamp"],
         infer_datetime_format=True,
     )
+
+
+def mock_configs() -> List[NamespaceConf]:
+    _conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "config.yaml"))
+    _schema: NumapromConf = OmegaConf.structured(NumapromConf)
+    return OmegaConf.merge(_schema, _conf).configs
+
+
+def mock_numalogic_conf():
+    _conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "default_numalogic.yaml"))
+    _schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
+    return OmegaConf.merge(_schema, _conf)
 
 
 def return_mock_metric_config():

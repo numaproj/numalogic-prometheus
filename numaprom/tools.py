@@ -5,19 +5,22 @@ from collections import OrderedDict
 from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
-from typing import Optional, Dict, Sequence, Any
+from typing import Optional, Sequence, List
 
 import pandas as pd
 import pytz
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
+from numalogic.config import NumalogicConf
 from numalogic.models.threshold import StaticThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
+from omegaconf import OmegaConf
 from orjson import orjson
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger
-from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
+from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR
+from numaprom.config._config import MetricConf, NamespaceConf, NumapromConf, UnifiedConf
 from numaprom.entities import TrainerPayload, Status, Header, StreamPayload
 from numaprom.prometheus import Prometheus
 
@@ -81,11 +84,8 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def create_composite_keys(msg: dict) -> OrderedDict:
+def create_composite_keys(msg: dict, keys: List[str]) -> OrderedDict:
     labels = msg.get("labels")
-    metric_name = msg["name"]
-
-    keys = get_metric_config(metric_name)["keys"]
     result = OrderedDict()
     for k in keys:
         if k in msg:
@@ -123,7 +123,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
 
 
 def load_model(
-    skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
+        skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
 ) -> Optional[ArtifactData]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
@@ -139,7 +139,7 @@ def load_model(
 
 
 def save_model(
-    skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
+        skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
@@ -147,14 +147,66 @@ def save_model(
     return version
 
 
-def get_metric_config(metric_name: str) -> Dict[str, Any]:
-    if metric_name in METRIC_CONFIG:
-        return METRIC_CONFIG[metric_name]
-    return METRIC_CONFIG["default"]
+def get_configs() -> List[NamespaceConf]:
+    _conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
+    _schema: NumapromConf = OmegaConf.structured(NumapromConf)
+    return OmegaConf.merge(_schema, _conf).configs
+
+
+def default_numalogic_conf():
+    _conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "numalogic.yaml"))
+    _schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
+    return OmegaConf.merge(_schema, _conf)
+
+
+def default_conf(metric: str):
+    _conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "config.yaml"))
+    _schema: NumapromConf = OmegaConf.structured(NumapromConf)
+    configs = OmegaConf.merge(_schema, _conf).configs
+
+    namespace_config = list(filter(lambda conf: (metric in conf.unified_configs.unified_metrics), configs))
+
+    return namespace_config
+
+
+def get_metric_config(metric: str, namespace: str) -> MetricConf:
+    configs = get_configs()
+    namespace_config = list(filter(lambda conf: (conf.namespace == namespace), configs))
+
+    # loading and setting default namespace config
+    if not namespace_config:
+        namespace_config = default_conf(metric)
+
+    metric_config = list(
+        filter(lambda conf: (conf.metric == metric), namespace_config[0].metric_configs)
+    )[0]
+
+    # loading and setting default numalogic config
+    if OmegaConf.is_missing(metric_config, "numalogic_conf"):
+        metric_config.numalogic_conf = default_numalogic_conf()
+
+    return metric_config
+
+
+def get_unified_config(metric: str, namespace: str) -> Optional[UnifiedConf]:
+    configs = get_configs()
+    namespace_config = list(filter(lambda conf: (conf.namespace == namespace), configs))
+    unified_config = list(
+        filter(lambda conf: (metric in conf.unified_metrics), namespace_config[0].unified_configs)
+    )
+    if not unified_config:
+        return None
+    return unified_config[0]
+
+
+metric_conf = get_metric_config(
+    metric="namespace_rollout_api_error_rate", namespace="dev-devx-o11yfuzzygqlfederation-usw2-qal"
+)
+print(metric_conf.metric)
 
 
 def fetch_data(
-    payload: TrainerPayload, metric_config: dict, labels: dict, return_labels=None
+        payload: TrainerPayload, metric_config: dict, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 

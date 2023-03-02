@@ -58,9 +58,8 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
 
-    metric_name = msg["name"]
-    metric_config = get_metric_config(metric_name)
-    win_size = metric_config["model_config"]["win_size"]
+    metric_config = get_metric_config(metric=msg["name"], namespace=msg["labels"]["namespace"])
+    win_size = metric_config.numalogic_conf.model.conf["seq_len"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 
     if buff_size < win_size:
@@ -68,8 +67,8 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
             f"Redis list buffer size: {buff_size} is less than window length: {win_size}"
         )
 
-    key_map = create_composite_keys(msg)
-    unique_key = ":".join(key_map.values())
+    composite_keys = create_composite_keys(msg, metric_config.composite_keys)
+    unique_key = ":".join(composite_keys.values())
     value = float(msg["value"])
 
     # Create sliding window
@@ -89,8 +88,6 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
 
     # Construct payload object
     _uuid = uuid.uuid4().hex
-    composite_keys = create_composite_keys(msg)
-
     win_list = [float(_val) for _val, _ in elements]
     win_arr = np.asarray(win_list).reshape(-1, 1)
     win_arr = _clean_arr(_uuid, composite_keys, win_arr)

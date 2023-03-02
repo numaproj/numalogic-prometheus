@@ -2,16 +2,17 @@ import os
 import time
 import numpy as np
 from orjson import orjson
-from typing import List, Dict
+from typing import List
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from pynumaflow.function import Datum
 from numalogic.postprocess import TanhNorm
 
 from numaprom import get_logger
+from numaprom.config._config import UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client
-from numaprom.tools import msgs_forward, get_metric_config
+from numaprom.tools import msgs_forward, get_metric_config, get_unified_config
 
 _LOGGER = get_logger(__name__)
 
@@ -20,17 +21,15 @@ PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
-def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
+def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf):
     r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
 
     metric_name = payload.composite_keys["name"]
-    metric_config = get_metric_config(metric_name)
-    output_config = metric_config["output_config"]
 
     r_keys = payload.composite_keys
     r_keys.pop("name")
 
-    metrics_list = output_config["unified_metrics"]
+    metrics_list = unified_config.unified_metrics
     r_key = f"{':'.join(r_keys.values())}:{payload.end_ts}"
 
     final_score = -1 if np.isnan(final_score) else final_score
@@ -67,7 +66,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool):
 
 
 def __construct_publisher_payload(
-    stream_payload: StreamPayload, final_score: float
+        stream_payload: StreamPayload, final_score: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
@@ -90,7 +89,7 @@ def __construct_publisher_payload(
 
 
 def __construct_unified_payload(
-    stream_payload: StreamPayload, max_anomaly: float, output_config: Dict
+        stream_payload: StreamPayload, max_anomaly: float, unified_config: UnifiedConf
 ) -> PrometheusPayload:
     namespace = stream_payload.composite_keys["namespace"]
 
@@ -104,7 +103,7 @@ def __construct_unified_payload(
 
     return PrometheusPayload(
         timestamp_ms=int(stream_payload.end_ts),
-        name=output_config["unified_metric_name"],
+        name=unified_config.unified_metric_name,
         namespace=namespace,
         subsystem=subsystem,
         type="Gauge",
@@ -114,14 +113,16 @@ def __construct_unified_payload(
 
 
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
-    metric_name = payload.composite_keys["name"]
-    model_config = get_metric_config(metric_name)["model_config"]
-    output_config = get_metric_config(metric_name)["output_config"]
+    metric_config = get_metric_config(metric=payload.composite_keys["name"],
+                                      namespace=payload.composite_keys["namespace"])
+
+    unified_config = get_unified_config(metric=payload.composite_keys["name"],
+                                        namespace=payload.composite_keys["namespace"])
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
     _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
 
-    if model_config["name"] == "default":
+    if metric_config.metric == "default":
         _LOGGER.debug(
             "%s - Using default config, cannot generate a unified anomaly score", payload.uuid
         )
@@ -129,16 +130,16 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
 
     try:
         max_anomaly, anomalies = save_to_redis(
-            payload=payload, final_score=final_score, recreate=False
+            payload=payload, final_score=final_score, recreate=False, unified_config=unified_config
         )
     except RedisConnectionError:
         _LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
         max_anomaly, anomalies = save_to_redis(
-            payload=payload, final_score=final_score, recreate=True
+            payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
 
     if max_anomaly > -1:
-        unified_json = __construct_unified_payload(payload, max_anomaly, output_config).as_json()
+        unified_json = __construct_unified_payload(payload, max_anomaly, unified_config).as_json()
         _LOGGER.info(
             "%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json
         )

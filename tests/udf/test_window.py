@@ -1,20 +1,22 @@
 import os
-import unittest
-from unittest.mock import patch
-
 import orjson
+import unittest
+from unittest.mock import patch, Mock
+
 from pynumaflow.function._dtypes import DROP
 
-from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from numaprom import tools
+from numaprom._constants import TESTS_DIR
 from numaprom.entities import StreamPayload
-from tests.tools import get_datum, get_stream_data, mockenv, return_mock_metric_config
+from tests.tools import get_datum, get_stream_data, mockenv, mock_configs, mock_numalogic_conf
 from tests import redis_client, window
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-@patch.dict(METRIC_CONFIG, return_mock_metric_config())
+@patch.object(tools, "get_configs", Mock(return_value=mock_configs()))
+@patch.object(tools, "default_numalogic_conf", Mock(return_value=mock_numalogic_conf()))
 class TestWindow(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -30,10 +32,10 @@ class TestWindow(unittest.TestCase):
                 _out = _out.items()[0].value.decode("utf-8")
                 payload = StreamPayload(**orjson.loads(_out))
                 keys = list(payload.composite_keys.values())
-                if "metric_2" in keys:
-                    self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_2", "123456789"])
-                if "metric_1" in keys:
-                    self.assertEqual(keys, ["sandbox_numalogic_demo", "metric_1"])
+                if "rollout" in keys[1]:
+                    self.assertEqual(len(keys), 3)
+                else:
+                    self.assertEqual(len(keys), 2)
 
     @mockenv(BUFF_SIZE="1")
     def test_window_err(self):

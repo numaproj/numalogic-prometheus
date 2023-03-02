@@ -13,7 +13,7 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 def mock_query_range(*_, **__):
     result = {
-        "metric": {
+        "argocd_error_rate": {
             "__name__": "namespace_asset_pod_cpu_utilization",
             "assetAlias": "sandbox.numalogic.demo",
             "numalogic": "true",
