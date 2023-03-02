@@ -1,5 +1,53 @@
 # Changelog
 
+## v0.1.5a8 (2023-02-28)
+
+ * [a8eb36e](https://github.com/numaproj/numalogic-prometheus/commit/a8eb36e5d5d9be2c3e4bdeed2e1d091d8ad2420e) fix: Fix the quay.io repo (#88)
+
+### Contributors
+
+ * Saravanan Balasubramanian
+
+## v0.1.5a7 (2023-02-28)
+
+ * [f7add21](https://github.com/numaproj/numalogic-prometheus/commit/f7add21a43fcce50a686ccff0b18e3f432f4834c) fix: Fix the release repo for prometheus-serde (#87)
+
+### Contributors
+
+ * Saravanan Balasubramanian
+
+## v0.1.5a6 (2023-02-22)
+
+ * [ee187bf](https://github.com/numaproj/numalogic-prometheus/commit/ee187bf435f84bd9ca90f1e3d95c1a49cba40f37) fix: remove log (#85)
+
+### Contributors
+
+ * Nandita Koppisetty
+
+## v0.1.5a5 (2023-02-22)
+
+ * [deb327d](https://github.com/numaproj/numalogic-prometheus/commit/deb327d50f3479ef9bb06877639c730da423ccf5) feat!: generate scores using static thresholding  (#80)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.1.5a4 (2023-02-09)
+
+ * [e289a90](https://github.com/numaproj/numalogic-prometheus/commit/e289a904da8630675267c5551ce51587e47960ed) fix: metric name (#79)
+
+### Contributors
+
+ * Nandita Koppisetty
+
+## v0.1.5a3 (2023-02-09)
+
+ * [9717694](https://github.com/numaproj/numalogic-prometheus/commit/97176944bd3a4d7372c92dc02765db18e11be667) fix: logging bug (#77)
+
+### Contributors
+
+ * Nandita Koppisetty
+
 ## v0.1.5a2 (2023-02-08)
 
 
@@ -16,12 +64,27 @@
 
 ## v0.1.5a0 (2023-02-06)
 
+
+### Contributors
+
+
+## v0.1.5 (2023-03-02)
+
+ * [a8eb36e](https://github.com/numaproj/numalogic-prometheus/commit/a8eb36e5d5d9be2c3e4bdeed2e1d091d8ad2420e) fix: Fix the quay.io repo (#88)
+ * [f7add21](https://github.com/numaproj/numalogic-prometheus/commit/f7add21a43fcce50a686ccff0b18e3f432f4834c) fix: Fix the release repo for prometheus-serde (#87)
+ * [ee187bf](https://github.com/numaproj/numalogic-prometheus/commit/ee187bf435f84bd9ca90f1e3d95c1a49cba40f37) fix: remove log (#85)
+ * [deb327d](https://github.com/numaproj/numalogic-prometheus/commit/deb327d50f3479ef9bb06877639c730da423ccf5) feat!: generate scores using static thresholding  (#80)
+ * [e289a90](https://github.com/numaproj/numalogic-prometheus/commit/e289a904da8630675267c5551ce51587e47960ed) fix: metric name (#79)
+ * [9717694](https://github.com/numaproj/numalogic-prometheus/commit/97176944bd3a4d7372c92dc02765db18e11be667) fix: logging bug (#77)
+ * [b043a5b](https://github.com/numaproj/numalogic-prometheus/commit/b043a5b8706b7d493b51f0015ebd6c7a24dafbc0) fix: metric name for fuzzy error rate (#74)
  * [5b15bc8](https://github.com/numaproj/numalogic-prometheus/commit/5b15bc80d8b5ab29bb16132a41627831c690d0e1) fix: cleaning nan & inf values to 0.0 (#71)
  * [f19fcec](https://github.com/numaproj/numalogic-prometheus/commit/f19fcec936619812b80c995a410b0604665d43a3) fix: train threshold clf (#69)
 
 ### Contributors
 
  * Avik Basu
+ * Nandita Koppisetty
+ * Saravanan Balasubramanian
 
 ## v0.1.4a1 (2023-01-31)
 
