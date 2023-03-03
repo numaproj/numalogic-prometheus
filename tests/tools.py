@@ -1,26 +1,25 @@
-import datetime
-import json
 import os
 import sys
-from typing import List
-from unittest import mock
-from unittest.mock import MagicMock, patch, Mock
-
+import json
+import torch
+import datetime
 import numpy as np
 import pandas as pd
-import torch
+from unittest import mock
+from omegaconf import OmegaConf
+from sklearn.preprocessing import MinMaxScaler
+from unittest.mock import MagicMock, patch, Mock
 from mlflow.entities.model_registry import ModelVersion
+
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
 from numalogic.models.threshold import StdDevThreshold
 from numalogic.registry import ArtifactData, MLflowRegistry
-from omegaconf import OmegaConf
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
-from sklearn.preprocessing import MinMaxScaler
 
-from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY
-from numaprom.config._config import NamespaceConf, NumapromConf
+from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, CONFIG_DIR
+from numaprom.config._config import NumapromConf
 from numaprom.factory import HandlerFactory
 
 sys.modules["numaprom.mlflow"] = MagicMock()
@@ -237,82 +236,17 @@ def mock_rollout_query_metric(*_, **__):
     )
 
 
-def mock_configs() -> List[NamespaceConf]:
-    _conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "config.yaml"))
-    _schema: NumapromConf = OmegaConf.structured(NumapromConf)
-    return OmegaConf.merge(_schema, _conf).configs
+def mock_configs():
+    schema: NumapromConf = OmegaConf.structured(NumapromConf)
 
+    conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "config.yaml"))
+    given_configs = OmegaConf.merge(schema, conf).configs
 
-def mock_numalogic_conf():
-    _conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "default_numalogic.yaml"))
-    _schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
-    return OmegaConf.merge(_schema, _conf)
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "config.yaml"))
+    default_configs = OmegaConf.merge(schema, conf).configs
 
+    conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "default_numalogic.yaml"))
+    schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
+    default_numalogic = OmegaConf.merge(schema, conf)
 
-def return_mock_metric_config():
-    return {
-        "metric_1": {
-            "keys": ["namespace", "name"],
-            "scrape_interval": 5,
-            "model_config": {
-                "name": "argo_cd",
-                "win_size": 2,
-                "threshold_min": 0.1,
-                "model_name": "ae_sparse",
-                "retrain_freq_hr": 8,
-                "resume_training": True,
-                "num_epochs": 10,
-                "training_keys": ["namespace", "name"],
-            },
-            "output_config": {
-                "unified_strategy": "max",
-                "unified_metric_name": "unified_anomaly",
-                "unified_metrics": [
-                    "metric_1",
-                ],
-            },
-            "static_threshold": 3.0,
-        },
-        "metric_2": {
-            "keys": ["namespace", "name", "hash_id"],
-            "scrape_interval": 5,
-            "model_config": {
-                "name": "argo_rollouts",
-                "win_size": 2,
-                "threshold_min": 0.001,
-                "model_name": "ae_sparse",
-                "retrain_freq_hr": 8,
-                "resume_training": True,
-                "num_epochs": 10,
-                "training_keys": ["namespace", "name"],
-            },
-            "output_config": {
-                "unified_strategy": "max",
-                "unified_metric_name": "unified_anomaly",
-                "unified_metrics": [
-                    "metric_2",
-                ],
-            },
-            "static_threshold": 3.0,
-        },
-        "default": {
-            "keys": ["namespace", "name"],
-            "scrape_interval": 5,
-            "model_config": {
-                "name": "default",
-                "win_size": 2,
-                "threshold_min": 0.1,
-                "model_name": "ae_sparse",
-                "retrain_freq_hr": 8,
-                "resume_training": True,
-                "num_epochs": 10,
-                "keys": ["namespace", "name"],
-            },
-            "output_config": {
-                "unified_strategy": None,
-                "unified_metric_name": None,
-                "unified_metrics": None,
-            },
-            "static_threshold": 3.0,
-        },
-    }
+    return given_configs, default_configs, default_numalogic

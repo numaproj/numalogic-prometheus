@@ -9,13 +9,7 @@ from numalogic.registry import MLflowRegistry
 from numaprom import tools
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, Header
-from tests.tools import (
-    get_prepoc_input,
-    get_datum,
-    return_preproc_clf,
-    mock_configs,
-    mock_numalogic_conf,
-)
+from tests.tools import get_prepoc_input, get_datum, return_preproc_clf, mock_configs
 
 # Make sure to import this in the end
 from tests import redis_client
@@ -30,8 +24,7 @@ class TestPreprocess(unittest.TestCase):
     preproc_input = None
 
     @classmethod
-    @patch.object(tools, "get_configs", Mock(return_value=mock_configs()))
-    @patch.object(tools, "default_numalogic_conf", Mock(return_value=mock_numalogic_conf()))
+    @patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
     def setUpClass(cls) -> None:
         cls.preproc_input = get_prepoc_input(STREAM_DATA_PATH)
         assert cls.preproc_input.items(), print("input items is empty", cls.preproc_input)
@@ -66,8 +59,7 @@ class TestPreprocess(unittest.TestCase):
             self.assertIsInstance(payload, StreamPayload)
 
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_preproc_clf()))
-    @patch.object(tools, "get_configs", Mock(return_value=mock_configs()))
-    @patch.object(tools, "default_numalogic_conf", Mock(return_value=mock_numalogic_conf()))
+    @patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
     def test_preprocess_with_nan(self):
         preproc_input = get_prepoc_input(STREAM_NAN_DATA_PATH)
         assert preproc_input.items(), print("input items is empty", preproc_input)

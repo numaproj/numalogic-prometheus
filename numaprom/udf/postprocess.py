@@ -12,7 +12,7 @@ from numaprom import get_logger
 from numaprom.config._config import UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload
 from numaprom.redis import get_redis_client
-from numaprom.tools import msgs_forward, get_metric_config, get_unified_config
+from numaprom.tools import msgs_forward, get_unified_config
 
 _LOGGER = get_logger(__name__)
 
@@ -21,7 +21,9 @@ PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
-def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf):
+def save_to_redis(
+    payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
+):
     r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
 
     metric_name = payload.composite_keys["name"]
@@ -66,7 +68,7 @@ def save_to_redis(payload: StreamPayload, final_score: float, recreate: bool, un
 
 
 def __construct_publisher_payload(
-        stream_payload: StreamPayload, final_score: float
+    stream_payload: StreamPayload, final_score: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
@@ -89,7 +91,7 @@ def __construct_publisher_payload(
 
 
 def __construct_unified_payload(
-        stream_payload: StreamPayload, max_anomaly: float, unified_config: UnifiedConf
+    stream_payload: StreamPayload, max_anomaly: float, unified_config: UnifiedConf
 ) -> PrometheusPayload:
     namespace = stream_payload.composite_keys["namespace"]
 
@@ -113,16 +115,14 @@ def __construct_unified_payload(
 
 
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
-    metric_config = get_metric_config(metric=payload.composite_keys["name"],
-                                      namespace=payload.composite_keys["namespace"])
-
-    unified_config = get_unified_config(metric=payload.composite_keys["name"],
-                                        namespace=payload.composite_keys["namespace"])
+    unified_config = get_unified_config(
+        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
+    )
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
     _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
 
-    if metric_config.metric == "default":
+    if not unified_config:
         _LOGGER.debug(
             "%s - Using default config, cannot generate a unified anomaly score", payload.uuid
         )

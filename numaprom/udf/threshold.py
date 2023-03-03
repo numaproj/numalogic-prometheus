@@ -29,8 +29,9 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     )
 
     # Load config
-    metric_config = get_metric_config(metric=payload.composite_keys["name"],
-                                      namespace=payload.composite_keys["namespace"])
+    metric_config = get_metric_config(
+        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
+    )
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:

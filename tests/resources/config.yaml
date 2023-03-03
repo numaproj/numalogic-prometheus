@@ -63,18 +63,4 @@ configs:
       - unified_metric_name: "unified_anomaly"
         unified_metrics: [ "rollout_error_rate" ]
         unified_strategy: "max"
-        unified_weights: null
-
-
-
-namespace: "sandbox_numalogic_demo1"
-metric_configs:
-  - metric: "rollout_error_rate"
-    composite_keys: [ "namespace", "name", "hash_id" ]
-    static_threshold: 3
-  - metric: "rollout_latency"
-    composite_keys: [ "namespace", "name", "hash_id" ]
-    static_threshold: 3
-unified_configs:
-  - unified_metric_name: "unified_anomaly"
-    unified_metrics: ["rollout_error_rate", "rollout_latency"]
+        unified_weights: []

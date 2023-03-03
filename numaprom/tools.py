@@ -123,7 +123,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
 
 
 def load_model(
-        skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
+    skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
 ) -> Optional[ArtifactData]:
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
@@ -139,7 +139,7 @@ def load_model(
 
 
 def save_model(
-        skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
+    skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
@@ -147,66 +147,71 @@ def save_model(
     return version
 
 
-def get_configs() -> List[NamespaceConf]:
-    _conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
-    _schema: NumapromConf = OmegaConf.structured(NumapromConf)
-    return OmegaConf.merge(_schema, _conf).configs
+def get_all_configs():
+    schema: NumapromConf = OmegaConf.structured(NumapromConf)
+
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
+    given_configs = OmegaConf.merge(schema, conf).configs
+
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "config.yaml"))
+    default_configs = OmegaConf.merge(schema, conf).configs
+
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "numalogic.yaml"))
+    schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
+    default_numalogic = OmegaConf.merge(schema, conf)
+
+    return given_configs, default_configs, default_numalogic
 
 
-def default_numalogic_conf():
-    _conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "numalogic.yaml"))
-    _schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
-    return OmegaConf.merge(_schema, _conf)
+def get_namespace_config(metric: str, namespace: str):
+    given_configs, default_configs, default_numalogic = get_all_configs()
 
+    # search and load from given configs
+    namespace_config = list(filter(lambda conf: (conf.namespace == namespace), given_configs))
 
-def default_conf(metric: str):
-    _conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "config.yaml"))
-    _schema: NumapromConf = OmegaConf.structured(NumapromConf)
-    configs = OmegaConf.merge(_schema, _conf).configs
+    # if not search and load from default configs
+    if not namespace_config:
+        for _conf in default_configs:
+            if metric in _conf.unified_configs[0].unified_metrics:
+                namespace_config = [_conf]
+                break
 
-    namespace_config = list(filter(lambda conf: (metric in conf.unified_configs.unified_metrics), configs))
+    # if not in default configs, initialize Namespace conf with default values
+    if not namespace_config:
+        namespace_config = OmegaConf.structured(NamespaceConf)
+    else:
+        namespace_config = namespace_config[0]
+
+    # loading and setting default numalogic config
+    for metric_config in namespace_config.metric_configs:
+        if OmegaConf.is_missing(metric_config, "numalogic_conf"):
+            metric_config.numalogic_conf = default_numalogic
 
     return namespace_config
 
 
-def get_metric_config(metric: str, namespace: str) -> MetricConf:
-    configs = get_configs()
-    namespace_config = list(filter(lambda conf: (conf.namespace == namespace), configs))
-
-    # loading and setting default namespace config
-    if not namespace_config:
-        namespace_config = default_conf(metric)
-
+def get_metric_config(metric: str, namespace: str) -> Optional[MetricConf]:
+    namespace_config = get_namespace_config(metric, namespace)
     metric_config = list(
-        filter(lambda conf: (conf.metric == metric), namespace_config[0].metric_configs)
-    )[0]
-
-    # loading and setting default numalogic config
-    if OmegaConf.is_missing(metric_config, "numalogic_conf"):
-        metric_config.numalogic_conf = default_numalogic_conf()
-
-    return metric_config
+        filter(lambda conf: (conf.metric == metric), namespace_config.metric_configs)
+    )
+    if not metric_config:
+        return namespace_config.metric_configs[0]
+    return metric_config[0]
 
 
 def get_unified_config(metric: str, namespace: str) -> Optional[UnifiedConf]:
-    configs = get_configs()
-    namespace_config = list(filter(lambda conf: (conf.namespace == namespace), configs))
+    namespace_config = get_namespace_config(metric, namespace)
     unified_config = list(
-        filter(lambda conf: (metric in conf.unified_metrics), namespace_config[0].unified_configs)
+        filter(lambda conf: (metric in conf.unified_metrics), namespace_config.unified_configs)
     )
     if not unified_config:
         return None
     return unified_config[0]
 
 
-metric_conf = get_metric_config(
-    metric="namespace_rollout_api_error_rate", namespace="dev-devx-o11yfuzzygqlfederation-usw2-qal"
-)
-print(metric_conf.metric)
-
-
 def fetch_data(
-        payload: TrainerPayload, metric_config: dict, labels: dict, return_labels=None
+    payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 
@@ -222,7 +227,7 @@ def fetch_data(
         return_labels=return_labels,
         start=start_dt.timestamp(),
         end=end_dt.timestamp(),
-        step=metric_config["scrape_interval"],
+        step=metric_config.scrape_interval,
     )
     _LOGGER.info(
         "%s - Time taken to fetch data: %s, for df shape: %s",

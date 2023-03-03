@@ -26,9 +26,9 @@ class MetricConf:
 
 @dataclass
 class NamespaceConf:
-    namespace: str
-    metric_configs: List[MetricConf]
-    unified_configs: List[UnifiedConf]
+    namespace: str = "default"
+    metric_configs: List[MetricConf] = field(default_factory=lambda: [MetricConf()])
+    unified_configs: List[UnifiedConf] = field(default_factory=list)
 
 
 @dataclass

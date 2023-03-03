@@ -7,15 +7,15 @@ from unittest.mock import patch, Mock
 from numalogic.registry import MLflowRegistry
 
 from numaprom import tools
-from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, Header
 from tests import redis_client
 from tests.tools import (
     get_inference_input,
-    return_mock_metric_config,
     return_stale_model,
     return_mock_lstmae,
-    get_datum, mock_configs, mock_numalogic_conf,
+    get_datum,
+    mock_configs,
 )
 from numaprom.udf.inference import inference
 
@@ -24,12 +24,10 @@ MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-@patch.object(tools, "get_configs", Mock(return_value=mock_configs()))
-@patch.object(tools, "default_numalogic_conf", Mock(return_value=mock_numalogic_conf()))
+@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
 class TestInference(unittest.TestCase):
     @classmethod
-    @patch.object(tools, "get_configs", Mock(return_value=mock_configs()))
-    @patch.object(tools, "default_numalogic_conf", Mock(return_value=mock_numalogic_conf()))
+    @patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)

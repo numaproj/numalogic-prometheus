@@ -45,9 +45,7 @@ def _is_model_stale(
     payload: StreamPayload, artifact_data: ArtifactData, metric_config: MetricConf
 ) -> bool:
     date_updated = artifact_data.extras["last_updated_timestamp"] / 1000
-    stale_date = (
-        datetime.now() - timedelta(hours=int(metric_config.retrain_freq_hr))
-    ).timestamp()
+    stale_date = (datetime.now() - timedelta(hours=int(metric_config.retrain_freq_hr))).timestamp()
     if date_updated < stale_date:
         _LOGGER.info(
             "%s - Model found is stale for %s",
@@ -77,8 +75,9 @@ def inference(_: str, datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Load config
-    metric_config = get_metric_config(metric=payload.composite_keys["name"],
-                                      namespace=payload.composite_keys["namespace"])
+    metric_config = get_metric_config(
+        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
+    )
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model

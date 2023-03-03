@@ -20,7 +20,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121163989",
+        "timestamp": "1654121158989",
         "value": "2"
     },
     {
@@ -44,7 +44,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121173989",
+        "timestamp": "1654121168989",
         "value": "4"
     },
     {
@@ -68,7 +68,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121183989",
+        "timestamp": "1654121188989",
         "value": "6"
     },
     {
@@ -92,7 +92,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121193989",
+        "timestamp": "1654121188989",
         "value": "8"
     },
     {
@@ -116,7 +116,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121203989",
+        "timestamp": "1654121198989",
         "value": "NaN"
     },
     {
@@ -140,7 +140,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121213989",
+        "timestamp": "1654121208989",
         "value": "-Inf"
     },
     {
@@ -156,13 +156,35 @@
     },
     {
         "labels": {
+            "__name__": "argocd_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo1"
+        },
+        "name": "argocd_latency",
+        "timestamp": "1654121218989",
+        "value": "14"
+    },
+    {
+        "labels": {
             "__name__": "argocd_error_rate",
             "assetAlias": "sandbox.numalogic.demo1",
             "numalogic": "true",
             "namespace": "sandbox_numalogic_demo1"
         },
         "name": "argocd_error_rate",
-        "timestamp": "1654121223989",
+        "timestamp": "1654121198989",
+        "value": "13"
+    },
+    {
+        "labels": {
+            "__name__": "argocd_latency",
+            "assetAlias": "sandbox.numalogic.demo1",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo1"
+        },
+        "name": "argocd_latency",
+        "timestamp": "1654121198989",
         "value": "14"
     },
     {
@@ -186,7 +208,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121203989",
+        "timestamp": "1654121198989",
         "value": "16"
     },
     {
@@ -210,7 +232,7 @@
             "hash_id": "123456789"
         },
         "name": "rollout_latency",
-        "timestamp": "1654121213989",
+        "timestamp": "1654121208989",
         "value": "18"
     }
 ]
