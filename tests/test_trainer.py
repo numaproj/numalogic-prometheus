@@ -8,12 +8,13 @@ from unittest.mock import patch, Mock
 from numalogic.registry import MLflowRegistry
 from pynumaflow.sink import Datum
 
-from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from numaprom import tools
+from numaprom._constants import TESTS_DIR
 from numaprom.prometheus import Prometheus
 from tests.tools import (
-    return_mock_metric_config,
     mock_argocd_query_metric,
     mock_rollout_query_metric,
+    mock_configs,
 )
 from tests import train, redis_client, train_rollout
 
@@ -32,7 +33,7 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
     )
 
 
-@patch.dict(METRIC_CONFIG, return_mock_metric_config())
+@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
 class TestTrainer(unittest.TestCase):
     train_payload = {
         "uuid": "123124543",

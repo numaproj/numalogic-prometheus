@@ -5,19 +5,22 @@ from collections import OrderedDict
 from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
-from typing import Optional, Dict, Sequence, Any
+from typing import Optional, Sequence, List
 
 import pandas as pd
 import pytz
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
+from numalogic.config import NumalogicConf
 from numalogic.models.threshold import StaticThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
+from omegaconf import OmegaConf
 from orjson import orjson
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger
-from numaprom._constants import DEFAULT_TRACKING_URI, METRIC_CONFIG, DEFAULT_PROMETHEUS_SERVER
+from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR
+from numaprom.config._config import MetricConf, ServiceConf, NumapromConf, UnifiedConf
 from numaprom.entities import TrainerPayload, Status, Header, StreamPayload
 from numaprom.prometheus import Prometheus
 
@@ -81,11 +84,8 @@ def conditional_forward(hand_func):
     return inner_function
 
 
-def create_composite_keys(msg: dict) -> OrderedDict:
+def create_composite_keys(msg: dict, keys: List[str]) -> OrderedDict:
     labels = msg.get("labels")
-    metric_name = msg["name"]
-
-    keys = get_metric_config(metric_name)["keys"]
     result = OrderedDict()
     for k in keys:
         if k in msg:
@@ -147,14 +147,71 @@ def save_model(
     return version
 
 
-def get_metric_config(metric_name: str) -> Dict[str, Any]:
-    if metric_name in METRIC_CONFIG:
-        return METRIC_CONFIG[metric_name]
-    return METRIC_CONFIG["default"]
+def get_all_configs():
+    schema: NumapromConf = OmegaConf.structured(NumapromConf)
+
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
+    given_configs = OmegaConf.merge(schema, conf).configs
+
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "config.yaml"))
+    default_configs = OmegaConf.merge(schema, conf).configs
+
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "numalogic.yaml"))
+    schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
+    default_numalogic = OmegaConf.merge(schema, conf)
+
+    return given_configs, default_configs, default_numalogic
+
+
+def get_service_config(metric: str, namespace: str):
+    given_configs, default_configs, default_numalogic = get_all_configs()
+
+    # search and load from given configs
+    service_config = list(filter(lambda conf: (conf.namespace == namespace), given_configs))
+
+    # if not search and load from default configs
+    if not service_config:
+        for _conf in default_configs:
+            if metric in _conf.unified_configs[0].unified_metrics:
+                service_config = [_conf]
+                break
+
+    # if not in default configs, initialize Namespace conf with default values
+    if not service_config:
+        service_config = OmegaConf.structured(ServiceConf)
+    else:
+        service_config = service_config[0]
+
+    # loading and setting default numalogic config
+    for metric_config in service_config.metric_configs:
+        if OmegaConf.is_missing(metric_config, "numalogic_conf"):
+            metric_config.numalogic_conf = default_numalogic
+
+    return service_config
+
+
+def get_metric_config(metric: str, namespace: str) -> Optional[MetricConf]:
+    service_config = get_service_config(metric, namespace)
+    metric_config = list(
+        filter(lambda conf: (conf.metric == metric), service_config.metric_configs)
+    )
+    if not metric_config:
+        return service_config.metric_configs[0]
+    return metric_config[0]
+
+
+def get_unified_config(metric: str, namespace: str) -> Optional[UnifiedConf]:
+    service_config = get_service_config(metric, namespace)
+    unified_config = list(
+        filter(lambda conf: (metric in conf.unified_metrics), service_config.unified_configs)
+    )
+    if not unified_config:
+        return None
+    return unified_config[0]
 
 
 def fetch_data(
-    payload: TrainerPayload, metric_config: dict, labels: dict, return_labels=None
+    payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 
@@ -170,7 +227,7 @@ def fetch_data(
         return_labels=return_labels,
         start=start_dt.timestamp(),
         end=end_dt.timestamp(),
-        step=metric_config["scrape_interval"],
+        step=metric_config.scrape_interval,
     )
     _LOGGER.info(
         "%s - Time taken to fetch data: %s, for df shape: %s",

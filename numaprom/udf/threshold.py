@@ -29,7 +29,9 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     )
 
     # Load config
-    metric_config = get_metric_config(payload.composite_keys["name"])
+    metric_config = get_metric_config(
+        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
+    )
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
@@ -40,7 +42,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         )
         return [
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
-            (POSTPROC_VTX_KEY, calculate_static_thresh(payload, metric_config["static_threshold"])),
+            (POSTPROC_VTX_KEY, calculate_static_thresh(payload, metric_config.static_threshold)),
         ]
 
     # load threshold artifact
@@ -59,7 +61,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
         return [
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
-            (POSTPROC_VTX_KEY, calculate_static_thresh(payload, metric_config["static_threshold"])),
+            (POSTPROC_VTX_KEY, calculate_static_thresh(payload, metric_config.static_threshold)),
         ]
 
     messages = []

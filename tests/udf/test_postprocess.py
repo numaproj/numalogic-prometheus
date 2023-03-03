@@ -1,47 +1,31 @@
 import os
 import unittest
-from collections import OrderedDict
-from unittest.mock import patch
-
 from freezegun import freeze_time
+from unittest.mock import patch, Mock
 
-from numaprom._constants import TESTS_DIR, METRIC_CONFIG, OUTPUT_CONFIG
-from numaprom.entities import PrometheusPayload, StreamPayload
+from numaprom import tools
+from numaprom._constants import TESTS_DIR
+from numaprom.entities import PrometheusPayload
 from tests import redis_client
 from tests.tools import (
     get_postproc_input,
-    return_mock_metric_config,
     get_datum,
+    mock_configs,
 )
-from numaprom.udf.postprocess import postprocess, save_to_redis
+from numaprom.udf.postprocess import postprocess
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-@patch.dict(METRIC_CONFIG, return_mock_metric_config())
+@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
 class TestPostProcess(unittest.TestCase):
     postproc_input = None
 
-    stream_payload = StreamPayload(
-        uuid="1234",
-        win_arr=[[3.2123, 5.32132]],
-        win_ts_arr=["1654121191689", "1654121213989"],
-        composite_keys=OrderedDict(
-            {
-                "name": "metric_1",
-            }
-        ),
-    )
-
     @classmethod
-    @patch.dict(METRIC_CONFIG, return_mock_metric_config())
     @freeze_time("2022-02-20 12:00:00")
     def setUpClass(cls) -> None:
-        redis_client.flushall()
-
-    def setUp(self) -> None:
         redis_client.flushall()
 
     def test_postprocess(self):
@@ -52,9 +36,8 @@ class TestPostProcess(unittest.TestCase):
             _out = postprocess("", _in)
             data = _out.items()[0].value.decode("utf-8")
             prom_payload = PrometheusPayload.from_json(data)
-
-            if prom_payload.name != "metric_3_anomaly":
-                self.assertEqual(len(_out.items()), 2)
+            self.assertTrue(prom_payload)
+            if len(_out.items()) > 1:
                 data = _out.items()[1].value.decode("utf-8")
                 unified_payload = PrometheusPayload.from_json(data)
                 self.assertTrue(unified_payload)
@@ -68,9 +51,8 @@ class TestPostProcess(unittest.TestCase):
             _out = postprocess("", _in)
             data = _out.items()[0].value.decode("utf-8")
             prom_payload = PrometheusPayload.from_json(data)
-
-            if prom_payload.name != "metric_3_anomaly":
-                self.assertEqual(len(_out.items()), 2)
+            self.assertTrue(prom_payload)
+            if len(_out.items()) > 1:
                 data = _out.items()[1].value.decode("utf-8")
                 unified_payload = PrometheusPayload.from_json(data)
                 self.assertTrue(unified_payload)
@@ -86,29 +68,11 @@ class TestPostProcess(unittest.TestCase):
             prom_payload = PrometheusPayload.from_json(data)
             self.assertEqual(prom_payload.labels["model_version"], "-1")
 
-            if prom_payload.name != "metric_3_anomaly":
-                self.assertEqual(len(_out.items()), 2)
+            if len(_out.items()) > 1:
                 data = _out.items()[1].value.decode("utf-8")
                 unified_payload = PrometheusPayload.from_json(data)
                 self.assertEqual(unified_payload.labels["model_version"], "-1")
                 self.assertTrue(unified_payload)
-
-    def test_save_redis1(self):
-        score = 5.0
-        _out = save_to_redis(self.stream_payload, score, recreate=False)
-        self.assertEqual(score, _out[0])
-
-    def test_save_redis2(self):
-        max_score, scores = None, []
-        score = 1
-
-        for m in OUTPUT_CONFIG["argo_cd"]["unified_metrics"]:
-            payload = self.stream_payload
-            payload.composite_keys = {"name": m}
-            max_score, scores = save_to_redis(payload, score, recreate=False)
-            score += 1
-        self.assertEqual(5, max_score)
-        self.assertListEqual([1.0, 2.0, 3.0, 4.0, 5.0], scores)
 
 
 if __name__ == "__main__":

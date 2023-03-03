@@ -6,13 +6,14 @@ from unittest.mock import patch, Mock
 
 from numalogic.registry import MLflowRegistry
 
-from numaprom._constants import TESTS_DIR, METRIC_CONFIG
+from numaprom import tools
+from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
 from tests.tools import (
     get_threshold_input,
-    return_mock_metric_config,
     get_datum,
     return_threshold_clf,
+    mock_configs,
 )
 
 # Make sure to import this in the end
@@ -22,7 +23,7 @@ DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-@patch.dict(METRIC_CONFIG, return_mock_metric_config())
+@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
 class TestThreshold(unittest.TestCase):
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_threshold_clf()))

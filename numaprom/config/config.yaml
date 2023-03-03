@@ -1,0 +1,45 @@
+configs:
+  - namespace: "dev-devx-o11yfuzzygqlfederation-usw2-qal"
+    metric_configs:
+      - metric: "namespace_rollout_api_error_rate"
+        composite_keys: ["namespace", "name", "hash_id"]
+        static_threshold: 3
+      - metric: "namespace_rollout_api_latency"
+        composite_keys: ["namespace", "name", "hash_id"]
+        static_threshold: 3
+    unified_configs:
+      - unified_metric_name: "namespace_rollout_api_unified_anomaly"
+        unified_metrics: ["namespace_rollout_api_error_rate", "namespace_rollout_api_latency"]
+  - namespace: "dev-devx-o11yfuzzygqlfederation-usw2-pprd"
+    metric_configs:
+      - metric: "namespace_rollout_api_error_rate"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 3
+      - metric: "namespace_rollout_api_latency"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 3
+    unified_configs:
+      - unified_metric_name: "namespace_rollout_api_unified_anomaly"
+        unified_metrics: ["namespace_rollout_api_error_rate", "namespace_rollout_api_latency"]
+  - namespace: "dev-devx-o11yfuzzygqlfederation-usw2-stg"
+    metric_configs:
+      - metric: "namespace_rollout_api_error_rate"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 3
+      - metric: "namespace_rollout_api_latency"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 3
+    unified_configs:
+      - unified_metric_name: "namespace_rollout_api_unified_anomaly"
+        unified_metrics: ["namespace_rollout_api_error_rate", "namespace_rollout_api_latency"]
+  - namespace: "dev-devx-o11yfuzzygqlfederation-usw2-prd"
+    metric_configs:
+      - metric: "namespace_rollout_api_error_rate"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 3
+      - metric: "namespace_rollout_api_latency"
+        composite_keys: [ "namespace", "name", "hash_id"]
+        static_threshold: 3
+    unified_configs:
+    - unified_metric_name: "namespace_rollout_api_unified_anomaly"
+      unified_metrics: ["namespace_rollout_api_error_rate", "namespace_rollout_api_latency"]

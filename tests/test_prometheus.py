@@ -1,14 +1,9 @@
-import os
 import requests
 import datetime
 import unittest
 from unittest.mock import patch, Mock, MagicMock
 
-from numaprom._constants import TESTS_DIR
 from numaprom.prometheus import Prometheus
-
-DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
-STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 def mock_query_range(*_, **__):

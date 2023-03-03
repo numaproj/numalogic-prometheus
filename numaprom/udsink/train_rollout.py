@@ -58,10 +58,10 @@ def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataF
     return df
 
 
-def _train_model(uuid, x, model_config):
+def _train_model(uuid, x, anomaly_model):
     _start_train = time.perf_counter()
 
-    win_size = model_config["win_size"]
+    win_size = anomaly_model.conf["seq_len"]
     dataset = StreamingDataset(x, win_size)
     model = SparseVanillaAE(seq_len=win_size)
 
@@ -118,9 +118,11 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        metric_config = get_metric_config(payload.composite_keys["name"])
-        model_config = metric_config["model_config"]
-        win_size = model_config["win_size"]
+        metric_config = get_metric_config(
+            metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
+        )
+        anomaly_model = metric_config.numalogic_conf.model
+        win_size = anomaly_model.conf["seq_len"]
 
         train_df = fetch_data(
             payload,
@@ -137,7 +139,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        if len(train_df) < model_config["win_size"]:
+        if len(train_df) < win_size:
             _LOGGER.info(
                 "%s - Skipping training since traindata size: %s is less than winsize: %s",
                 payload.uuid,
@@ -148,7 +150,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             continue
 
         x_train, preproc_clf = _preprocess(train_df.to_numpy())
-        x_reconerr, model = _train_model(payload.uuid, x_train, model_config)
+        x_reconerr, model = _train_model(payload.uuid, x_train, anomaly_model)
         thresh_clf = _find_threshold(x_reconerr)
 
         # TODO change this to just use **composite_keys
@@ -162,7 +164,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             "%s - Preproc model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
 
-        version = save_model(skeys=skeys, dkeys=[model_config["model_name"]], model=model)
+        version = save_model(skeys=skeys, dkeys=[anomaly_model.name], model=model)
         _LOGGER.info(
             "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
