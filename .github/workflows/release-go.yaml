@@ -25,14 +25,14 @@ jobs:
         env:
           QUAYIO_ORG: quay.io/numaio
           PLATFORM: linux/x86_64
-          TARGET: numalogic-prometheus/prometheus-serde
+          TARGET: numalogic-prometheus/udf/prometheus-serde
         run: |
           tag=$(basename $GITHUB_REF)
           if [ $tag = "master" ]; then
             tag="latest"
           fi
           
-          image_name="${DOCKERIO_ORG}/numalogic-prometheus/prometheus-serde:${tag}"
+          image_name="${QUAYIO_ORG}/numalogic-prometheus/udf/prometheus-serde:${tag}"
           
           cd prometheus-serde
           docker buildx build \
