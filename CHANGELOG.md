@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.0a0 (2023-03-03)
+
+ * [e588837](https://github.com/numaproj/numalogic-prometheus/commit/e58883799a34c34b190b3e114e95be18c7ba4957) feat: config driven aiops (#90)
+
+### Contributors
+
+ * Nandita Koppisetty
+
 ## v0.1.5a8 (2023-02-28)
 
  * [a8eb36e](https://github.com/numaproj/numalogic-prometheus/commit/a8eb36e5d5d9be2c3e4bdeed2e1d091d8ad2420e) fix: Fix the quay.io repo (#88)
