@@ -25,7 +25,8 @@ class MetricConf:
 
 
 @dataclass
-class NamespaceConf:
+class ServiceConf:
+    service: str = "default"
     namespace: str = "default"
     metric_configs: List[MetricConf] = field(default_factory=lambda: [MetricConf()])
     unified_configs: List[UnifiedConf] = field(default_factory=list)
@@ -33,4 +34,4 @@ class NamespaceConf:
 
 @dataclass
 class NumapromConf:
-    configs: List[NamespaceConf]
+    configs: List[ServiceConf]

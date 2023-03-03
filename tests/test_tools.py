@@ -8,7 +8,7 @@ from numaprom._constants import TESTS_DIR
 from numaprom.tools import (
     is_host_reachable,
     get_metric_config,
-    get_namespace_config,
+    get_service_config,
     get_unified_config,
 )
 from tests.tools import mock_configs
@@ -53,30 +53,28 @@ class TestTools(unittest.TestCase):
         self.assertTrue(metric_config)
         self.assertEqual(metric_config.metric, "default")
 
-    def test_get_namespace_config(self):
+    def test_get_service_config(self):
         # from given config
-        namespace_config = get_namespace_config(
+        service_config = get_service_config(
             metric="rollout_latency", namespace="sandbox_numalogic_demo1"
         )
-        self.assertTrue(namespace_config)
-        self.assertEqual(namespace_config.namespace, "sandbox_numalogic_demo1")
+        self.assertTrue(service_config)
+        self.assertEqual(service_config.namespace, "sandbox_numalogic_demo1")
 
         # from given default config
-        namespace_config = get_namespace_config(
+        service_config = get_service_config(
             metric="namespace_argo_rollout_error_rate", namespace="abc"
         )
-        self.assertTrue(namespace_config)
-        self.assertEqual(namespace_config.namespace, "default-rollout")
-        namespace_config = get_namespace_config(
-            metric="namespace_argo_cd_error_rate", namespace="abc"
-        )
-        self.assertTrue(namespace_config)
-        self.assertEqual(namespace_config.namespace, "default-argocd")
+        self.assertTrue(service_config)
+        self.assertEqual(service_config.namespace, "default-rollout")
+        service_config = get_service_config(metric="namespace_argo_cd_error_rate", namespace="abc")
+        self.assertTrue(service_config)
+        self.assertEqual(service_config.namespace, "default-argocd")
 
         # default config
-        namespace_config = get_namespace_config(metric="random", namespace="abc")
-        self.assertTrue(namespace_config)
-        self.assertEqual(namespace_config.namespace, "default")
+        service_config = get_service_config(metric="random", namespace="abc")
+        self.assertTrue(service_config)
+        self.assertEqual(service_config.namespace, "default")
 
     def test_get_unified_config(self):
         # from given config

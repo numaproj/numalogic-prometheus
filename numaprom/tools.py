@@ -20,7 +20,7 @@ from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger
 from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR
-from numaprom.config._config import MetricConf, NamespaceConf, NumapromConf, UnifiedConf
+from numaprom.config._config import MetricConf, ServiceConf, NumapromConf, UnifiedConf
 from numaprom.entities import TrainerPayload, Status, Header, StreamPayload
 from numaprom.prometheus import Prometheus
 
@@ -163,47 +163,47 @@ def get_all_configs():
     return given_configs, default_configs, default_numalogic
 
 
-def get_namespace_config(metric: str, namespace: str):
+def get_service_config(metric: str, namespace: str):
     given_configs, default_configs, default_numalogic = get_all_configs()
 
     # search and load from given configs
-    namespace_config = list(filter(lambda conf: (conf.namespace == namespace), given_configs))
+    service_config = list(filter(lambda conf: (conf.namespace == namespace), given_configs))
 
     # if not search and load from default configs
-    if not namespace_config:
+    if not service_config:
         for _conf in default_configs:
             if metric in _conf.unified_configs[0].unified_metrics:
-                namespace_config = [_conf]
+                service_config = [_conf]
                 break
 
     # if not in default configs, initialize Namespace conf with default values
-    if not namespace_config:
-        namespace_config = OmegaConf.structured(NamespaceConf)
+    if not service_config:
+        service_config = OmegaConf.structured(ServiceConf)
     else:
-        namespace_config = namespace_config[0]
+        service_config = service_config[0]
 
     # loading and setting default numalogic config
-    for metric_config in namespace_config.metric_configs:
+    for metric_config in service_config.metric_configs:
         if OmegaConf.is_missing(metric_config, "numalogic_conf"):
             metric_config.numalogic_conf = default_numalogic
 
-    return namespace_config
+    return service_config
 
 
 def get_metric_config(metric: str, namespace: str) -> Optional[MetricConf]:
-    namespace_config = get_namespace_config(metric, namespace)
+    service_config = get_service_config(metric, namespace)
     metric_config = list(
-        filter(lambda conf: (conf.metric == metric), namespace_config.metric_configs)
+        filter(lambda conf: (conf.metric == metric), service_config.metric_configs)
     )
     if not metric_config:
-        return namespace_config.metric_configs[0]
+        return service_config.metric_configs[0]
     return metric_config[0]
 
 
 def get_unified_config(metric: str, namespace: str) -> Optional[UnifiedConf]:
-    namespace_config = get_namespace_config(metric, namespace)
+    service_config = get_service_config(metric, namespace)
     unified_config = list(
-        filter(lambda conf: (metric in conf.unified_metrics), namespace_config.unified_configs)
+        filter(lambda conf: (metric in conf.unified_metrics), service_config.unified_configs)
     )
     if not unified_config:
         return None
