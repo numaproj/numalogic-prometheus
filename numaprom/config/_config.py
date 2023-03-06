@@ -18,6 +18,7 @@ class MetricConf:
     metric: str = "default"
     composite_keys: List[str] = field(default_factory=lambda: ["namespace", "name"])
     static_threshold: int = 3
+    static_threshold_wt: float = 0.6
     scrape_interval: int = 30
     retrain_freq_hr: int = 8
     resume_training: bool = False
