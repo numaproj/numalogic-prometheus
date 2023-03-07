@@ -24,7 +24,7 @@ HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
-MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 1000))
+MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
@@ -83,7 +83,7 @@ def _preprocess(x_raw):
 
 
 def _find_threshold(x_reconerr):
-    clf = StdDevThreshold()
+    clf = StdDevThreshold(std_factor=5)
     clf.fit(x_reconerr)
     return clf
 

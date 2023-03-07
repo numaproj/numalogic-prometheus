@@ -21,7 +21,7 @@ classifiers = [
 python = ">=3.9, <3.11"
 redis = "^4.3.1"
 pynumaflow = "~0.2.6"
-numalogic = {version = "~0.3.3", extras = ["mlflow"]}
+numalogic = {version = "~0.3.4", extras = ["mlflow"]}
 boto3 = "^1.25.2"
 orjson = "^3.8.4"
 omegaconf = "^2.3.0"
