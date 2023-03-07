@@ -53,16 +53,19 @@ def _train_model(uuid, x, model_info, trainer_cfg):
 
 
 def _preprocess(x_raw, preproc_cfg: List[ModelInfo]):
-    clf = StandardScaler()
     preproc_factory = PreprocessFactory()
-    preproc_clfs = []
-    for _cfg in preproc_cfg:
-        _clf = preproc_factory.get_instance(_cfg)
-        preproc_clfs.append(_clf)
-    preproc_pl = make_pipeline(*preproc_clfs)
 
-    x_scaled = preproc_pl.fit_transform(x_raw)
-    return x_scaled, clf
+    if len(preproc_cfg) > 1:
+        preproc_clfs = []
+        for _cfg in preproc_cfg:
+            _clf = preproc_factory.get_instance(_cfg)
+            preproc_clfs.append(_clf)
+        preproc_clf = make_pipeline(*preproc_clfs)
+    else:
+        preproc_clf = preproc_factory.get_instance(preproc_cfg[0])
+
+    x_scaled = preproc_clf.fit_transform(x_raw)
+    return x_scaled, preproc_clf
 
 
 def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):

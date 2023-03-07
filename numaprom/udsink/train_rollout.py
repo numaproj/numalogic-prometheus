@@ -5,7 +5,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory
+from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
 from numalogic.tools.data import StreamingDataset
@@ -78,7 +78,6 @@ def _train_model(uuid, x, model_info, trainer_cfg):
 
 
 def _preprocess(x_raw, preproc_cfg: List[ModelInfo]):
-    clf = StandardScaler()
     preproc_factory = PreprocessFactory()
     preproc_clfs = []
     for _cfg in preproc_cfg:
@@ -87,7 +86,7 @@ def _preprocess(x_raw, preproc_cfg: List[ModelInfo]):
     preproc_pl = make_pipeline(*preproc_clfs)
 
     x_scaled = preproc_pl.fit_transform(x_raw)
-    return x_scaled, clf
+    return x_scaled, preproc_pl
 
 
 def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
@@ -131,8 +130,8 @@ def train_rollout(datums: List[Datum]) -> Responses:
             metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
         )
 
-        model_info = metric_config.numalogic_conf.model
-        win_size = model_info.conf["seq_len"]
+        model_factory = ModelFactory()
+        model_info = model_factory.get_instance(metric_config.numalogic_conf.model)
 
         train_df = fetch_data(
             payload,
@@ -149,12 +148,12 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        if len(train_df) < win_size:
+        if len(train_df) < model_info.seq_len:
             _LOGGER.info(
                 "%s - Skipping training since traindata size: %s is less than winsize: %s",
                 payload.uuid,
                 train_df.shape,
-                win_size,
+                model_info.seq_len,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -179,7 +178,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             "%s - Preproc model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
 
-        version = save_model(skeys=skeys, dkeys=[model_info.name], model=model)
+        version = save_model(skeys=skeys, dkeys=[model.name], model=model)
         _LOGGER.info(
             "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
