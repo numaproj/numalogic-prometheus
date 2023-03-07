@@ -4,6 +4,7 @@ configs:
       - metric: "rollout_error_rate"
         composite_keys: [ "namespace", "name", "hash_id" ]
         static_threshold: 3
+        static_threshold_wt: 0.6
       - metric: "rollout_latency"
         composite_keys: [ "namespace", "name", "hash_id" ]
         static_threshold: 3
@@ -15,6 +16,7 @@ configs:
       - metric: "rollout_error_rate"
         composite_keys: [ "namespace", "name", "hash_id" ]
         static_threshold: 3
+        static_threshold_wt: 0.7
       - metric: "rollout_latency"
         composite_keys: [ "namespace", "name", "hash_id" ]
         static_threshold: 3

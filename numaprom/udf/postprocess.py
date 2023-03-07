@@ -10,7 +10,7 @@ from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from numaprom import get_logger
-from numaprom.config._config import UnifiedConf
+from numaprom.config import UnifiedConf, MetricConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.redis import get_redis_client
 from numaprom.tools import msgs_forward, get_unified_config, get_metric_config
@@ -22,7 +22,7 @@ PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
-def save_to_redis(
+def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
     r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
@@ -130,12 +130,12 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         return [publisher_json]
 
     try:
-        max_anomaly, anomalies = save_to_redis(
+        max_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=False, unified_config=unified_config
         )
     except RedisConnectionError:
         _LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
-        max_anomaly, anomalies = save_to_redis(
+        max_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
 
@@ -148,7 +148,7 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
     return [publisher_json]
 
 
-def calculate_ensemble_score(payload: StreamPayload) -> float:
+def _calculate_ensemble_score(payload: StreamPayload, metric_config: MetricConf) -> float:
     # Load config
     metric_config = get_metric_config(
         metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
@@ -184,29 +184,64 @@ def calculate_ensemble_score(payload: StreamPayload) -> float:
     return ensemble_score
 
 
+def _calculate_score(payload: StreamPayload) -> float:
+    raw_scores = payload.get_stream_array()
+    raw_mean_score = np.mean(raw_scores)
+
+    postproc_clf = TanhNorm()
+    return postproc_clf.transform(raw_mean_score)
+
+
 @msgs_forward
 def postprocess(_: str, datum: Datum) -> List[bytes]:
+    """
+    UDF for performing the following steps:
+
+    1. Postprocess the raw scores, e.g. bring the scores into a range of 0 - 10
+    2. Calculate a unified anomaly score by combining multiple metrics
+    3. Construct and publish a Prometheus Payload object
+    """
     _start_time = time.perf_counter()
 
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
+    # Load config
+    metric_config = get_metric_config(
+        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
+    )
+
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 
-    print(payload.header)
     # Use only using static thresholding
     if payload.header == Header.STATIC_INFERENCE:
-        raw_scores = payload.get_stream_array()
-        raw_mean_score = np.mean(raw_scores)
+        final_score = _calculate_score(payload)
+        _LOGGER.info(
+            "%s - Final static threshold score: %s, keys: %s",
+            payload.uuid,
+            final_score,
+            payload.composite_keys,
+        )
 
-        postproc_clf = TanhNorm()
-        final_score = postproc_clf.transform(raw_mean_score)
-        _LOGGER.info("%s - Final static threshold score: %s", payload.uuid, final_score)
+    # Compute ensemble score if there is a valid weight for static threshold
+    elif metric_config.static_threshold_wt:
+        final_score = _calculate_ensemble_score(payload, metric_config)
+        _LOGGER.info(
+            "%s - Final ensemble score: %s, keys: %s",
+            payload.uuid,
+            final_score,
+            payload.composite_keys,
+        )
 
-    # Compute ensemble score if model score exists
+    # Compute model score otherwise
     else:
-        final_score = calculate_ensemble_score(payload)
-        _LOGGER.info("%s - Final ensemble score: %s", payload.uuid, final_score)
+        final_score = _calculate_score(payload)
+        _LOGGER.info(
+            "%s - Final model score: %s, keys: %s",
+            payload.uuid,
+            final_score,
+            payload.composite_keys,
+        )
 
     payload.set_status(Status.POST_PROCESSED)
     _LOGGER.debug(

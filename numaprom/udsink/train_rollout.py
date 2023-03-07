@@ -8,10 +8,10 @@ import pandas as pd
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
 from numalogic.models.threshold import StdDevThreshold
+from numalogic.preprocess import TanhScaler
 from numalogic.tools.data import StreamingDataset
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
-from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
 from numaprom.entities import TrainerPayload
@@ -77,7 +77,7 @@ def _train_model(uuid, x, anomaly_model):
 
 
 def _preprocess(x_raw):
-    clf = StandardScaler()
+    clf = TanhScaler()
     x_scaled = clf.fit_transform(x_raw)
     return x_scaled, clf
 
