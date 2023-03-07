@@ -1,4 +1,3 @@
-import logging
 import os
 import time
 from typing import List
@@ -7,8 +6,8 @@ import numpy as np
 import pandas as pd
 from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
-from numalogic.models.autoencoder.variants import SparseVanillaAE
 from numalogic.tools.data import StreamingDataset
+from numaprom import get_logger
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
@@ -18,7 +17,7 @@ from numaprom.entities import TrainerPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model, fetch_data
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
@@ -58,12 +57,12 @@ def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataF
     return df
 
 
-def _train_model(uuid, x, model_info, trainer_cfg):
+def _train_model(uuid, x, model_cfg, trainer_cfg):
     _start_train = time.perf_counter()
 
-    win_size = model_info.conf["seq_len"]
-    dataset = StreamingDataset(x, win_size)
-    model = SparseVanillaAE(seq_len=win_size)
+    model_factory = ModelFactory()
+    model = model_factory.get_instance(model_cfg)
+    dataset = StreamingDataset(x, model.seq_len)
 
     trainer = AutoencoderTrainer(**trainer_cfg)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
@@ -129,8 +128,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
         )
 
-        model_factory = ModelFactory()
-        model_info = model_factory.get_instance(metric_config.numalogic_conf.model)
+        model_cfg = metric_config.numalogic_conf.model
 
         train_df = fetch_data(
             payload,
@@ -147,12 +145,12 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        if len(train_df) < model_info.seq_len:
+        if len(train_df) < model_cfg.conf["seq_len"]:
             _LOGGER.info(
                 "%s - Skipping training since traindata size: %s is less than winsize: %s",
                 payload.uuid,
                 train_df.shape,
-                model_info.seq_len,
+                model_cfg.conf["seq_len"],
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -161,7 +159,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         x_train, preproc_clf = _preprocess(train_df.to_numpy(), preproc_cfg)
 
         trainer_cfg = metric_config.numalogic_conf.trainer
-        x_reconerr, model = _train_model(payload.uuid, x_train, model_info, trainer_cfg)
+        x_reconerr, anomaly_model = _train_model(payload.uuid, x_train, model_cfg, trainer_cfg)
 
         thresh_cfg = metric_config.numalogic_conf.threshold
         thresh_clf = _find_threshold(x_reconerr, thresh_cfg)
@@ -177,7 +175,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             "%s - Preproc model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
 
-        version = save_model(skeys=skeys, dkeys=[model.name], model=model)
+        version = save_model(skeys=skeys, dkeys=[model_cfg.name], model=anomaly_model)
         _LOGGER.info(
             "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
