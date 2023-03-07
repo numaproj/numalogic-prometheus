@@ -12,7 +12,6 @@ from numalogic.tools.data import StreamingDataset
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
 from numaprom.entities import TrainerPayload
