@@ -3,17 +3,20 @@ import time
 from typing import List
 
 import numpy as np
-from numalogic.config import PostprocessFactory
-from numalogic.models.threshold import StaticThreshold
 from orjson import orjson
 from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from numaprom import get_logger
-from numaprom.config import UnifiedConf, MetricConf
+from numaprom.config import UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.redis import get_redis_client
-from numaprom.tools import msgs_forward, get_unified_config, get_metric_config
+from numaprom.tools import (
+    msgs_forward,
+    get_unified_config,
+    get_metric_config,
+    WindowScorer,
+)
 
 _LOGGER = get_logger(__name__)
 
@@ -148,47 +151,6 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
     return [publisher_json]
 
 
-def _calculate_ensemble_score(payload: StreamPayload, metric_conf: MetricConf) -> float:
-    # Get static scores
-    static_clf = StaticThreshold(upper_limit=metric_conf.static_threshold)
-    static_scores = static_clf.score_samples(payload.get_stream_array())
-    mean_static_score = np.mean(static_scores)
-
-    # Get model scores
-    model_scores = payload.get_stream_array()
-    mean_model_score = np.mean(model_scores)
-
-    # Perform score normalization
-    postproc_factory = PostprocessFactory()
-    postproc_clf = postproc_factory.get_instance(metric_conf.numalogic_conf.postprocess)
-    norm_static_score = postproc_clf.transform(mean_static_score)
-    norm_model_score = postproc_clf.transform(mean_model_score)
-
-    # Calculate ensemble score
-    static_wt = metric_conf.static_threshold_wt
-    model_wt = 1.0 - metric_conf.static_threshold_wt
-    ensemble_score = (static_wt * norm_static_score) + (model_wt * norm_model_score)
-
-    _LOGGER.debug(
-        "%s - Model score: %s, Static score: %s, Static wt: %s",
-        payload.uuid,
-        norm_model_score,
-        norm_static_score,
-        static_wt,
-    )
-
-    return ensemble_score
-
-
-def _calculate_score(payload: StreamPayload, metric_conf: MetricConf) -> float:
-    raw_scores = payload.get_stream_array()
-    raw_mean_score = np.mean(raw_scores)
-
-    postproc_factory = PostprocessFactory()
-    postproc_clf = postproc_factory.get_instance(metric_conf.numalogic_conf.postprocess)
-    return postproc_clf.transform(raw_mean_score)
-
-
 @msgs_forward
 def postprocess(_: str, datum: Datum) -> List[bytes]:
     """
@@ -210,9 +172,11 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 
+    winscorer = WindowScorer(metric_config)
+
     # Use only using static thresholding
     if payload.header == Header.STATIC_INFERENCE:
-        final_score = _calculate_score(payload, metric_config)
+        final_score = winscorer.get_winscore(payload)
         _LOGGER.info(
             "%s - Final static threshold score: %s, keys: %s",
             payload.uuid,
@@ -222,7 +186,7 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
 
     # Compute ensemble score otherwise
     else:
-        final_score = _calculate_ensemble_score(payload, metric_config)
+        final_score = winscorer.get_final_winscore(payload)
         _LOGGER.info(
             "%s - Final ensemble score: %s, static thresh wt: %s, keys: %s",
             payload.uuid,

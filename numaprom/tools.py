@@ -7,21 +7,21 @@ from functools import wraps
 from json import JSONDecodeError
 from typing import Optional, Sequence, List
 
+import numpy as np
 import pandas as pd
 import pytz
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
-from numalogic.config import NumalogicConf
+from numalogic.config import NumalogicConf, PostprocessFactory
 from numalogic.models.threshold import StaticThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
 from omegaconf import OmegaConf
-from orjson import orjson
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger
 from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR
 from numaprom.config._config import MetricConf, ServiceConf, NumapromConf, UnifiedConf
-from numaprom.entities import TrainerPayload, Status, Header, StreamPayload
+from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.prometheus import Prometheus
 
 _LOGGER = get_logger(__name__)
@@ -238,18 +238,95 @@ def fetch_data(
     return df
 
 
-def calculate_static_thresh(payload: StreamPayload, upper_limit: float) -> bytes:
+def calculate_static_thresh(payload: StreamPayload, upper_limit: float):
     """
-    Calculates static thresholding, and returns a serialized json bytes payload.
+    Calculates anomaly scores using static thresholding.
     """
-    x = payload.get_stream_array()
+    x = payload.get_stream_array(original=True)
     static_clf = StaticThreshold(upper_limit=upper_limit)
     static_scores = static_clf.score_samples(x)
+    return static_scores
 
-    payload.set_win_arr(static_scores)
-    payload.set_header(Header.STATIC_INFERENCE)
-    payload.set_status(Status.ARTIFACT_NOT_FOUND)
-    payload.set_metadata("version", -1)
 
-    _LOGGER.info("%s - Static thresholding complete for payload: %s", payload.uuid, payload)
-    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+class WindowScorer:
+    """
+    Class to calculate the final anomaly scores for the window.
+
+    Args:
+        metric_conf: MetricConf instance
+    """
+
+    __slots__ = ("static_wt", "model_wt", "postproc_clf")
+
+    def __init__(self, metric_conf: MetricConf):
+        self.static_wt = metric_conf.static_threshold_wt
+        self.model_wt = 1.0 - self.static_wt
+
+        postproc_factory = PostprocessFactory()
+        self.postproc_clf = postproc_factory.get_instance(metric_conf.numalogic_conf.postprocess)
+
+    def get_final_winscore(self, payload: StreamPayload) -> float:
+        """
+        Returns the final normalized window score.
+
+        Performs soft voting ensembling if valid static threshold
+        weight found in config.
+
+        Args:
+            payload: StreamPayload instance
+
+        Returns:
+            Final score for the window
+        """
+        norm_winscore = self.get_winscore(payload)
+
+        if not self.static_wt:
+            return norm_winscore
+
+        norm_static_winscore = self.get_static_winscore(payload)
+        ensemble_score = (self.static_wt * norm_static_winscore) + (self.model_wt * norm_winscore)
+
+        _LOGGER.debug(
+            "%s - Model score: %s, Static score: %s, Static wt: %s",
+            payload.uuid,
+            norm_winscore,
+            norm_static_winscore,
+            self.static_wt,
+        )
+
+        return ensemble_score
+
+    def get_static_winscore(self, payload: StreamPayload) -> float:
+        """
+        Returns the normalized window score
+        calculated using the static threshold estimator.
+
+        Args:
+            payload: StreamPayload instance
+
+        Returns:
+            Score for the window
+        """
+        static_scores = calculate_static_thresh(payload, self.static_wt)
+        static_winscore = np.mean(static_scores)
+        return self.postproc_clf.transform(static_winscore)
+
+    def get_winscore(self, payload: StreamPayload):
+        """
+        Returns the normalized window score
+
+        Args:
+            payload: StreamPayload instance
+
+        Returns:
+            Score for the window
+        """
+        scores = payload.get_stream_array()
+        winscore = np.mean(scores)
+        return self.postproc_clf.transform(winscore)
+
+    def adjust_weights(self):
+        """
+        Adjust the soft voting weights depending on the streaming input.
+        """
+        raise NotImplementedError
