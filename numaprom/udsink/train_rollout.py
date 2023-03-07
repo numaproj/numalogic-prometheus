@@ -5,12 +5,13 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
-from numalogic.models.threshold import StdDevThreshold
 from numalogic.tools.data import StreamingDataset
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
@@ -58,14 +59,14 @@ def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataF
     return df
 
 
-def _train_model(uuid, x, anomaly_model):
+def _train_model(uuid, x, model_info, trainer_cfg):
     _start_train = time.perf_counter()
 
-    win_size = anomaly_model.conf["seq_len"]
+    win_size = model_info.conf["seq_len"]
     dataset = StreamingDataset(x, win_size)
     model = SparseVanillaAE(seq_len=win_size)
 
-    trainer = AutoencoderTrainer(max_epochs=40)
+    trainer = AutoencoderTrainer(**trainer_cfg)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
     _LOGGER.debug(
@@ -76,16 +77,24 @@ def _train_model(uuid, x, anomaly_model):
     return train_reconerr.numpy(), model
 
 
-def _preprocess(x_raw):
+def _preprocess(x_raw, preproc_cfg: List[ModelInfo]):
     clf = StandardScaler()
-    x_scaled = clf.fit_transform(x_raw)
+    preproc_factory = PreprocessFactory()
+    preproc_clfs = []
+    for _cfg in preproc_cfg:
+        _clf = preproc_factory.get_instance(_cfg)
+        preproc_clfs.append(_clf)
+    preproc_pl = make_pipeline(*preproc_clfs)
+
+    x_scaled = preproc_pl.fit_transform(x_raw)
     return x_scaled, clf
 
 
-def _find_threshold(x_reconerr):
-    clf = StdDevThreshold()
-    clf.fit(x_reconerr)
-    return clf
+def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
+    thresh_factory = ThresholdFactory()
+    thresh_clf = thresh_factory.get_instance(thresh_cfg)
+    thresh_clf.fit(x_reconerr)
+    return thresh_clf
 
 
 def _is_new_request(payload: TrainerPayload) -> bool:
@@ -121,8 +130,9 @@ def train_rollout(datums: List[Datum]) -> Responses:
         metric_config = get_metric_config(
             metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
         )
-        anomaly_model = metric_config.numalogic_conf.model
-        win_size = anomaly_model.conf["seq_len"]
+
+        model_info = metric_config.numalogic_conf.model
+        win_size = model_info.conf["seq_len"]
 
         train_df = fetch_data(
             payload,
@@ -149,9 +159,14 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        x_train, preproc_clf = _preprocess(train_df.to_numpy())
-        x_reconerr, model = _train_model(payload.uuid, x_train, anomaly_model)
-        thresh_clf = _find_threshold(x_reconerr)
+        preproc_cfg = metric_config.numalogic_conf.preprocess
+        x_train, preproc_clf = _preprocess(train_df.to_numpy(), preproc_cfg)
+
+        trainer_cfg = metric_config.numalogic_conf.trainer
+        x_reconerr, model = _train_model(payload.uuid, x_train, model_info, trainer_cfg)
+
+        thresh_cfg = metric_config.numalogic_conf.threshold
+        thresh_clf = _find_threshold(x_reconerr, thresh_cfg)
 
         # TODO change this to just use **composite_keys
         skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
@@ -164,7 +179,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             "%s - Preproc model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
 
-        version = save_model(skeys=skeys, dkeys=[anomaly_model.name], model=model)
+        version = save_model(skeys=skeys, dkeys=[model_info.name], model=model)
         _LOGGER.info(
             "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
         )
