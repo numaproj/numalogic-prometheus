@@ -28,7 +28,7 @@ MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
 # TODO avoid filling inf with nan, or at least throw warning
-def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
+def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
@@ -46,14 +46,6 @@ def clean_data(uuid: str, df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataF
     df.set_index("timestamp", inplace=True)
     df.drop(hash_col, axis=1, inplace=True)
     df = df.sort_values(by=["timestamp"], ascending=True)
-    if len(df) < MIN_TRAIN_SIZE:
-        _LOGGER.error(
-            "%s - Train data less than minimum required: %s, df shape: %s",
-            uuid,
-            MIN_TRAIN_SIZE,
-            df.shape,
-        )
-        return pd.DataFrame()
     return df
 
 
@@ -137,7 +129,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             return_labels=["hash_id"],
         )
         try:
-            train_df = clean_data(payload.uuid, train_df, "hash_id")
+            train_df = clean_data(train_df, "hash_id")
         except KeyError:
             _LOGGER.error(
                 "%s - KeyError while data cleaning for train payload: %s", payload.uuid, payload
@@ -145,8 +137,14 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        if train_df.empty:
-            _LOGGER.warning("%s - Skipping training since train data is empty", payload.uuid)
+        if len(train_df) < MIN_TRAIN_SIZE:
+            _LOGGER.warning(
+                "%s - Skipping training, train data less than minimum required: %s, df shape: %s",
+                payload.uuid,
+                MIN_TRAIN_SIZE,
+                train_df.shape,
+            )
+            responses.append(Response.as_success(_datum.id))
             continue
 
         preproc_cfg = metric_config.numalogic_conf.preprocess

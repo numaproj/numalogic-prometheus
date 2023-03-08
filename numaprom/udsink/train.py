@@ -26,20 +26,12 @@ EXPIRY = int(os.getenv("REDIS_EXPIRY", 300))
 MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
 
-def clean_data(uuid: str, df: pd.DataFrame, limit=12) -> pd.DataFrame:
+def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
     if df.columns[df.isna().any()].tolist():
         df.dropna(inplace=True)
-    if len(df) < MIN_TRAIN_SIZE:
-        _LOGGER.error(
-            "%s - Train data less than minimum required: %s, df shape: %s",
-            uuid,
-            MIN_TRAIN_SIZE,
-            df.shape,
-        )
-        return pd.DataFrame()
     return df
 
 
@@ -119,10 +111,16 @@ def train(datums: List[Datum]) -> Responses:
         train_df = fetch_data(
             payload, metric_config, {"namespace": payload.composite_keys["namespace"]}
         )
-        train_df = clean_data(payload.uuid, train_df)
+        train_df = clean_data(train_df)
 
-        if train_df.empty:
-            _LOGGER.warning("%s - Skipping training since train data is empty", payload.uuid)
+        if len(train_df) < MIN_TRAIN_SIZE:
+            _LOGGER.warning(
+                "%s - Skipping training, train data less than minimum required: %s, df shape: %s",
+                payload.uuid,
+                MIN_TRAIN_SIZE,
+                train_df.shape,
+            )
+            responses.append(Response.as_success(_datum.id))
             continue
 
         preproc_cfg = metric_config.numalogic_conf.preprocess
