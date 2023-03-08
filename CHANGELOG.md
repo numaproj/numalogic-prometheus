@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.0a2 (2023-03-08)
+
+ * [f77c4d9](https://github.com/numaproj/numalogic-prometheus/commit/f77c4d96f656a206e9a955a088f2dc24c96fa71f) feat: config driven trainers (#93)
+
+### Contributors
+
+ * Nandita Koppisetty
+
+
 ## v0.2.0a1 (2023-03-07)
 
  * [cf3b80a](https://github.com/numaproj/numalogic-prometheus/commit/cf3b80a28128bcd0b7a8b1fedbd3d2decda8aaf5) feat: ensemble scoring (#92)
