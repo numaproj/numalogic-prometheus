@@ -1,18 +1,18 @@
 import os
 import time
-from typing import List
-
 import numpy as np
 import pandas as pd
-from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
-from numalogic.models.autoencoder import AutoencoderTrainer
-from numalogic.tools.data import StreamingDataset
-from numaprom import get_logger
+from typing import List
 from orjson import orjson
-from pynumaflow.sink import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 
+from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
+from numalogic.models.autoencoder import AutoencoderTrainer
+from numalogic.tools.data import StreamingDataset
+from pynumaflow.sink import Datum, Responses, Response
+
+from numaprom import get_logger
 from numaprom.entities import TrainerPayload
 from numaprom.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model, fetch_data
@@ -23,14 +23,23 @@ HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 EXPIRY = int(os.getenv("REDIS_EXPIRY", 300))
+MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
 
-def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
+def clean_data(uuid: str, df: pd.DataFrame, limit=12) -> pd.DataFrame:
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
     if df.columns[df.isna().any()].tolist():
         df.dropna(inplace=True)
+    if len(df) < MIN_TRAIN_SIZE:
+        _LOGGER.error(
+            "%s - Train data less than minimum required: %s, df shape: %s",
+            uuid,
+            MIN_TRAIN_SIZE,
+            df.shape,
+        )
+        return pd.DataFrame()
     return df
 
 
@@ -110,16 +119,10 @@ def train(datums: List[Datum]) -> Responses:
         train_df = fetch_data(
             payload, metric_config, {"namespace": payload.composite_keys["namespace"]}
         )
-        train_df = clean_data(train_df)
+        train_df = clean_data(payload.uuid, train_df)
 
-        if len(train_df) < model_cfg.conf["seq_len"]:
-            _LOGGER.info(
-                "%s - Skipping training since traindata size: %s is less than winsize: %s",
-                payload.uuid,
-                train_df.shape,
-                model_cfg.conf["seq_len"],
-            )
-            responses.append(Response.as_success(_datum.id))
+        if train_df.empty:
+            _LOGGER.info("%s - Skipping training since train data is empty", payload.uuid)
             continue
 
         preproc_cfg = metric_config.numalogic_conf.preprocess

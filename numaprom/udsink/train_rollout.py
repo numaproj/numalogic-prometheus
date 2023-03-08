@@ -145,14 +145,8 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        if len(train_df) < model_cfg.conf["seq_len"]:
-            _LOGGER.info(
-                "%s - Skipping training since traindata size: %s is less than winsize: %s",
-                payload.uuid,
-                train_df.shape,
-                model_cfg.conf["seq_len"],
-            )
-            responses.append(Response.as_success(_datum.id))
+        if train_df.empty:
+            _LOGGER.info("%s - Skipping training since train data is empty", payload.uuid)
             continue
 
         preproc_cfg = metric_config.numalogic_conf.preprocess
