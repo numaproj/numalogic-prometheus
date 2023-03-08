@@ -8,6 +8,7 @@
 
  * Nandita Koppisetty
 
+
 ## v0.2.0a1 (2023-03-07)
 
  * [cf3b80a](https://github.com/numaproj/numalogic-prometheus/commit/cf3b80a28128bcd0b7a8b1fedbd3d2decda8aaf5) feat: ensemble scoring (#92)
