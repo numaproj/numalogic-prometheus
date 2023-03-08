@@ -1,15 +1,11 @@
 import os
 import time
-from typing import List
-
 import numpy as np
-from numalogic.config import PostprocessFactory
+from typing import List
 from orjson import orjson
-from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from pynumaflow.function import Datum
-
 
 from numaprom import get_logger
 from numaprom.config import UnifiedConf
@@ -149,12 +145,12 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         return [publisher_json]
 
     try:
-        unified_anomaly, anomalies = save_to_redis(
+        unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=False, unified_config=unified_config
         )
     except RedisConnectionError:
         _LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
-        unified_anomaly, anomalies = save_to_redis(
+        unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
 
@@ -189,7 +185,6 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     )
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
-
 
     winscorer = WindowScorer(metric_config)
 
