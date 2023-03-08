@@ -146,7 +146,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
             continue
 
         if train_df.empty:
-            _LOGGER.info("%s - Skipping training since train data is empty", payload.uuid)
+            _LOGGER.warning("%s - Skipping training since train data is empty", payload.uuid)
             continue
 
         preproc_cfg = metric_config.numalogic_conf.preprocess

@@ -122,7 +122,7 @@ def train(datums: List[Datum]) -> Responses:
         train_df = clean_data(payload.uuid, train_df)
 
         if train_df.empty:
-            _LOGGER.info("%s - Skipping training since train data is empty", payload.uuid)
+            _LOGGER.warning("%s - Skipping training since train data is empty", payload.uuid)
             continue
 
         preproc_cfg = metric_config.numalogic_conf.preprocess
