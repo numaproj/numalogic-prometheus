@@ -1,11 +1,11 @@
 import os
 import time
-from typing import List
-
 import numpy as np
+from typing import List
 from orjson import orjson
-from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
+
+from pynumaflow.function import Datum
 
 from numaprom import get_logger
 from numaprom.config import UnifiedConf
@@ -59,16 +59,28 @@ def __save_to_redis(
             return -1, []
 
     _LOGGER.debug("%s - Received all metrics, generating unified anomaly", payload.uuid)
-    max_anomaly = -1
-    anomalies = []
-    for m in metrics_list:
-        val = float(r.hget(name=r_key, key=m))
-        anomalies.append(val)
-        if max_anomaly < val:
-            max_anomaly = val
-    r.delete(r_key)
 
-    return max_anomaly, anomalies
+    unified_anomaly = -1
+    anomalies = []
+
+    unified_weights = unified_config.unified_weights
+    if unified_weights:
+        _LOGGER.debug("%s - Generating unified anomaly, using unified weights", payload.uuid)
+        for idx, m in enumerate(metrics_list):
+            val = float(r.hget(name=r_key, key=m))
+            anomalies.append(val)
+            unified_anomaly = unified_weights[idx] * val
+        unified_anomaly = unified_anomaly / sum(unified_weights)
+    else:
+        _LOGGER.debug("%s - Generating unified anomaly, using max strategy", payload.uuid)
+        for idx, m in enumerate(metrics_list):
+            val = float(r.hget(name=r_key, key=m))
+            anomalies.append(val)
+            if unified_anomaly < val:
+                unified_anomaly = val
+
+    r.delete(r_key)
+    return unified_anomaly, anomalies
 
 
 def __construct_publisher_payload(
@@ -133,17 +145,19 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         return [publisher_json]
 
     try:
-        max_anomaly, anomalies = __save_to_redis(
+        unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=False, unified_config=unified_config
         )
     except RedisConnectionError:
         _LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
-        max_anomaly, anomalies = __save_to_redis(
+        unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
 
-    if max_anomaly > -1:
-        unified_json = __construct_unified_payload(payload, max_anomaly, unified_config).as_json()
+    if unified_anomaly > -1:
+        unified_json = __construct_unified_payload(
+            payload, unified_anomaly, unified_config
+        ).as_json()
         _LOGGER.info(
             "%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json
         )
