@@ -1,8 +1,8 @@
-from typing import List
 from dataclasses import dataclass, field
-from omegaconf import MISSING
+from typing import List
 
 from numalogic.config import NumalogicConf
+from omegaconf import MISSING
 
 
 @dataclass
@@ -18,6 +18,7 @@ class MetricConf:
     metric: str = "default"
     composite_keys: List[str] = field(default_factory=lambda: ["namespace", "name"])
     static_threshold: int = 3
+    static_threshold_wt: float = 0.0
     scrape_interval: int = 30
     retrain_freq_hr: int = 8
     resume_training: bool = False

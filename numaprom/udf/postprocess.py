@@ -1,18 +1,26 @@
 import os
 import time
+from typing import List
+
 import numpy as np
 from numalogic.config import PostprocessFactory
 from orjson import orjson
-from typing import List
+from pynumaflow.function import Datum
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from pynumaflow.function import Datum
 
+
 from numaprom import get_logger
-from numaprom.config._config import UnifiedConf
-from numaprom.entities import Status, PrometheusPayload, StreamPayload
+from numaprom.config import UnifiedConf
+from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.redis import get_redis_client
-from numaprom.tools import msgs_forward, get_unified_config, get_metric_config
+from numaprom.tools import (
+    msgs_forward,
+    get_unified_config,
+    get_metric_config,
+    WindowScorer,
+)
 
 _LOGGER = get_logger(__name__)
 
@@ -21,7 +29,7 @@ PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
-def save_to_redis(
+def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
     r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
@@ -163,28 +171,51 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
 
 @msgs_forward
 def postprocess(_: str, datum: Datum) -> List[bytes]:
+    """
+    UDF for performing the following steps:
+
+    1. Postprocess the raw scores, e.g. bring the scores into a range of 0 - 10
+    2. Calculate a unified anomaly score by combining multiple metrics
+    3. Construct and publish a Prometheus Payload object
+    """
     _start_time = time.perf_counter()
 
     _in_msg = datum.value.decode("utf-8")
     payload = StreamPayload(**orjson.loads(_in_msg))
 
-    _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
-
+    # Load config
     metric_config = get_metric_config(
         metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
     )
 
-    raw_scores = payload.get_stream_array()
-    raw_mean_score = np.mean(raw_scores)
+    _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 
-    postproc_factory = PostprocessFactory()
-    postproc_clf = postproc_factory.get_instance(metric_config.numalogic_conf.postprocess)
-    norm_score = postproc_clf.transform(raw_mean_score)
+
+    winscorer = WindowScorer(metric_config)
+
+    # Use only using static thresholding
+    if payload.header == Header.STATIC_INFERENCE:
+        final_score = winscorer.get_winscore(payload)
+        _LOGGER.info(
+            "%s - Final static threshold score: %s, keys: %s",
+            payload.uuid,
+            final_score,
+            payload.composite_keys,
+        )
+
+    # Compute ensemble score otherwise
+    else:
+        final_score = winscorer.get_final_winscore(payload)
+        _LOGGER.info(
+            "%s - Final ensemble score: %s, static thresh wt: %s, keys: %s",
+            payload.uuid,
+            final_score,
+            metric_config.static_threshold_wt,
+            payload.composite_keys,
+        )
 
     payload.set_status(Status.POST_PROCESSED)
-    _LOGGER.info("%s - Successfully post-processed; final score: %s", payload.uuid, norm_score)
-
     _LOGGER.debug(
         "%s - Time taken in postprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return _publish(norm_score, payload)
+    return _publish(final_score, payload)

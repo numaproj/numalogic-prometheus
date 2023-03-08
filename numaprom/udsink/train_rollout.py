@@ -6,10 +6,16 @@ import numpy as np
 import pandas as pd
 from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
+
+from numalogic.models.autoencoder.variants import SparseVanillaAE
+from numalogic.models.threshold import StdDevThreshold
+from numalogic.preprocess import TanhScaler
+
 from numalogic.tools.data import StreamingDataset
 from numaprom import get_logger
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
+
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 
@@ -23,7 +29,7 @@ HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
-MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 1000))
+MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time

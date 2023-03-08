@@ -25,5 +25,3 @@ threshold:
 postprocess:
   name: "TanhNorm"
   stateful: false
-  conf:
-    scale_factor: 5
