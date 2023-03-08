@@ -17,6 +17,21 @@ from numaprom.tools import (
 _LOGGER = get_logger(__name__)
 
 
+def _get_static_thresh_payload(payload, metric_config) -> bytes:
+    """
+    Calculates static thresholding, and returns a serialized json bytes payload.
+    """
+    static_scores = calculate_static_thresh(payload, metric_config.static_threshold)
+
+    payload.set_win_arr(static_scores)
+    payload.set_header(Header.STATIC_INFERENCE)
+    payload.set_status(Status.ARTIFACT_NOT_FOUND)
+    payload.set_metadata("version", -1)
+
+    _LOGGER.info("%s - Static thresholding complete for payload: %s", payload.uuid, payload)
+    return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+
+
 @conditional_forward
 def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     _start_time = time.perf_counter()
@@ -42,7 +57,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         )
         return [
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
-            (POSTPROC_VTX_KEY, calculate_static_thresh(payload, metric_config.static_threshold)),
+            (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
         ]
 
     # load threshold artifact
@@ -61,7 +76,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
         return [
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
-            (POSTPROC_VTX_KEY, calculate_static_thresh(payload, metric_config.static_threshold)),
+            (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
         ]
 
     messages = []

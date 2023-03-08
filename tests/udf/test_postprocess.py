@@ -1,11 +1,13 @@
 import os
 import unittest
+
+import orjson
 from freezegun import freeze_time
 from unittest.mock import patch, Mock
 
 from numaprom import tools
 from numaprom._constants import TESTS_DIR
-from numaprom.entities import PrometheusPayload
+from numaprom.entities import PrometheusPayload, StreamPayload, Header
 from tests import redis_client
 from tests.tools import (
     get_postproc_input,
@@ -24,15 +26,18 @@ class TestPostProcess(unittest.TestCase):
     postproc_input = None
 
     @classmethod
-    @freeze_time("2022-02-20 12:00:00")
     def setUpClass(cls) -> None:
         redis_client.flushall()
 
+    @freeze_time("2022-02-20 12:00:00")
     def test_postprocess(self):
         postproc_input = get_postproc_input(STREAM_DATA_PATH)
-        postproc_input.items(), print("input items is empty", postproc_input)
+        assert postproc_input.items(), print("input items is empty", postproc_input)
         for msg in postproc_input.items():
             _in = get_datum(msg.value)
+            stream_payload = StreamPayload(**orjson.loads(msg.value))
+            self.assertEqual(Header.MODEL_INFERENCE, stream_payload.header)
+
             _out = postprocess("", _in)
             data = _out.items()[0].value.decode("utf-8")
             prom_payload = PrometheusPayload.from_json(data)
@@ -48,6 +53,9 @@ class TestPostProcess(unittest.TestCase):
 
         for msg in postproc_input.items():
             _in = get_datum(msg.value)
+            stream_payload = StreamPayload(**orjson.loads(msg.value))
+            self.assertEqual(Header.MODEL_STALE, stream_payload.header)
+
             _out = postprocess("", _in)
             data = _out.items()[0].value.decode("utf-8")
             prom_payload = PrometheusPayload.from_json(data)
@@ -63,6 +71,9 @@ class TestPostProcess(unittest.TestCase):
 
         for msg in postproc_input.items():
             _in = get_datum(msg.value)
+            stream_payload = StreamPayload(**orjson.loads(msg.value))
+            self.assertEqual(Header.STATIC_INFERENCE, stream_payload.header)
+
             _out = postprocess("", _in)
             data = _out.items()[0].value.decode("utf-8")
             prom_payload = PrometheusPayload.from_json(data)

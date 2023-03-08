@@ -97,6 +97,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         header=Header.MODEL_INFERENCE,
         composite_keys=composite_keys,
         status=Status.EXTRACTED,
+        win_raw_arr=win_arr,
         win_arr=win_arr.copy(),
         win_ts_arr=[str(_ts) for _, _ts in elements],
         metadata=dict(src_labels=msg["labels"]),

@@ -8,10 +8,10 @@ import pandas as pd
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.models.autoencoder.variants import SparseVanillaAE
 from numalogic.models.threshold import StdDevThreshold
+from numalogic.preprocess import TanhScaler
 from numalogic.tools.data import StreamingDataset
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
-from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
 from numaprom.entities import TrainerPayload
@@ -24,7 +24,7 @@ HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
-MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 1000))
+MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
@@ -77,13 +77,13 @@ def _train_model(uuid, x, anomaly_model):
 
 
 def _preprocess(x_raw):
-    clf = StandardScaler()
+    clf = TanhScaler()
     x_scaled = clf.fit_transform(x_raw)
     return x_scaled, clf
 
 
 def _find_threshold(x_reconerr):
-    clf = StdDevThreshold()
+    clf = StdDevThreshold(std_factor=5)
     clf.fit(x_reconerr)
     return clf
 
