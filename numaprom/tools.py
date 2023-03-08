@@ -20,7 +20,7 @@ from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger
 from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR
-from numaprom.config._config import MetricConf, ServiceConf, NumapromConf, UnifiedConf
+from numaprom.config import MetricConf, ServiceConf, NumapromConf, UnifiedConf
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.prometheus import Prometheus
 
