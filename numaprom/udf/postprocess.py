@@ -62,8 +62,8 @@ def __save_to_redis(
     _LOGGER.debug("%s - Received all metrics, generating unified anomaly", payload.uuid)
     unified_weights = unified_config.unified_weights
     if unified_weights:
-        weighted_anomalies = [unified_weights[i] * anomalies[i] for i in range(len(anomalies))]
-        unified_anomaly = sum(weighted_anomalies) / sum(unified_weights)
+        weighted_anomalies = np.multiply(anomalies, unified_weights)
+        unified_anomaly = float(np.sum(weighted_anomalies) / np.sum(unified_weights))
         _LOGGER.info(
             "%s - Generating unified anomaly, using unified weights. Unified Anomaly: %s",
             payload.uuid,
