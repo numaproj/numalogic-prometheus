@@ -34,8 +34,6 @@ def __save_to_redis(
 
     r_keys = payload.composite_keys
     r_keys.pop("name")
-
-    metrics_list = unified_config.unified_metrics
     r_key = f"{':'.join(r_keys.values())}:{payload.end_ts}"
 
     final_score = -1 if np.isnan(final_score) else final_score
@@ -48,8 +46,11 @@ def __save_to_redis(
         final_score,
     )
 
-    for m in metrics_list:
-        if not r.hexists(name=r_key, key=m):
+    anomalies = []
+    for m in unified_config.unified_metrics:
+        if r.hexists(name=r_key, key=m):
+            anomalies.append(float(r.hget(name=r_key, key=m)))
+        else:
             _LOGGER.debug(
                 "%s - Unable to generate unified anomaly, missing metric: %s, redis_key: %s",
                 payload.uuid,
@@ -59,25 +60,22 @@ def __save_to_redis(
             return -1, []
 
     _LOGGER.debug("%s - Received all metrics, generating unified anomaly", payload.uuid)
-
-    unified_anomaly = -1
-    anomalies = []
-
     unified_weights = unified_config.unified_weights
     if unified_weights:
-        _LOGGER.debug("%s - Generating unified anomaly, using unified weights", payload.uuid)
-        for idx, m in enumerate(metrics_list):
-            val = float(r.hget(name=r_key, key=m))
-            anomalies.append(val)
-            unified_anomaly = unified_weights[idx] * val
-        unified_anomaly = unified_anomaly / sum(unified_weights)
+        weighted_anomalies = np.multiply(anomalies, unified_weights)
+        unified_anomaly = float(np.sum(weighted_anomalies) / np.sum(unified_weights))
+        _LOGGER.info(
+            "%s - Generating unified anomaly, using unified weights. Unified Anomaly: %s",
+            payload.uuid,
+            unified_anomaly,
+        )
     else:
-        _LOGGER.debug("%s - Generating unified anomaly, using max strategy", payload.uuid)
-        for idx, m in enumerate(metrics_list):
-            val = float(r.hget(name=r_key, key=m))
-            anomalies.append(val)
-            if unified_anomaly < val:
-                unified_anomaly = val
+        unified_anomaly = max(anomalies)
+        _LOGGER.info(
+            "%s - Generated unified anomaly, using max strategy. Unified Anomaly: %s",
+            payload.uuid,
+            unified_anomaly,
+        )
 
     r.delete(r_key)
     return unified_anomaly, anomalies
@@ -210,7 +208,8 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
         )
 
     payload.set_status(Status.POST_PROCESSED)
+    messages = _publish(final_score, payload)
     _LOGGER.debug(
         "%s - Time taken in postprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
-    return _publish(final_score, payload)
+    return messages

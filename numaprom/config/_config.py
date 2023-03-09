@@ -10,7 +10,7 @@ class UnifiedConf:
     unified_metric_name: str
     unified_metrics: List[str]
     unified_strategy: str = "max"
-    unified_weights: List[int] = field(default_factory=list)
+    unified_weights: List[float] = field(default_factory=list)
 
 
 @dataclass
