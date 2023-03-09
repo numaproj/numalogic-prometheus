@@ -11,7 +11,7 @@ from numalogic.tools.data import StreamingDataset
 from numalogic.models.autoencoder import AutoencoderTrainer
 
 from numaprom import get_logger
-from numaprom.config._config import MetricConf
+from numaprom.config import MetricConf
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.entities import PayloadFactory
 from numaprom.tools import (

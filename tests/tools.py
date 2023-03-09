@@ -19,7 +19,7 @@ from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, CONFIG_DIR
-from numaprom.config._config import NumapromConf
+from numaprom.config import NumapromConf
 from numaprom.factory import HandlerFactory
 
 sys.modules["numaprom.mlflow"] = MagicMock()
