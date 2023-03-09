@@ -124,7 +124,6 @@ class PrometheusPayload:
     labels: Dict[str, str]
 
     def as_json(self) -> bytes:
-        print(self.value)
         return orjson.dumps(
             {
                 "TimestampMs": self.timestamp_ms,
