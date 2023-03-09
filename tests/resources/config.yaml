@@ -23,6 +23,7 @@ configs:
     unified_configs:
       - unified_metric_name: "unified_anomaly"
         unified_metrics: [ "rollout_error_rate", "rollout_latency" ]
+        unified_weights: [70, 30]
   - namespace: "sandbox_numalogic_demo3"
     metric_configs:
       - metric: "rollout_error_rate"
