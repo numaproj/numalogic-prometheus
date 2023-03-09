@@ -26,7 +26,7 @@ AUTH = os.getenv("REDIS_AUTH")
 
 
 def __save_to_redis(
-        payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
+    payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
     r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
 
@@ -82,7 +82,7 @@ def __save_to_redis(
 
 
 def __construct_publisher_payload(
-        stream_payload: StreamPayload, final_score: float
+    stream_payload: StreamPayload, final_score: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
@@ -105,7 +105,7 @@ def __construct_publisher_payload(
 
 
 def __construct_unified_payload(
-        stream_payload: StreamPayload, max_anomaly: float, unified_config: UnifiedConf
+    stream_payload: StreamPayload, max_anomaly: float, unified_config: UnifiedConf
 ) -> PrometheusPayload:
     namespace = stream_payload.composite_keys["namespace"]
 
