@@ -67,7 +67,9 @@ class TestTools(unittest.TestCase):
         )
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "default-argorollouts")
-        service_config = get_service_config(metric="namespace_app_argo_cd_error_rate", namespace="abc")
+        service_config = get_service_config(
+            metric="namespace_app_argo_cd_error_rate", namespace="abc"
+        )
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "default-argocd")
 
