@@ -13,7 +13,7 @@ import pytz
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
 from numalogic.config import NumalogicConf, PostprocessFactory
-from numalogic.models.threshold import StaticThreshold
+from numalogic.models.threshold import SigmoidThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
 from omegaconf import OmegaConf
 from pynumaflow.function import Messages, Message
@@ -243,7 +243,7 @@ def calculate_static_thresh(payload: StreamPayload, upper_limit: float):
     Calculates anomaly scores using static thresholding.
     """
     x = payload.get_stream_array(original=True)
-    static_clf = StaticThreshold(upper_limit=upper_limit)
+    static_clf = SigmoidThreshold(upper_limit=upper_limit)
     static_scores = static_clf.score_samples(x)
     return static_scores
 
