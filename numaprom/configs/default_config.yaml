@@ -1,0 +1,36 @@
+configs:
+  - namespace: "default-argorollouts"
+    metric_configs:
+      - metric: "namespace_app_argo_rollouts_error_rate"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 3
+      - metric: "namespace_app_argo_rollouts_latency"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 3
+    unified_configs:
+      - unified_metric_name: "namespace_app_argo_rollouts_unified_anomaly"
+        unified_metrics: [ "namespace_app_argo_rollouts_error_rate", "namespace_app_argo_rollouts_latency" ]
+  - namespace: "default-argocd"
+    metric_configs:
+      - metric: "namespace_app_argo_cd_error_count"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 3
+      - metric: "namespace_app_argo_cd_error_rate"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 3
+      - metric: "namespace_app_argo_cd_latency"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 3
+      - metric: "namespace_app_argo_cd_cpu_utilization"
+        composite_keys: [ "namespace", "name", "hash_id" ]
+        static_threshold: 80
+      - metric: "namespace_app_argo_cd_memory_utilization"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 80
+    unified_configs:
+      - unified_metric_name: "namespace_app_argo_cd_unified_anomaly"
+        unified_metrics: [ "namespace_app_argo_cd_error_count",
+                           "namespace_app_argo_cd_error_rate",
+                           "namespace_app_argo_cd_latency",
+                           "namespace_app_argo_cd_cpu_utilization",
+                           "namespace_app_argo_cd_memory_utilization" ]

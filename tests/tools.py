@@ -19,8 +19,8 @@ from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, CONFIG_DIR
-from numaprom.config import NumapromConf
 from numaprom.factory import HandlerFactory
+from numaprom import NumapromConf
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
@@ -242,7 +242,7 @@ def mock_configs():
     conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "config.yaml"))
     given_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default", "config.yaml"))
+    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default_config.yaml"))
     default_configs = OmegaConf.merge(schema, conf).configs
 
     conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "default_numalogic.yaml"))

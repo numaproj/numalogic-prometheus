@@ -1,8 +1,8 @@
-from dataclasses import dataclass, field
 from typing import List
+from omegaconf import MISSING
+from dataclasses import dataclass, field
 
 from numalogic.config import NumalogicConf
-from omegaconf import MISSING
 
 
 @dataclass

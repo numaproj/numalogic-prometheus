@@ -7,8 +7,7 @@ from redis.exceptions import ConnectionError as RedisConnectionError
 
 from pynumaflow.function import Datum
 
-from numaprom import get_logger
-from numaprom.config import UnifiedConf
+from numaprom import get_logger, UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.redis import get_redis_client
 from numaprom.tools import (

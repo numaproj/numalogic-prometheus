@@ -43,10 +43,10 @@ class TestTools(unittest.TestCase):
 
         # from given default config
         metric_config = get_metric_config(
-            metric="namespace_argo_rollout_error_rate", namespace="abc"
+            metric="namespace_app_argo_rollouts_error_rate", namespace="abc"
         )
         self.assertTrue(metric_config)
-        self.assertEqual(metric_config.metric, "namespace_argo_rollout_error_rate")
+        self.assertEqual(metric_config.metric, "namespace_app_argo_rollouts_error_rate")
 
         # default config
         metric_config = get_metric_config(metric="random", namespace="abc")
@@ -63,11 +63,11 @@ class TestTools(unittest.TestCase):
 
         # from given default config
         service_config = get_service_config(
-            metric="namespace_argo_rollout_error_rate", namespace="abc"
+            metric="namespace_app_argo_rollouts_error_rate", namespace="abc"
         )
         self.assertTrue(service_config)
-        self.assertEqual(service_config.namespace, "default-rollout")
-        service_config = get_service_config(metric="namespace_argo_cd_error_rate", namespace="abc")
+        self.assertEqual(service_config.namespace, "default-argorollouts")
+        service_config = get_service_config(metric="namespace_app_argo_cd_error_rate", namespace="abc")
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "default-argocd")
 
@@ -86,10 +86,10 @@ class TestTools(unittest.TestCase):
 
         # from given default config
         unified_config = get_unified_config(
-            metric="namespace_argo_rollout_error_rate", namespace="abc"
+            metric="namespace_app_argo_rollouts_error_rate", namespace="abc"
         )
         self.assertTrue(unified_config)
-        self.assertTrue("namespace_argo_rollout_error_rate" in unified_config.unified_metrics)
+        self.assertTrue("namespace_app_argo_rollouts_error_rate" in unified_config.unified_metrics)
 
         # default config - will not have unified config
         unified_config = get_unified_config(metric="random", namespace="abc")
