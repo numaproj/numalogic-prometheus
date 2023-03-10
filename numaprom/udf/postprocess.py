@@ -38,8 +38,8 @@ def __save_to_redis(
 
     final_score = -1 if np.isnan(final_score) else final_score
     r.hset(r_key, mapping={metric_name: final_score})
-    _LOGGER.debug(
-        "%s - Saved to redis, redis_key: %s, metric: %s, anomaly_score: %d",
+    _LOGGER.info(
+        "%s - Saved to redis, redis_key: %s, metric: %s, anomaly_score: %.3f",
         payload.uuid,
         r_key,
         metric_name,

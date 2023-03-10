@@ -64,7 +64,8 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     )
 
     train_reconerr = trainer.predict(model, dataloaders=DataLoader(dataset, batch_size=64))
-    return train_reconerr.numpy(), model
+    # return the trainer to avoid Weakreference error
+    return train_reconerr.numpy(), model, trainer
 
 
 def _preprocess(x_raw, preproc_cfg: List[ModelInfo]):
@@ -151,36 +152,69 @@ def train_rollout(datums: List[Datum]) -> Responses:
         x_train, preproc_clf = _preprocess(train_df.to_numpy(), preproc_cfg)
 
         trainer_cfg = metric_config.numalogic_conf.trainer
-        x_reconerr, anomaly_model = _train_model(payload.uuid, x_train, model_cfg, trainer_cfg)
+        x_reconerr, anomaly_model, trainer = _train_model(
+            payload.uuid, x_train, model_cfg, trainer_cfg
+        )
 
         thresh_cfg = metric_config.numalogic_conf.threshold
         thresh_clf = _find_threshold(x_reconerr, thresh_cfg)
 
-        # TODO change this to just use **composite_keys
         skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
 
-        # TODO catch mlflow exception
-        version = save_model(
-            skeys=skeys, dkeys=["preproc"], model=preproc_clf, artifact_type="sklearn"
-        )
-        _LOGGER.info(
-            "%s - Preproc model saved with skeys: %s with version: %s", payload.uuid, skeys, version
-        )
+        # TODO 1. catch mlflow exception
+        # TODO 2. if one of the models fail to save,
+        #  delete the previously saved models and transition stage
 
-        version = save_model(skeys=skeys, dkeys=[model_cfg.name], model=anomaly_model)
-        _LOGGER.info(
-            "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
-        )
-
+        # Save main model
         version = save_model(
-            skeys=skeys, dkeys=["thresh"], model=thresh_clf, artifact_type="sklearn"
+            skeys=skeys, dkeys=[model_cfg.name], model=anomaly_model, uuid=payload.uuid
         )
-        _LOGGER.info(
-            "%s - Threshold model saved with skeys: %s with version: %s",
-            payload.uuid,
-            skeys,
-            version,
+        if version:
+            _LOGGER.info(
+                "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
+            )
+        else:
+            _LOGGER.error("%s - Error while saving Model with skeys: %s", payload.uuid, skeys)
+
+        # Save preproc model
+        version = save_model(
+            skeys=skeys,
+            dkeys=["preproc"],
+            model=preproc_clf,
+            artifact_type="sklearn",
+            uuid=payload.uuid,
         )
+        if version:
+            _LOGGER.info(
+                "%s - Preproc model saved with skeys: %s with version: %s",
+                payload.uuid,
+                skeys,
+                version,
+            )
+        else:
+            _LOGGER.error(
+                "%s - Error while saving Preproc model with skeys: %s", payload.uuid, skeys
+            )
+
+        # Save threshold model
+        version = save_model(
+            skeys=skeys,
+            dkeys=["thresh"],
+            model=thresh_clf,
+            artifact_type="sklearn",
+            uuid=payload.uuid,
+        )
+        if version:
+            _LOGGER.info(
+                "%s - Threshold model saved with skeys: %s with version: %s",
+                payload.uuid,
+                skeys,
+                version,
+            )
+        else:
+            _LOGGER.error(
+                "%s - Error while saving Threshold model with skeys: %s", payload.uuid, skeys
+            )
 
         responses.append(Response.as_success(_datum.id))
 
