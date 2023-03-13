@@ -24,7 +24,6 @@ MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-@patch.object(tools, "set_aws_session", Mock(return_value=None))
 @patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
 class TestInference(unittest.TestCase):
     @classmethod

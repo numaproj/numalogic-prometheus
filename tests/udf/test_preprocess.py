@@ -20,7 +20,6 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 STREAM_NAN_DATA_PATH = os.path.join(DATA_DIR, "stream_nan.json")
 
 
-@patch.object(tools, "set_aws_session", Mock(return_value=None))
 class TestPreprocess(unittest.TestCase):
     preproc_input = None
 
