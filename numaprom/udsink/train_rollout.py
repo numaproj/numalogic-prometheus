@@ -1,21 +1,21 @@
 import os
 import time
+from typing import List
+
 import numpy as np
 import pandas as pd
-from typing import List
-from orjson import orjson
-from torch.utils.data import DataLoader
-from sklearn.pipeline import make_pipeline
-
 from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.tools.data import StreamingDataset
+from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
+from sklearn.pipeline import make_pipeline
+from torch.utils.data import DataLoader
 
 from numaprom import get_logger
 from numaprom.entities import TrainerPayload
 from numaprom.redis import get_redis_client
-from numaprom.tools import get_metric_config, save_model, fetch_data, set_aws_session
+from numaprom.tools import get_metric_config, save_model, fetch_data
 
 _LOGGER = get_logger(__name__)
 
@@ -160,7 +160,6 @@ def train_rollout(datums: List[Datum]) -> Responses:
         thresh_clf = _find_threshold(x_reconerr, thresh_cfg)
 
         skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
-        set_aws_session()
 
         # TODO 1. catch mlflow exception
         # TODO 2. if one of the models fail to save,

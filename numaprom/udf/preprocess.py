@@ -1,11 +1,11 @@
 import time
-import orjson
 
+import orjson
 from pynumaflow.function import Datum
 
 from numaprom import get_logger
 from numaprom.entities import Status, StreamPayload, Header
-from numaprom.tools import msg_forward, load_model, set_aws_session
+from numaprom.tools import msg_forward, load_model
 
 _LOGGER = get_logger(__name__)
 
@@ -19,7 +19,6 @@ def preprocess(_: str, datum: Datum) -> bytes:
     _LOGGER.info("%s - Received Payload: %r ", payload.uuid, payload)
 
     # Load preprocess artifact
-    set_aws_session()
     preproc_artifact = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
         dkeys=["preproc"],

@@ -127,6 +127,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
 def load_model(
     skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
 ) -> Optional[ArtifactData]:
+    set_aws_session()
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
         ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
@@ -143,6 +144,7 @@ def load_model(
 def save_model(
     skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
+    set_aws_session()
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)

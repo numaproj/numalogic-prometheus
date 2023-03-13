@@ -1,7 +1,7 @@
 import time
-from orjson import orjson
 from collections import OrderedDict
 
+from orjson import orjson
 from pynumaflow.function import Datum
 
 from numaprom import get_logger
@@ -12,7 +12,6 @@ from numaprom.tools import (
     calculate_static_thresh,
     load_model,
     get_metric_config,
-    set_aws_session,
 )
 
 _LOGGER = get_logger(__name__)
@@ -62,7 +61,6 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         ]
 
     # load threshold artifact
-    set_aws_session()
     thresh_artifact = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
         dkeys=["thresh"],

@@ -1,24 +1,22 @@
 import time
-from orjson import orjson
-from torch.utils.data import DataLoader
 from datetime import datetime, timedelta
 
-from pynumaflow.function import Datum
-
 from numalogic.config import NumalogicConf
+from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import ArtifactData
 from numalogic.tools.data import StreamingDataset
-from numalogic.models.autoencoder import AutoencoderTrainer
+from orjson import orjson
+from pynumaflow.function import Datum
+from torch.utils.data import DataLoader
 
 from numaprom import get_logger
 from numaprom.config import MetricConf
-from numaprom.entities import Status, StreamPayload, Header
 from numaprom.entities import PayloadFactory
+from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import (
     load_model,
     get_metric_config,
     msg_forward,
-    set_aws_session,
 )
 
 _LOGGER = get_logger(__name__)
@@ -82,7 +80,6 @@ def inference(_: str, datum: Datum) -> bytes:
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model
-    set_aws_session()
     artifact_data = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
         dkeys=[numalogic_conf.model.name],
