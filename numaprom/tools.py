@@ -241,9 +241,11 @@ def fetch_data(
 
 
 def set_aws_session() -> None:
+    """
+    Setup default aws session by refreshing credentials.
+    """
     session = get_session()
     credentials = session.get_credentials()
-    print("HERE!!!", credentials)
     boto3.setup_default_session(
         aws_access_key_id=credentials.access_key,
         aws_secret_access_key=credentials.secret_key,
