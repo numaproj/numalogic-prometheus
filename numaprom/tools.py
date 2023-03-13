@@ -7,9 +7,11 @@ from functools import wraps
 from json import JSONDecodeError
 from typing import Optional, Sequence, List
 
+import boto3
 import numpy as np
 import pandas as pd
 import pytz
+from botocore.session import get_session
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
 from numalogic.config import NumalogicConf, PostprocessFactory
@@ -236,6 +238,16 @@ def fetch_data(
         df.shape,
     )
     return df
+
+
+def set_aws_session() -> None:
+    session = get_session()
+    credentials = session.get_credentials()
+    boto3.setup_default_session(
+        aws_access_key_id=credentials.access_key,
+        aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
+    )
 
 
 def calculate_static_thresh(payload: StreamPayload, upper_limit: float):

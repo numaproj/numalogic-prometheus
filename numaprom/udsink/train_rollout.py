@@ -15,7 +15,7 @@ from pynumaflow.sink import Datum, Responses, Response
 from numaprom import get_logger
 from numaprom.entities import TrainerPayload
 from numaprom.redis import get_redis_client
-from numaprom.tools import get_metric_config, save_model, fetch_data
+from numaprom.tools import get_metric_config, save_model, fetch_data, set_aws_session
 
 _LOGGER = get_logger(__name__)
 
@@ -160,6 +160,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         thresh_clf = _find_threshold(x_reconerr, thresh_cfg)
 
         skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
+        set_aws_session()
 
         # TODO 1. catch mlflow exception
         # TODO 2. if one of the models fail to save,

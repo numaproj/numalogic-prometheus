@@ -18,6 +18,7 @@ from numaprom.tools import (
     load_model,
     get_metric_config,
     msg_forward,
+    set_aws_session,
 )
 
 _LOGGER = get_logger(__name__)
@@ -81,6 +82,7 @@ def inference(_: str, datum: Datum) -> bytes:
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model
+    set_aws_session()
     artifact_data = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
         dkeys=[numalogic_conf.model.name],
