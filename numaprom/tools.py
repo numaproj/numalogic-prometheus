@@ -276,10 +276,11 @@ class WindowScorer:
         metric_conf: MetricConf instance
     """
 
-    __slots__ = ("static_wt", "model_wt", "postproc_clf")
+    __slots__ = ("static_wt", "static_limit", "model_wt", "postproc_clf")
 
     def __init__(self, metric_conf: MetricConf):
         self.static_wt = metric_conf.static_threshold_wt
+        self.static_limit = metric_conf.static_threshold
         self.model_wt = 1.0 - self.static_wt
 
         postproc_factory = PostprocessFactory()
@@ -327,7 +328,7 @@ class WindowScorer:
         Returns:
             Score for the window
         """
-        static_scores = calculate_static_thresh(payload, self.static_wt)
+        static_scores = calculate_static_thresh(payload, self.static_limit)
         static_winscore = np.mean(static_scores)
         return self.postproc_clf.transform(static_winscore)
 
