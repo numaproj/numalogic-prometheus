@@ -249,6 +249,7 @@ def set_aws_session() -> None:
     session = get_session()
     credentials = session.get_credentials()
     if not credentials:
+        _LOGGER.debug("No AWS credentials object returned")
         return
     boto3.setup_default_session(
         aws_access_key_id=credentials.access_key,
