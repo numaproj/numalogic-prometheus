@@ -1,6 +1,6 @@
 import time
-import orjson
 
+import orjson
 from pynumaflow.function import Datum
 
 from numaprom import get_logger

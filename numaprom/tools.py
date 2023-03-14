@@ -7,9 +7,11 @@ from functools import wraps
 from json import JSONDecodeError
 from typing import Optional, Sequence, List
 
+import boto3
 import numpy as np
 import pandas as pd
 import pytz
+from botocore.session import get_session
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
 from numalogic.config import NumalogicConf, PostprocessFactory
@@ -125,6 +127,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
 def load_model(
     skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
 ) -> Optional[ArtifactData]:
+    set_aws_session()
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
         ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
@@ -141,6 +144,7 @@ def load_model(
 def save_model(
     skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
+    set_aws_session()
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
@@ -236,6 +240,19 @@ def fetch_data(
         df.shape,
     )
     return df
+
+
+def set_aws_session() -> None:
+    """
+    Setup default aws session by refreshing credentials.
+    """
+    session = get_session()
+    credentials = session.get_credentials()
+    boto3.setup_default_session(
+        aws_access_key_id=credentials.access_key,
+        aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
+    )
 
 
 def calculate_static_thresh(payload: StreamPayload, upper_limit: float):

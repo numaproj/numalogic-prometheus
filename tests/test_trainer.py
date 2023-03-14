@@ -33,6 +33,7 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
     )
 
 
+@patch("numaprom.tools.set_aws_session", Mock(return_value=None))
 @patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
 class TestTrainer(unittest.TestCase):
     train_payload = {
