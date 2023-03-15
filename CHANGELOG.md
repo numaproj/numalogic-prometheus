@@ -1,5 +1,53 @@
 # Changelog
 
+## v0.2.3a0 (2023-03-15)
+
+ * [181c353](https://github.com/numaproj/numalogic-prometheus/commit/181c3536c4e4de5f7c31c2054c6c595f85065175) fix: static score calculation to use the correct limit from conf (#104)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.2.2 (2023-03-14)
+
+ * [249c56f](https://github.com/numaproj/numalogic-prometheus/commit/249c56f9e2177afe5ef9fb64d0d04f69433194a6) fix: static score calculation to use the correct limit from conf
+ * [b5b85d1](https://github.com/numaproj/numalogic-prometheus/commit/b5b85d1870b56f01fb31626f612842a55917373c) Fix non aws session (#103)
+ * [0fe755f](https://github.com/numaproj/numalogic-prometheus/commit/0fe755ffcf7fd23f87dbd4e147aff6b3f83946d0) fix: update default session for aws (#102)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.2.1a0 (2023-03-13)
+
+ * [99768bc](https://github.com/numaproj/numalogic-prometheus/commit/99768bc62250731f8ee19f8b5be4ebad34807857) docs
+ * [977d527](https://github.com/numaproj/numalogic-prometheus/commit/977d5270ce5aa8620282024aee05da10adadb949) try to mock aws session
+ * [ebb1ab0](https://github.com/numaproj/numalogic-prometheus/commit/ebb1ab004b8c775e1539cc074fb5a863f1d20ece) fix test
+ * [1e5b702](https://github.com/numaproj/numalogic-prometheus/commit/1e5b70289f2bd021c85f292248593633977154f2) fix: tests
+ * [21e461f](https://github.com/numaproj/numalogic-prometheus/commit/21e461f44e777598ef652c92b9d5cf9acafef071) fix: update default session for aws
+
+### Contributors
+
+ * Avik Basu
+
+## v0.2.1 (2023-03-14)
+
+ * [b5b85d1](https://github.com/numaproj/numalogic-prometheus/commit/b5b85d1870b56f01fb31626f612842a55917373c) Fix non aws session (#103)
+ * [0fe755f](https://github.com/numaproj/numalogic-prometheus/commit/0fe755ffcf7fd23f87dbd4e147aff6b3f83946d0) fix: update default session for aws (#102)
+ * [58513d8](https://github.com/numaproj/numalogic-prometheus/commit/58513d8f9c8ff71a32f24d3915dd08a5afdedf4a) fix: weakref error while saving torch model (#101)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.2.0a4 (2023-03-09)
+
+ * [1866591](https://github.com/numaproj/numalogic-prometheus/commit/18665916f04edd1acc714054a3ae69d27239b56f) fix: unified anomaly (#98)
+
+### Contributors
+
+ * Nandita Koppisetty
+
 ## v0.2.0a3 (2023-03-08)
 
  * [2abe7b6](https://github.com/numaproj/numalogic-prometheus/commit/2abe7b66d621fb5d311dcd9c7e53f518015dcb68) fix: import bugs (#96)
@@ -26,10 +74,22 @@
 
 ## v0.2.0a0 (2023-03-03)
 
+
+### Contributors
+
+
+## v0.2.0 (2023-03-10)
+
+ * [58513d8](https://github.com/numaproj/numalogic-prometheus/commit/58513d8f9c8ff71a32f24d3915dd08a5afdedf4a) fix: weakref error while saving torch model (#101)
+ * [1866591](https://github.com/numaproj/numalogic-prometheus/commit/18665916f04edd1acc714054a3ae69d27239b56f) fix: unified anomaly (#98)
+ * [2abe7b6](https://github.com/numaproj/numalogic-prometheus/commit/2abe7b66d621fb5d311dcd9c7e53f518015dcb68) fix: import bugs (#96)
+ * [f77c4d9](https://github.com/numaproj/numalogic-prometheus/commit/f77c4d96f656a206e9a955a088f2dc24c96fa71f) feat: config driven trainers (#93)
+ * [cf3b80a](https://github.com/numaproj/numalogic-prometheus/commit/cf3b80a28128bcd0b7a8b1fedbd3d2decda8aaf5) feat: ensemble scoring (#92)
  * [e588837](https://github.com/numaproj/numalogic-prometheus/commit/e58883799a34c34b190b3e114e95be18c7ba4957) feat: config driven aiops (#90)
 
 ### Contributors
 
+ * Avik Basu
  * Nandita Koppisetty
 
 ## v0.1.5a8 (2023-02-28)
