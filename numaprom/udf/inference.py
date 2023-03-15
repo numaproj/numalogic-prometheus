@@ -10,7 +10,6 @@ from pynumaflow.function import Datum
 from torch.utils.data import DataLoader
 
 from numaprom import get_logger, MetricConf
-from numaprom.entities import Status, StreamPayload, Header
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import (
