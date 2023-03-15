@@ -1,18 +1,18 @@
 import time
-from orjson import orjson
-from torch.utils.data import DataLoader
 from datetime import datetime, timedelta
 
-from pynumaflow.function import Datum
-
 from numalogic.config import NumalogicConf
+from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import ArtifactData
 from numalogic.tools.data import StreamingDataset
-from numalogic.models.autoencoder import AutoencoderTrainer
+from orjson import orjson
+from pynumaflow.function import Datum
+from torch.utils.data import DataLoader
 
 from numaprom import get_logger, MetricConf
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.entities import PayloadFactory
+from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import (
     load_model,
     get_metric_config,

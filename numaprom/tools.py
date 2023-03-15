@@ -7,13 +7,15 @@ from functools import wraps
 from json import JSONDecodeError
 from typing import Optional, Sequence, List
 
+import boto3
 import numpy as np
 import pandas as pd
 import pytz
+from botocore.session import get_session
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
 from numalogic.config import NumalogicConf, PostprocessFactory
-from numalogic.models.threshold import StaticThreshold
+from numalogic.models.threshold import SigmoidThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
 from omegaconf import OmegaConf
 from pynumaflow.function import Messages, Message
@@ -124,6 +126,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
 def load_model(
     skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
 ) -> Optional[ArtifactData]:
+    set_aws_session()
     try:
         tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
         ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
@@ -140,6 +143,7 @@ def load_model(
 def save_model(
     skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
+    set_aws_session()
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
@@ -237,12 +241,28 @@ def fetch_data(
     return df
 
 
+def set_aws_session() -> None:
+    """
+    Setup default aws session by refreshing credentials.
+    """
+    session = get_session()
+    credentials = session.get_credentials()
+    if not credentials:
+        _LOGGER.debug("No AWS credentials object returned")
+        return
+    boto3.setup_default_session(
+        aws_access_key_id=credentials.access_key,
+        aws_secret_access_key=credentials.secret_key,
+        aws_session_token=credentials.token,
+    )
+
+
 def calculate_static_thresh(payload: StreamPayload, upper_limit: float):
     """
     Calculates anomaly scores using static thresholding.
     """
     x = payload.get_stream_array(original=True)
-    static_clf = StaticThreshold(upper_limit=upper_limit)
+    static_clf = SigmoidThreshold(upper_limit=upper_limit)
     static_scores = static_clf.score_samples(x)
     return static_scores
 
@@ -255,10 +275,11 @@ class WindowScorer:
         metric_conf: MetricConf instance
     """
 
-    __slots__ = ("static_wt", "model_wt", "postproc_clf")
+    __slots__ = ("static_wt", "static_limit", "model_wt", "postproc_clf")
 
     def __init__(self, metric_conf: MetricConf):
         self.static_wt = metric_conf.static_threshold_wt
+        self.static_limit = metric_conf.static_threshold
         self.model_wt = 1.0 - self.static_wt
 
         postproc_factory = PostprocessFactory()
@@ -306,7 +327,7 @@ class WindowScorer:
         Returns:
             Score for the window
         """
-        static_scores = calculate_static_thresh(payload, self.static_wt)
+        static_scores = calculate_static_thresh(payload, self.static_limit)
         static_winscore = np.mean(static_scores)
         return self.postproc_clf.transform(static_winscore)
 

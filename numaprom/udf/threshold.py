@@ -1,7 +1,7 @@
 import time
-from orjson import orjson
 from collections import OrderedDict
 
+from orjson import orjson
 from pynumaflow.function import Datum
 
 from numaprom import get_logger
