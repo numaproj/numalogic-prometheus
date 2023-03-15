@@ -234,5 +234,58 @@
         "name": "rollout_latency",
         "timestamp": "1654121208989",
         "value": "18"
+    },
+    {
+        "labels": {
+            "__name__": "namespace_app_rollouts_http_request_error_rate",
+            "assetAlias": "sandbox.numalogic.demo3",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo3",
+            "rollouts_pod_template_hash": "123456789",
+            "app": "demo3"
+        },
+        "name": "namespace_app_rollouts_http_request_error_rate",
+        "timestamp": "1654121198989",
+        "value": "15"
+    },
+    {
+        "labels": {
+            "__name__": "namespace_app_rollouts_http_request_latency",
+            "assetAlias": "sandbox.numalogic.demo3",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo3",
+            "rollouts_pod_template_hash": "123456789",
+            "app": "demo3"
+        },
+        "name": "namespace_app_rollouts_http_request_latency",
+        "timestamp": "1654121198989",
+        "value": "16"
+    },
+    {
+        "labels": {
+            "__name__": "namespace_app_rollouts_http_request_error_rate",
+            "assetAlias": "sandbox.numalogic.demo3",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo3",
+            "rollouts_pod_template_hash": "123456789",
+            "app": "demo3"
+
+        },
+        "name": "namespace_app_rollouts_http_request_error_rate",
+        "timestamp": "1654121208989",
+        "value": "17"
+    },
+    {
+        "labels": {
+            "__name__": "namespace_app_rollouts_http_request_latency",
+            "assetAlias": "sandbox.numalogic.demo3",
+            "numalogic": "true",
+            "namespace": "sandbox_numalogic_demo3",
+            "rollouts_pod_template_hash": "123456789",
+            "app": "demo3"
+        },
+        "name": "namespace_app_rollouts_http_request_latency",
+        "timestamp": "1654121208989",
+        "value": "18"
     }
 ]
