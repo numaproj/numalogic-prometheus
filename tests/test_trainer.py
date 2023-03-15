@@ -52,7 +52,7 @@ class TestTrainer(unittest.TestCase):
             "namespace": "sandbox_numalogic_demo",
             "name": "metric_1",
             "rollouts_pod_template_hash": "123456789",
-            "app": "demo"
+            "app": "demo",
         },
     }
 

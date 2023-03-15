@@ -243,7 +243,7 @@ def mock_rollout_query_metric2(*_, **__):
         parse_dates=["timestamp"],
         infer_datetime_format=True,
     )
-    df.rename(columns={'hash_id': 'rollouts_pod_template_hash'}, inplace=True)
+    df.rename(columns={"hash_id": "rollouts_pod_template_hash"}, inplace=True)
     return df
 
 
