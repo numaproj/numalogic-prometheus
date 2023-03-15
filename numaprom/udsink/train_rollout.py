@@ -124,7 +124,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         model_cfg = metric_config.numalogic_conf.model
 
         # ToDo: standardize the label name
-        if "rollouts_pod_template_hash" in payload.composite_keys.keys():
+        if "rollouts_pod_template_hash" in payload.composite_keys:
             hash_label = "rollouts_pod_template_hash"
         else:
             hash_label = "hash_id"
