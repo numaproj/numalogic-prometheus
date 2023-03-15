@@ -26,44 +26,13 @@ configs:
         unified_weights: [0.7, 0.3]
   - namespace: "sandbox_numalogic_demo3"
     metric_configs:
-      - metric: "rollout_error_rate"
-        composite_keys: [ "namespace", "name", "hash_id" ]
+      - metric: "namespace_app_rollouts_http_request_error_rate"
+        composite_keys: [ "namespace", "name", "app", "rollouts_pod_template_hash" ]
         static_threshold: 3
-        scrape_interval: 30
-        retrain_freq_hr: 8
-        resume_training: "False"
-        numalogic_conf:
-          model:
-            name: "SparseVanillaAE"
-            conf:
-              seq_len: 12
-              n_features: 1
-              encoder_layersizes:
-                - 16
-                - 8
-              decoder_layersizes:
-                - 8
-                - 16
-              dropout_p: 0.25
-          trainer:
-            max_epochs: 50
-          preprocess:
-            - name: "LogTransformer"
-              stateful: false
-              conf:
-                add_factor: 3
-            - name: "StandardScaler"
-              conf:
-                with_mean: False
-          threshold:
-            name: "StdDevThreshold"
-          postprocess:
-            name: "TanhNorm"
-            stateful: false
-            conf:
-              scale_factor: 5
+      - metric: "namespace_app_rollouts_http_request_latency"
+        composite_keys: [ "namespace", "name", "app", "rollouts_pod_template_hash" ]
+        static_threshold: 3
     unified_configs:
-      - unified_metric_name: "unified_anomaly"
-        unified_metrics: [ "rollout_error_rate" ]
-        unified_strategy: "max"
-        unified_weights: []
+      - unified_metric_name: "namespace_app_rollouts_unified_anomaly"
+        unified_metrics: [ "namespace_app_rollouts_http_request_error_rate",
+                               "namespace_app_rollouts_http_request_latency" ]

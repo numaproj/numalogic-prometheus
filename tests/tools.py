@@ -236,6 +236,17 @@ def mock_rollout_query_metric(*_, **__):
     )
 
 
+def mock_rollout_query_metric2(*_, **__):
+    df = pd.read_csv(
+        os.path.join(TESTS_DIR, "resources", "data", "argorollouts.csv"),
+        index_col="timestamp",
+        parse_dates=["timestamp"],
+        infer_datetime_format=True,
+    )
+    df.rename(columns={'hash_id': 'rollouts_pod_template_hash'}, inplace=True)
+    return df
+
+
 def mock_configs():
     schema: NumapromConf = OmegaConf.structured(NumapromConf)
 

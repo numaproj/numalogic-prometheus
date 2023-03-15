@@ -123,14 +123,20 @@ def train_rollout(datums: List[Datum]) -> Responses:
 
         model_cfg = metric_config.numalogic_conf.model
 
+        # ToDo: standardize the label name
+        if "rollouts_pod_template_hash" in payload.composite_keys.keys():
+            hash_label = "rollouts_pod_template_hash"
+        else:
+            hash_label = "hash_id"
+
         train_df = fetch_data(
             payload,
             metric_config,
             {"namespace": payload.composite_keys["namespace"]},
-            return_labels=["hash_id"],
+            return_labels=[hash_label],
         )
         try:
-            train_df = clean_data(train_df, "hash_id")
+            train_df = clean_data(train_df, hash_label)
         except KeyError:
             _LOGGER.error(
                 "%s - KeyError while data cleaning for train payload: %s", payload.uuid, payload

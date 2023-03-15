@@ -88,15 +88,17 @@ def __construct_publisher_payload(
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),
-        "namespace": stream_payload.get_metadata("src_labels").get("namespace"),
     }
-    subsystem = stream_payload.get_metadata("src_labels").get("hash_id") or None
+
+    for key in stream_payload.composite_keys:
+        if key != "name":
+            labels[key] = stream_payload.composite_keys[key]
 
     return PrometheusPayload(
         timestamp_ms=int(stream_payload.end_ts),
         name=f"{metric_name}_anomaly",
         namespace=namespace,
-        subsystem=subsystem,
+        subsystem=None,
         type="Gauge",
         value=float(final_score),
         labels=labels,
@@ -110,17 +112,17 @@ def __construct_unified_payload(
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),
-        "namespace": stream_payload.get_metadata("src_labels").get("namespace"),
-        "hash_id": stream_payload.get_metadata("src_labels").get("hash_id"),
     }
 
-    subsystem = stream_payload.get_metadata("src_labels").get("hash_id") or None
+    for key in stream_payload.composite_keys:
+        if key != "name":
+            labels[key] = stream_payload.composite_keys[key]
 
     return PrometheusPayload(
         timestamp_ms=int(stream_payload.end_ts),
         name=unified_config.unified_metric_name,
         namespace=namespace,
-        subsystem=subsystem,
+        subsystem=None,
         type="Gauge",
         value=max_anomaly,
         labels=labels,
