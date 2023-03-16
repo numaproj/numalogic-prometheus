@@ -60,9 +60,10 @@ FROM builder AS udf
 
 WORKDIR $PYSETUP_PATH
 COPY ./pyproject.toml ./poetry.lock ./
+COPY requirements ./requirements
+
 RUN poetry install --no-cache --no-root && \
-    poetry run pip install --no-cache torch --extra-index-url https://download.pytorch.org/whl/cpu && \
-    poetry run pip install pytorch-lightning && \
+    poetry run pip install --no-cache -r requirements/requirements-torch.txt && \
     rm -rf ~/.cache/pypoetry/
 
 ADD . /app
