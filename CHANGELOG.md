@@ -1,7 +1,23 @@
 # Changelog
 
+## v0.2.4 (2023-03-21)
+
+ * [8b2f20e](https://github.com/numaproj/numalogic-prometheus/commit/8b2f20ebe1321ce51f6fd7241c1f70771fe9971c) fix: save preproc + thresh model with conf keys (#107)
+ * [a6e6df5](https://github.com/numaproj/numalogic-prometheus/commit/a6e6df52d24caee31f8ca2cd5975272781190998) fix: prevent torch and lightning version major changes (#105)
+
+### Contributors
+
+ * Avik Basu
+
 ## v0.2.3a0 (2023-03-15)
 
+
+### Contributors
+
+
+## v0.2.3 (2023-03-15)
+
+ * [a6e6df5](https://github.com/numaproj/numalogic-prometheus/commit/a6e6df52d24caee31f8ca2cd5975272781190998) fix: prevent torch and lightning version major changes (#105)
  * [181c353](https://github.com/numaproj/numalogic-prometheus/commit/181c3536c4e4de5f7c31c2054c6c595f85065175) fix: static score calculation to use the correct limit from conf (#104)
 
 ### Contributors
