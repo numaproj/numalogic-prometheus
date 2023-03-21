@@ -68,10 +68,10 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     return train_reconerr.numpy(), model, trainer
 
 
-def _preprocess(x_raw, preproc_cfg: List[ModelInfo]):
+def _preprocess(x_raw, preproc_cfgs: List[ModelInfo]):
     preproc_factory = PreprocessFactory()
     preproc_clfs = []
-    for _cfg in preproc_cfg:
+    for _cfg in preproc_cfgs:
         _clf = preproc_factory.get_instance(_cfg)
         preproc_clfs.append(_clf)
     preproc_pl = make_pipeline(*preproc_clfs)
@@ -154,8 +154,8 @@ def train_rollout(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        preproc_cfg = metric_config.numalogic_conf.preprocess
-        x_train, preproc_clf = _preprocess(train_df.to_numpy(), preproc_cfg)
+        preproc_cfgs = metric_config.numalogic_conf.preprocess
+        x_train, preproc_clf = _preprocess(train_df.to_numpy(), preproc_cfgs)
 
         trainer_cfg = metric_config.numalogic_conf.trainer
         x_reconerr, anomaly_model, trainer = _train_model(
@@ -173,7 +173,11 @@ def train_rollout(datums: List[Datum]) -> Responses:
 
         # Save main model
         version = save_model(
-            skeys=skeys, dkeys=[model_cfg.name], model=anomaly_model, uuid=payload.uuid
+            skeys=skeys,
+            dkeys=[model_cfg.name],
+            model=anomaly_model,
+            uuid=payload.uuid,
+            train_size=train_df.shape[0],
         )
         if version:
             _LOGGER.info(
@@ -185,7 +189,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         # Save preproc model
         version = save_model(
             skeys=skeys,
-            dkeys=["preproc"],
+            dkeys=[_conf.name for _conf in preproc_cfgs],
             model=preproc_clf,
             artifact_type="sklearn",
             uuid=payload.uuid,
@@ -205,7 +209,7 @@ def train_rollout(datums: List[Datum]) -> Responses:
         # Save threshold model
         version = save_model(
             skeys=skeys,
-            dkeys=["thresh"],
+            dkeys=[thresh_cfg.name],
             model=thresh_clf,
             artifact_type="sklearn",
             uuid=payload.uuid,

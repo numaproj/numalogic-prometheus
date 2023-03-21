@@ -47,6 +47,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     metric_config = get_metric_config(
         metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
     )
+    thresh_cfg = metric_config.numalogic_conf.threshold
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
@@ -63,7 +64,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     # load threshold artifact
     thresh_artifact = load_model(
         skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
-        dkeys=["thresh"],
+        dkeys=[thresh_cfg.name],
         artifact_type="sklearn",
     )
     if not thresh_artifact:
