@@ -5,7 +5,7 @@ ROOT_DIR = os.path.split(NUMAPROM_DIR)[0]
 TESTS_DIR = os.path.join(ROOT_DIR, "tests")
 DATA_DIR = os.path.join(NUMAPROM_DIR, "data")
 CONFIG_DIR = os.path.join(NUMAPROM_DIR, "configs")
-
+DEFAULT_CONFIG_DIR = os.path.join(NUMAPROM_DIR, "default-configs")
 
 # endpoints
 DEFAULT_PROMETHEUS_SERVER = "http://prometheus-service.monitoring.svc.cluster.local:8080"
