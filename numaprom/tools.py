@@ -21,7 +21,12 @@ from omegaconf import OmegaConf
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger, MetricConf, ServiceConf, NumapromConf, UnifiedConf
-from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR, DEFAULT_CONFIG_DIR
+from numaprom._constants import (
+    DEFAULT_TRACKING_URI,
+    DEFAULT_PROMETHEUS_SERVER,
+    CONFIG_DIR,
+    DEFAULT_CONFIG_DIR,
+)
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.prometheus import Prometheus
 
