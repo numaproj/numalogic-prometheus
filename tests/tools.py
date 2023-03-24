@@ -34,7 +34,12 @@ def get_datum(data: str or bytes) -> Datum:
     if type(data) is not bytes:
         data = json.dumps(data).encode("utf-8")
 
-    return Datum(key="random_key", value=data, event_time=datetime.datetime.now(), watermark=datetime.datetime.now())
+    return Datum(
+        key="random_key",
+        value=data,
+        event_time=datetime.datetime.now(),
+        watermark=datetime.datetime.now(),
+    )
 
 
 def get_stream_data(data_path: str):
