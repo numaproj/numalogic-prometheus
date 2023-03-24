@@ -21,7 +21,7 @@ from omegaconf import OmegaConf
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger, MetricConf, ServiceConf, NumapromConf, UnifiedConf
-from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR
+from numaprom._constants import DEFAULT_TRACKING_URI, DEFAULT_PROMETHEUS_SERVER, CONFIG_DIR, DEFAULT_CONFIG_DIR
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.prometheus import Prometheus
 
@@ -156,10 +156,10 @@ def get_all_configs():
     conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
     given_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default_config.yaml"))
+    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "default_config.yaml"))
     default_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "default_numalogic.yaml"))
+    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "default_numalogic.yaml"))
     schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
     default_numalogic = OmegaConf.merge(schema, conf)
 
