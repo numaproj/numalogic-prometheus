@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.2.5a2 (2023-03-24)
+
+ * [84e91d5](https://github.com/numaproj/numalogic-prometheus/commit/84e91d56e37c2d1e8f6f1e16293daeb52b87d348) chore!: update pynumaflow -> 0.3x (#108)
+ * [f7760a1](https://github.com/numaproj/numalogic-prometheus/commit/f7760a1208d7b32d7700817b81b765ba03426313) Move default configs (#111)
+
+### Contributors
+
+ * Avik Basu
+ * Nandita Koppisetty
+
+## v0.2.5a1 (2023-03-24)
+
+ * [b36331c](https://github.com/numaproj/numalogic-prometheus/commit/b36331caaa6775418354b193a2313d4a58a38b7d) update tag
+ * [d093470](https://github.com/numaproj/numalogic-prometheus/commit/d093470bca0a58ef9e3056237156a441427d518b) change udsink func signature typing
+ * [6bf436d](https://github.com/numaproj/numalogic-prometheus/commit/6bf436d28c3c6a77ae77222f4fd5f8ab5bca21bf) fix lint
+
+### Contributors
+
+ * Avik Basu
+
+## v0.2.5a0 (2023-03-24)
+
+ * [2696988](https://github.com/numaproj/numalogic-prometheus/commit/2696988f05657a1d343fb92db44824f9d925278e) chore!: update pynumaflow -> 0.3x
+
+### Contributors
+
+ * Avik Basu
+
 ## v0.2.4 (2023-03-21)
 
  * [8b2f20e](https://github.com/numaproj/numalogic-prometheus/commit/8b2f20ebe1321ce51f6fd7241c1f70771fe9971c) fix: save preproc + thresh model with conf keys (#107)
