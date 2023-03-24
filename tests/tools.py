@@ -253,10 +253,10 @@ def mock_configs():
     conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "config.yaml"))
     given_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "default_config.yaml"))
+    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "config.yaml"))
     default_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "default_numalogic.yaml"))
+    conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "numalogic_config.yaml"))
     schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
     default_numalogic = OmegaConf.merge(schema, conf)
 
