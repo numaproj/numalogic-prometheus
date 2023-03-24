@@ -1,6 +1,6 @@
 import os
 import time
-from typing import List
+from typing import List, Iterator
 
 import numpy as np
 import pandas as pd
@@ -99,7 +99,7 @@ def _is_new_request(payload: TrainerPayload) -> bool:
     return True
 
 
-def train_rollout(datums: List[Datum]) -> Responses:
+def train_rollout(datums: Iterator[Datum]) -> Responses:
     responses = Responses()
 
     for _datum in datums:
