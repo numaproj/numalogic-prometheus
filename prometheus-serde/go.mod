@@ -6,6 +6,7 @@ require (
 	github.com/numaproj/numaflow v0.7.0
 	github.com/numaproj/numaflow-go v0.3.1
 	github.com/prometheus/prometheus v0.41.0
+	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.24.0
 )
 
@@ -36,7 +37,6 @@ require (
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.37.0 // indirect
 	go.opentelemetry.io/otel v1.11.2 // indirect
 	go.opentelemetry.io/otel/metric v0.34.0 // indirect
