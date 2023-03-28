@@ -18,7 +18,7 @@ from numalogic.registry import ArtifactData, MLflowRegistry
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 
-from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, CONFIG_DIR, DEFAULT_CONFIG_DIR
+from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, DEFAULT_CONFIG_DIR
 from numaprom.factory import HandlerFactory
 from numaprom import NumapromConf
 

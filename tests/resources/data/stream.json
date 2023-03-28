@@ -287,5 +287,51 @@
         "name": "namespace_app_rollouts_http_request_latency",
         "timestamp": "1654121208989",
         "value": "18"
+    },
+    {
+     "labels": {
+         "__name__":"namespace_app_rollouts_http_request_error_rate",
+         "app":"o11y-fuzzy-gql-federation",
+         "intuit_alert":"true",
+         "namespace":"dev-devx-o11yfuzzygqlfederation-usw2-stg",
+         "numalogic":"true",
+         "prometheus":"addon-metricset-ns/k8s-prometheus",
+         "prometheus_replica":"prometheus-k8s-prometheus-1",
+         "rollouts_pod_template_hash":"79b6c65945"
+     },
+     "name":"namespace_app_rollouts_http_request_error_rate",
+     "timestamp":"1680030431883",
+     "value":"0.575556508537336"
+    },
+    {
+    "labels": {
+        "__name__":"namespace_app_rollouts_http_request_error_rate",
+        "app":"o11y-fuzzy-gql-federation",
+        "intuit_alert":"true",
+        "namespace":"dev-devx-o11yfuzzygqlfederation-usw2-stg",
+        "numalogic":"true",
+        "prometheus":"addon-metricset-ns/k8s-prometheus",
+        "prometheus_replica":"prometheus-k8s-prometheus-1",
+        "rollouts_pod_template_hash":"79b6c65945"
+    },
+    "name":"namespace_app_rollouts_http_request_error_rate",
+    "timestamp":"1680030461883",
+    "value":"0"
+    },
+    {
+    "labels": {
+        "__name__":"namespace_app_rollouts_http_request_error_rate",
+        "app":"o11y-fuzzy-gql-federation",
+        "intuit_alert":"true",
+        "namespace":"dev-devx-o11yfuzzygqlfederation-usw2-stg",
+        "numalogic":"true",
+        "prometheus":"addon-metricset-ns/k8s-prometheus",
+        "prometheus_replica":"prometheus-k8s-prometheus-0",
+        "rollouts_pod_template_hash":"79b6c65945"
+    },
+    "name":"namespace_app_rollouts_http_request_error_rate",
+    "timestamp":"1680030461883",
+    "value":"0"
     }
+
 ]

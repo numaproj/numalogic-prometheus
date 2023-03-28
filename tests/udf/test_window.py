@@ -32,6 +32,17 @@ class TestWindow(unittest.TestCase):
                 payload = StreamPayload(**orjson.loads(_out))
                 self.assertTrue(payload)
 
+    def test_window_duplicate_element(self):
+        uuids = set()
+        for idx, data in enumerate(self.input_stream[-3:]):
+            _out = window("", get_datum(data))
+            if not _out.items()[0].key == DROP:
+                _out = _out.items()[0].value.decode("utf-8")
+                payload = StreamPayload(**orjson.loads(_out))
+                uuids.add(payload.uuid)
+                self.assertTrue(payload)
+        self.assertEqual(1, len(uuids))
+
     @mockenv(BUFF_SIZE="1")
     def test_window_err(self):
         with self.assertRaises(ValueError):
