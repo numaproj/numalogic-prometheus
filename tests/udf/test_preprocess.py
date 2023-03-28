@@ -27,6 +27,7 @@ class TestPreprocess(unittest.TestCase):
     @classmethod
     @patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
     def setUpClass(cls) -> None:
+        redis_client.flushall()
         cls.preproc_input = get_prepoc_input(STREAM_DATA_PATH)
         assert cls.preproc_input.items(), print("input items is empty", cls.preproc_input)
 
