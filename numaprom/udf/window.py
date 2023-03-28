@@ -47,7 +47,6 @@ def __aggregate_window(
     """
     redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
     with redis_client.pipeline() as pl:
-        print(ts, key)
         pl.zadd(key, {f"{value}::{ts}": ts})
         pl.zremrangebyrank(key, -(buff_size + 10), -buff_size)
         pl.zrange(key, -win_size, -1, withscores=True, score_cast_func=int)
