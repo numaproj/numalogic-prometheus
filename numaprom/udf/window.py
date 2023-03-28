@@ -1,7 +1,7 @@
 import os
 import time
 import uuid
-from typing import List, Tuple, Optional
+from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -36,14 +36,24 @@ def _clean_arr(
     return np.nan_to_num(arr, nan=replace_val, posinf=inf_replace, neginf=-inf_replace)
 
 
-def __aggregate_window(key, ts, value, win_size, buff_size, recreate) -> List[Tuple[float, float]]:
+def __aggregate_window(
+    key: str, ts: str, value: float, win_size: int, buff_size: int, recreate: bool
+) -> list[tuple[float, float]]:
+    """
+    Adds an element to the sliding window using a redis sorted set.
+
+    Returns an empty list if adding the element does not create a new entry
+    to the set.
+    """
     redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})
         pl.zremrangebyrank(key, -(buff_size + 10), -buff_size)
         pl.zrange(key, -win_size, -1, withscores=True, score_cast_func=int)
         out = pl.execute()
-    _window = out[-1]
+    _is_new, _, _window = out
+    if not _is_new:
+        return []
     _window = list(map(lambda x: (float(x[0].split("::")[0]), x[1]), _window))
     return _window
 

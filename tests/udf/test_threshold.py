@@ -9,6 +9,7 @@ from numalogic.registry import MLflowRegistry
 from numaprom import tools
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
+from tests import redis_client
 from tests.tools import (
     get_threshold_input,
     get_datum,
@@ -26,6 +27,9 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 @patch("numaprom.tools.set_aws_session", Mock(return_value=None))
 @patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
 class TestThreshold(unittest.TestCase):
+    def setUp(self) -> None:
+        redis_client.flushall()
+
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(MLflowRegistry, "load", Mock(return_value=return_threshold_clf()))
     def test_threshold(self):
@@ -76,6 +80,7 @@ class TestThreshold(unittest.TestCase):
     @patch.object(MLflowRegistry, "load", Mock(return_value=None))
     def test_threshold_no_clf(self):
         thresh_input = get_threshold_input(STREAM_DATA_PATH)
+        print(thresh_input)
         assert thresh_input.items(), print("input items is empty", thresh_input)
 
         for msg in thresh_input.items():

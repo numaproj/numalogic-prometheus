@@ -26,8 +26,7 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 class TestPostProcess(unittest.TestCase):
     postproc_input = None
 
-    @classmethod
-    def setUpClass(cls) -> None:
+    def setUp(self) -> None:
         redis_client.flushall()
 
     @freeze_time("2022-02-20 12:00:00")
