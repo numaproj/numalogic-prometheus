@@ -291,9 +291,9 @@
     {
      "labels": {
          "__name__":"namespace_app_rollouts_http_request_error_rate",
-         "app":"o11y-fuzzy-gql-federation",
+         "app":"some-numaprom-app",
          "intuit_alert":"true",
-         "namespace":"dev-devx-o11yfuzzygqlfederation-usw2-stg",
+         "namespace":"some-numaprom-app-stg",
          "numalogic":"true",
          "prometheus":"addon-metricset-ns/k8s-prometheus",
          "prometheus_replica":"prometheus-k8s-prometheus-1",
@@ -306,9 +306,9 @@
     {
     "labels": {
         "__name__":"namespace_app_rollouts_http_request_error_rate",
-        "app":"o11y-fuzzy-gql-federation",
+        "app":"some-numaprom-app",
         "intuit_alert":"true",
-        "namespace":"dev-devx-o11yfuzzygqlfederation-usw2-stg",
+        "namespace":"some-numaprom-app-stg",
         "numalogic":"true",
         "prometheus":"addon-metricset-ns/k8s-prometheus",
         "prometheus_replica":"prometheus-k8s-prometheus-1",
@@ -321,9 +321,9 @@
     {
     "labels": {
         "__name__":"namespace_app_rollouts_http_request_error_rate",
-        "app":"o11y-fuzzy-gql-federation",
+        "app":"some-numaprom-app",
         "intuit_alert":"true",
-        "namespace":"dev-devx-o11yfuzzygqlfederation-usw2-stg",
+        "namespace":"some-numaprom-app-stg",
         "numalogic":"true",
         "prometheus":"addon-metricset-ns/k8s-prometheus",
         "prometheus_replica":"prometheus-k8s-prometheus-0",
