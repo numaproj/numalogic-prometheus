@@ -3,7 +3,7 @@ import time
 import numpy as np
 from typing import List
 from orjson import orjson
-from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import RedisError, RedisClusterException
 
 from pynumaflow.function import Datum
 
@@ -147,8 +147,10 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=False, unified_config=unified_config
         )
-    except RedisConnectionError:
-        _LOGGER.warning("%s - Redis connection failed, recreating the redis client", payload.uuid)
+    except (RedisError, RedisClusterException) as warn:
+        _LOGGER.warning(
+            "%s - Redis connection failed, recreating the redis client; err: %r", payload.uuid, warn
+        )
         unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
