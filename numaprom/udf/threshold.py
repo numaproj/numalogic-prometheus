@@ -44,9 +44,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     )
 
     # Load config
-    metric_config = get_metric_config(
-        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-    )
+    metric_config = get_metric_config(payload.composite_keys)
     thresh_cfg = metric_config.numalogic_conf.threshold
 
     # Check if payload needs static inference

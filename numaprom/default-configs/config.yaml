@@ -36,3 +36,12 @@ configs:
                            "namespace_app_http_server_requests_latency",
                            "namespace_app_cpu_utilization",
                            "namespace_app_memory_utilization" ]
+  - namespace: "default-iks-doctors"
+    metric_configs:
+      - metric: "metric_1"
+        composite_keys: [ "name" ]
+        static_threshold: 3
+        static_threshold_wt: 0.7
+    unified_configs:
+      - unified_metric_name: "namespace_ikspa_unified_anomaly"
+        unified_metrics: [ "metric_1"]

@@ -17,7 +17,7 @@ from tests.tools import (
     mock_rollout_query_metric2,
     mock_configs,
 )
-from tests import train, redis_client, train_rollout
+from tests import train, redis_client, train_rollout, train_iks_doctors
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
@@ -53,6 +53,13 @@ class TestTrainer(unittest.TestCase):
             "name": "metric_1",
             "rollouts_pod_template_hash": "123456789",
             "app": "demo",
+        },
+    }
+
+    train_payload3 = {
+        "uuid": "123124543",
+        "composite_keys": {
+            "name": "metric_1",
         },
     }
 
@@ -103,6 +110,13 @@ class TestTrainer(unittest.TestCase):
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric2()))
     def test_argo_rollout_trainer_03(self):
         _out = train_rollout([as_datum(self.train_payload2)])
+        self.assertTrue(_out.items()[0].success)
+        self.assertEqual("1", _out.items()[0].id)
+
+    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
+    @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
+    def test_iks_doctors_trainer_01(self):
+        _out = train_iks_doctors([as_datum(self.train_payload3)])
         self.assertTrue(_out.items()[0].success)
         self.assertEqual("1", _out.items()[0].id)
 

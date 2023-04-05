@@ -80,7 +80,7 @@ def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
 
 def _is_new_request(payload: TrainerPayload) -> bool:
     redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=False)
-    _ckeys = ":".join([payload.composite_keys["namespace"], payload.composite_keys["name"]])
+    _ckeys = ":".join([payload.composite_keys["name"]])
     r_key = f"trainiksdoctors::{_ckeys}"
     value = redis_client.get(r_key)
     if value:
@@ -108,16 +108,14 @@ def train_iks_doctors(datums: Iterator[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        metric_config = get_metric_config(
-            metric=payload.composite_keys["name"], namespace=""
-        )
+        metric_config = get_metric_config(payload.composite_keys)
 
         model_cfg = metric_config.numalogic_conf.model
 
         train_df = fetch_data(
             payload,
             metric_config,
-            {"namespace": payload.composite_keys["namespace"]},
+            {}
         )
 
         try:

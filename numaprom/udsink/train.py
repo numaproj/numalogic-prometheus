@@ -103,9 +103,7 @@ def train(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        metric_config = get_metric_config(
-            metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-        )
+        metric_config = get_metric_config(payload.composite_keys)
         model_cfg = metric_config.numalogic_conf.model
 
         train_df = fetch_data(

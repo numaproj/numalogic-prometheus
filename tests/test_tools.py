@@ -41,59 +41,59 @@ class TestTools(unittest.TestCase):
     def test_get_metric_config(self):
         # from given config
         metric_config = get_metric_config(
-            metric="rollout_latency", namespace="sandbox_numalogic_demo1"
+            {"name": "rollout_latency", "namespace": "sandbox_numalogic_demo1"}
         )
         self.assertTrue(metric_config)
         self.assertEqual(metric_config.metric, "rollout_latency")
 
         # from given default config
         metric_config = get_metric_config(
-            metric="namespace_app_rollouts_http_request_error_rate", namespace="abc"
+            {"name": "namespace_app_rollouts_http_request_error_rate", "namespace": "abc"}
         )
         self.assertTrue(metric_config)
         self.assertEqual(metric_config.metric, "namespace_app_rollouts_http_request_error_rate")
 
         # default config
-        metric_config = get_metric_config(metric="random", namespace="abc")
+        metric_config = get_metric_config({"name": "random", "namespace": "abc"})
         self.assertTrue(metric_config)
         self.assertEqual(metric_config.metric, "default")
 
     def test_get_service_config(self):
         # from given config
         service_config = get_service_config(
-            metric="rollout_latency", namespace="sandbox_numalogic_demo1"
+            {"name": "rollout_latency", "namespace": "sandbox_numalogic_demo1"}
         )
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "sandbox_numalogic_demo1")
 
         # from given default config
         service_config = get_service_config(
-            metric="namespace_app_rollouts_http_request_error_rate", namespace="abc"
+            {"name": "namespace_app_rollouts_http_request_error_rate", "namespace": "abc"}
         )
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "default-argorollouts")
         service_config = get_service_config(
-            metric="namespace_app_http_server_requests_error_rate", namespace="abc"
+            {"name": "namespace_app_http_server_requests_error_rate", "namespace": "abc"}
         )
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "default-argocd")
 
         # default config
-        service_config = get_service_config(metric="random", namespace="abc")
+        service_config = get_service_config({"name": "random", "namespace": "abc"})
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "default")
 
     def test_get_unified_config(self):
         # from given config
         unified_config = get_unified_config(
-            metric="rollout_latency", namespace="sandbox_numalogic_demo1"
+            {"name": "rollout_latency", "namespace": "sandbox_numalogic_demo1"}
         )
         self.assertTrue(unified_config)
         self.assertTrue("rollout_latency" in unified_config.unified_metrics)
 
         # from given default config
         unified_config = get_unified_config(
-            metric="namespace_app_rollouts_http_request_error_rate", namespace="abc"
+            {"name": "namespace_app_rollouts_http_request_error_rate", "namespace": "abc"}
         )
         self.assertTrue(unified_config)
         self.assertTrue(
@@ -101,7 +101,7 @@ class TestTools(unittest.TestCase):
         )
 
         # default config - will not have unified config
-        unified_config = get_unified_config(metric="random", namespace="abc")
+        unified_config = get_unified_config({"name": "random", "namespace": "abc"})
         self.assertFalse(unified_config)
 
 
@@ -109,8 +109,7 @@ class TestTools(unittest.TestCase):
 class TestWindowScorer(unittest.TestCase):
     def test_get_winscore(self):
         metric_conf = get_metric_config(
-            metric="namespace_app_rollouts_http_request_error_rate",
-            namespace="sandbox_numalogic_demo2",
+            {"name": "namespace_app_rollouts_http_request_error_rate", "namespace": "sandbox_numalogic_demo2"}
         )
         stream = np.random.uniform(low=1, high=2, size=(10, 1))
         payload = StreamPayload(

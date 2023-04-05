@@ -171,11 +171,14 @@ def get_all_configs():
     return given_configs, default_configs, default_numalogic
 
 
-def get_service_config(metric: str, namespace: str):
+def get_service_config(composite_keys):
+    metric = composite_keys["name"]
     given_configs, default_configs, default_numalogic = get_all_configs()
 
+    service_config = None
     # search and load from given configs
-    service_config = list(filter(lambda conf: (conf.namespace == namespace), given_configs))
+    if "namespace" in composite_keys.keys():
+        service_config = list(filter(lambda conf: (conf.namespace == composite_keys["namespace"]), given_configs))
 
     # if not search and load from default configs
     if not service_config:
@@ -198,8 +201,9 @@ def get_service_config(metric: str, namespace: str):
     return service_config
 
 
-def get_metric_config(metric: str, namespace: str) -> Optional[MetricConf]:
-    service_config = get_service_config(metric, namespace)
+def get_metric_config(composite_keys: dict) -> Optional[MetricConf]:
+    metric = composite_keys["name"]
+    service_config = get_service_config(composite_keys)
     metric_config = list(
         filter(lambda conf: (conf.metric == metric), service_config.metric_configs)
     )
@@ -208,8 +212,9 @@ def get_metric_config(metric: str, namespace: str) -> Optional[MetricConf]:
     return metric_config[0]
 
 
-def get_unified_config(metric: str, namespace: str) -> Optional[UnifiedConf]:
-    service_config = get_service_config(metric, namespace)
+def get_unified_config(composite_keys: dict) -> Optional[UnifiedConf]:
+    metric = composite_keys["name"]
+    service_config = get_service_config(composite_keys)
     unified_config = list(
         filter(lambda conf: (metric in conf.unified_metrics), service_config.unified_configs)
     )

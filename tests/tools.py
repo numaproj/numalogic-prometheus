@@ -240,7 +240,6 @@ def mock_rollout_query_metric(*_, **__):
         infer_datetime_format=True,
     )
 
-
 def mock_rollout_query_metric2(*_, **__):
     df = pd.read_csv(
         os.path.join(TESTS_DIR, "resources", "data", "argorollouts.csv"),

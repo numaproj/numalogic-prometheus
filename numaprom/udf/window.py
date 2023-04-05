@@ -68,7 +68,12 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
 
-    metric_config = get_metric_config(metric=msg["name"], namespace=msg["labels"]["namespace"])
+    if "namespace" in msg["labels"]:
+        composite_keys = {"name": msg["name"], "namespace": msg["labels"]["namespace"]}
+    else:
+        composite_keys = {"name": msg["name"]}
+
+    metric_config = get_metric_config(composite_keys)
     win_size = metric_config.numalogic_conf.model.conf["seq_len"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 

@@ -332,6 +332,16 @@
     "name":"namespace_app_rollouts_http_request_error_rate",
     "timestamp":"1680030461883",
     "value":"0"
+    },
+    {
+    "labels": {
+        "__name__":"metric_1",
+        "intuit_alert":"true",
+        "assetId": "123"
+    },
+    "name":"metric_1",
+    "timestamp":"1680030461883",
+    "value":"0"
     }
 
 ]
