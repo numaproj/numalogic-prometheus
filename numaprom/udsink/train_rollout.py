@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 
 from numaprom import get_logger
 from numaprom.entities import TrainerPayload
-from numaprom.redis import get_redis_client
+from numaprom.clients.redis import get_redis_client
 from numaprom.tools import get_metric_config, save_model, fetch_data
 
 _LOGGER = get_logger(__name__)
