@@ -84,7 +84,11 @@ def __construct_publisher_payload(
     stream_payload: StreamPayload, final_score: float
 ) -> PrometheusPayload:
     metric_name = stream_payload.composite_keys["name"]
-    namespace = stream_payload.composite_keys["namespace"]
+
+    if "namespace" in stream_payload.composite_keys:
+        namespace = stream_payload.composite_keys["namespace"]
+    else:
+        namespace = ""
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),
@@ -108,7 +112,10 @@ def __construct_publisher_payload(
 def __construct_unified_payload(
     stream_payload: StreamPayload, max_anomaly: float, unified_config: UnifiedConf
 ) -> PrometheusPayload:
-    namespace = stream_payload.composite_keys["namespace"]
+    if "namespace" in stream_payload.composite_keys:
+        namespace = stream_payload.composite_keys["namespace"]
+    else:
+        namespace = ""
 
     labels = {
         "model_version": str(stream_payload.get_metadata("version")),

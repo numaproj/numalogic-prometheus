@@ -59,9 +59,14 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
             (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
         ]
 
+    if "namespace" in payload.composite_keys:
+        skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
+    else:
+        skeys = [ payload.composite_keys["name"]]
+
     # load threshold artifact
     thresh_artifact = load_model(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+        skeys=skeys,
         dkeys=[thresh_cfg.name],
         artifact_type="sklearn",
     )

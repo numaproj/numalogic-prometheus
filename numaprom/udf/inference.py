@@ -76,9 +76,14 @@ def inference(_: str, datum: Datum) -> bytes:
     metric_config = get_metric_config(payload.composite_keys)
     numalogic_conf = metric_config.numalogic_conf
 
+    if "namespace" in payload.composite_keys:
+        skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
+    else:
+        skeys = [ payload.composite_keys["name"]]
+
     # Load inference model
     artifact_data = load_model(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+        skeys=skeys,
         dkeys=[numalogic_conf.model.name],
     )
     if not artifact_data:

@@ -27,5 +27,8 @@ def metric_filter(_: str, datum: Datum) -> Optional[Messages]:
     if label in data["labels"] and data["labels"][label] not in label_values:
         return None
 
+    if label not in data["labels"]:
+        return None
+
     _LOGGER.info("Sending Metric: %s ", data)
     return msg

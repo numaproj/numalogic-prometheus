@@ -289,6 +289,46 @@
         "value": "18"
     },
     {
+    "labels": {
+        "__name__":"metric_1",
+        "intuit_alert":"true",
+        "assetId": "123"
+    },
+    "name":"metric_1",
+    "timestamp":"1680030461883",
+    "value":"0"
+    },
+    {
+    "labels": {
+        "__name__":"metric_1",
+        "intuit_alert":"true",
+        "assetId": "123"
+    },
+    "name":"metric_1",
+    "timestamp":"1680030461884",
+    "value":"1"
+    },
+    {
+    "labels": {
+        "__name__":"metric_1",
+        "intuit_alert":"true",
+        "assetId": "123"
+    },
+    "name":"metric_1",
+    "timestamp":"1680030461885",
+    "value":"2"
+    },
+    {
+    "labels": {
+        "__name__":"metric_1",
+        "intuit_alert":"true",
+        "assetId": "123"
+    },
+    "name":"metric_1",
+    "timestamp":"1680030461886",
+    "value":"3"
+    },
+    {
      "labels": {
          "__name__":"namespace_app_rollouts_http_request_error_rate",
          "app":"some-numaprom-app",
@@ -332,16 +372,5 @@
     "name":"namespace_app_rollouts_http_request_error_rate",
     "timestamp":"1680030461883",
     "value":"0"
-    },
-    {
-    "labels": {
-        "__name__":"metric_1",
-        "intuit_alert":"true",
-        "assetId": "123"
-    },
-    "name":"metric_1",
-    "timestamp":"1680030461883",
-    "value":"0"
     }
-
 ]

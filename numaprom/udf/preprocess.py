@@ -22,9 +22,14 @@ def preprocess(_: str, datum: Datum) -> bytes:
     metric_config = get_metric_config(payload.composite_keys)
     preprocess_cfgs = metric_config.numalogic_conf.preprocess
 
+    if "namespace" in payload.composite_keys:
+        skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
+    else:
+        skeys = [ payload.composite_keys["name"]]
+
     # Load preprocess artifact
     preproc_artifact = load_model(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+        skeys=skeys,
         dkeys=[_conf.name for _conf in preprocess_cfgs],
         artifact_type="sklearn",
     )
