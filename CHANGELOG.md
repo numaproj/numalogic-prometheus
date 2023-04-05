@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.2.7 (2023-04-05)
+
+ * [f19a68f](https://github.com/numaproj/numalogic-prometheus/commit/f19a68f027ef3a1c5b658a45bd2ac9457a27a86e) fix: catch braoder redis exceptions (#115)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.2.6 (2023-03-28)
+
+ * [187a8dd](https://github.com/numaproj/numalogic-prometheus/commit/187a8ddbbe4ddfb4ca6e9a237a66e7964dd5c0ed) fix: duplicate payload generation for the same timestamp and composite key (#114)
+ * [be48c49](https://github.com/numaproj/numalogic-prometheus/commit/be48c4999d0d6fe50e22ee57243d51869809ce2b) fix: tanh scaler nan bug (#112)
+
+### Contributors
+
+ * Avik Basu
+
 ## v0.2.5a2 (2023-03-24)
 
  * [84e91d5](https://github.com/numaproj/numalogic-prometheus/commit/84e91d56e37c2d1e8f6f1e16293daeb52b87d348) chore!: update pynumaflow -> 0.3x (#108)
@@ -27,6 +44,17 @@
 ### Contributors
 
  * Avik Basu
+
+## v0.2.5 (2023-03-27)
+
+ * [be48c49](https://github.com/numaproj/numalogic-prometheus/commit/be48c4999d0d6fe50e22ee57243d51869809ce2b) fix: tanh scaler nan bug (#112)
+ * [84e91d5](https://github.com/numaproj/numalogic-prometheus/commit/84e91d56e37c2d1e8f6f1e16293daeb52b87d348) chore!: update pynumaflow -> 0.3x (#108)
+ * [f7760a1](https://github.com/numaproj/numalogic-prometheus/commit/f7760a1208d7b32d7700817b81b765ba03426313) Move default configs (#111)
+
+### Contributors
+
+ * Avik Basu
+ * Nandita Koppisetty
 
 ## v0.2.4 (2023-03-21)
 
