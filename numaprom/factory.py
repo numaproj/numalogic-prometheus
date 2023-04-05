@@ -4,7 +4,7 @@ from pynumaflow.function import Messages
 from pynumaflow.sink import Responses
 
 from numaprom.udf import preprocess, postprocess, window, metric_filter, inference, threshold
-from numaprom.udsink import train, train_rollout
+from numaprom.udsink import train, train_rollout, train_iks_doctors
 
 
 class HandlerFactory:
@@ -33,5 +33,8 @@ class HandlerFactory:
 
         if step == "train_rollout":
             return train_rollout
+
+        if step == "train_iks_doctors":
+            return train_iks_doctors
 
         raise NotImplementedError(f"Invalid step provided: {step}")
