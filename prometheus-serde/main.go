@@ -48,11 +48,15 @@ func processPrometheusData(req *prompb.WriteRequest) ([][]byte, error) {
 }
 
 func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk.Messages {
+    log.Infof("Received request: %s", data.Value())
 	req, err := remote.DecodeWriteRequest(bytes.NewReader(data.Value()))
+
 	if err != nil {
 		log.Errorf("Decode failed: %s", err)
 		return nil
 	}
+
+    log.Infof("Received request: %s", req)
 
 	results, err := processPrometheusData(req)
 	if err != nil {
