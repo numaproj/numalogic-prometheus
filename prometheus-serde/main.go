@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/prometheus/storage/remote"
 	"go.uber.org/zap"
 	"strconv"
+	"os/exec"
 )
 
 var log *zap.SugaredLogger
@@ -48,25 +49,30 @@ func processPrometheusData(req *prompb.WriteRequest) ([][]byte, error) {
 }
 
 func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk.Messages {
-    log.Infof("Received request: %s", data.Value())
+    uuid, err := exec.Command("uuidgen").Output()
+
+    log.Infof("%s - Received  request", uuid)
+
 	req, err := remote.DecodeWriteRequest(bytes.NewReader(data.Value()))
 
 	if err != nil {
-		log.Errorf("Decode failed: %s", err)
+		log.Errorf("%s - Decode failed: %s", uuid, err)
 		return nil
 	}
 
-    log.Infof("Received request: %s", req)
+	 log.Infof("%s - Successfully decoded request", uuid)
 
 	results, err := processPrometheusData(req)
 	if err != nil {
-		log.Errorf("Process failed: %s", err)
+		log.Errorf("%s - Process failed: %s", uuid, err)
 		return nil
 	}
 
+    log.Infof("%s - Successfully processed data: %s", uuid, results)
+
 	mb := functionsdk.MessagesBuilder()
 	for _, result := range results {
-		log.Debugf("Payload: %s", string(result))
+		log.Debugf("%s - Payload: %s", uuid, string(result))
 
 		mb = mb.Append(functionsdk.MessageToAll(result))
 	}
