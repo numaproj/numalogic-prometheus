@@ -12,10 +12,9 @@ from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.redis import get_redis_client
 from numaprom.tools import (
     msgs_forward,
-    get_unified_config,
-    get_metric_config,
     WindowScorer,
 )
+from numaprom.watcher import get_metric_config, get_unified_config
 
 _LOGGER = get_logger(__name__)
 

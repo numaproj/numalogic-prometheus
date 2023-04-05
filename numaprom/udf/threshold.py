@@ -11,8 +11,8 @@ from numaprom.tools import (
     conditional_forward,
     calculate_static_thresh,
     load_model,
-    get_metric_config,
 )
+from numaprom.watcher import get_metric_config
 
 _LOGGER = get_logger(__name__)
 

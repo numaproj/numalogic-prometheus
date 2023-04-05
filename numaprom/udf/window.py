@@ -12,7 +12,8 @@ from redis.exceptions import ConnectionError as RedisConnectionError
 from numaprom import get_logger
 from numaprom.entities import StreamPayload, Status, Header
 from numaprom.redis import get_redis_client
-from numaprom.tools import msg_forward, create_composite_keys, get_metric_config
+from numaprom.tools import msg_forward, create_composite_keys
+from numaprom.watcher import get_metric_config
 
 _LOGGER = get_logger(__name__)
 

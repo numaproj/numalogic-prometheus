@@ -14,9 +14,9 @@ from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import (
     load_model,
-    get_metric_config,
     msg_forward,
 )
+from numaprom.watcher import get_metric_config
 
 _LOGGER = get_logger(__name__)
 
