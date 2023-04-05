@@ -9,7 +9,7 @@ from pynumaflow.function import Datum
 
 from numaprom import get_logger, UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
-from numaprom.redis import get_redis_client
+from numaprom.clients.redis import get_redis_client
 from numaprom.tools import (
     msgs_forward,
     get_unified_config,

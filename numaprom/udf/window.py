@@ -11,7 +11,7 @@ from redis.exceptions import RedisError, RedisClusterException
 
 from numaprom import get_logger
 from numaprom.entities import StreamPayload, Status, Header
-from numaprom.redis import get_redis_client
+from numaprom.clients.redis import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys, get_metric_config
 
 _LOGGER = get_logger(__name__)
@@ -21,7 +21,7 @@ PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
-# TODO get the replace value from config
+# TODO get the replacement value from config
 def _clean_arr(
     id_: str,
     ckeys: dict,
