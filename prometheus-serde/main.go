@@ -16,7 +16,7 @@ import (
 
 var log *zap.SugaredLogger
 
-func processPrometheusData(uuid string, req *prompb.WriteRequest) ([][]byte, error) {
+func processPrometheusData(uuid []byte, req *prompb.WriteRequest) ([][]byte, error) {
 	result := make([][]byte, 0)
 
 	log.Infof("%s - Number of timeseries in the request: %d", uuid, len(req.Timeseries))
