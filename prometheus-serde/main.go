@@ -10,15 +10,16 @@ import (
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/prometheus/prometheus/storage/remote"
 	"go.uber.org/zap"
-	"strconv"
 	"os/exec"
+	"strconv"
 )
 
 var log *zap.SugaredLogger
 
-func processPrometheusData(req *prompb.WriteRequest) ([][]byte, error) {
+func processPrometheusData(uuid string, req *prompb.WriteRequest) ([][]byte, error) {
 	result := make([][]byte, 0)
 
+	log.Infof("%s - Number of timeseries in the request: %d", uuid, len(req.Timeseries))
 	for _, ts := range req.Timeseries {
 		labels := make(map[string]string, len(ts.Labels))
 
@@ -26,7 +27,9 @@ func processPrometheusData(req *prompb.WriteRequest) ([][]byte, error) {
 			labels[l.Name] = l.Value
 		}
 
+		log.Infof("%s - Number of samples in the timeseries: %d", uuid, len(ts.Samples))
 		for _, sample := range ts.Samples {
+
 			name := labels["__name__"]
 
 			epoch := sample.Timestamp
@@ -49,9 +52,9 @@ func processPrometheusData(req *prompb.WriteRequest) ([][]byte, error) {
 }
 
 func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk.Messages {
-    uuid, err := exec.Command("uuidgen").Output()
+	uuid, err := exec.Command("uuidgen").Output()
 
-    log.Infof("%s - Received  request", uuid)
+	log.Infof("%s - Received  request", uuid)
 
 	req, err := remote.DecodeWriteRequest(bytes.NewReader(data.Value()))
 
@@ -60,7 +63,7 @@ func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk
 		return nil
 	}
 
-	 log.Infof("%s - Successfully decoded request", uuid)
+	log.Infof("%s - Successfully decoded request", uuid)
 
 	results, err := processPrometheusData(req)
 	if err != nil {
@@ -68,11 +71,9 @@ func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk
 		return nil
 	}
 
-    log.Infof("%s - Successfully processed data: %s", uuid, results)
-
 	mb := functionsdk.MessagesBuilder()
 	for _, result := range results {
-		log.Debugf("%s - Payload: %s", uuid, string(result))
+		log.Infof("%s - Sending payload: %s", uuid, string(result))
 
 		mb = mb.Append(functionsdk.MessageToAll(result))
 	}
