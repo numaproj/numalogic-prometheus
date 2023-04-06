@@ -25,7 +25,7 @@ from numaprom._constants import (
     DEFAULT_PROMETHEUS_SERVER,
 )
 from numaprom.entities import TrainerPayload, StreamPayload
-from numaprom.prometheus import Prometheus
+from numaprom.clients.prometheus import Prometheus
 
 _LOGGER = get_logger(__name__)
 

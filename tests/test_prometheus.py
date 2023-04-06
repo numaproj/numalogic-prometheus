@@ -3,7 +3,7 @@ import datetime
 import unittest
 from unittest.mock import patch, Mock, MagicMock
 
-from numaprom.prometheus import Prometheus
+from numaprom.clients.prometheus import Prometheus
 
 
 def mock_query_range(*_, **__):

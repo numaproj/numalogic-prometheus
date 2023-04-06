@@ -10,7 +10,7 @@ from pynumaflow.sink import Datum
 
 from numaprom import tools
 from numaprom._constants import TESTS_DIR
-from numaprom.prometheus import Prometheus
+from numaprom.clients.prometheus import Prometheus
 from tests.tools import (
     mock_argocd_query_metric,
     mock_rollout_query_metric,

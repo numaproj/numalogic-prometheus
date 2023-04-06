@@ -7,13 +7,14 @@ import numpy as np
 import numpy.typing as npt
 from orjson import orjson
 from pynumaflow.function import Datum
-from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import RedisError, RedisClusterException
 
 from numaprom import get_logger
 from numaprom.entities import StreamPayload, Status, Header
-from numaprom.redis import get_redis_client
+from numaprom.clients.redis import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys
 from numaprom.watcher import get_metric_config
+
 
 _LOGGER = get_logger(__name__)
 
@@ -22,7 +23,7 @@ PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
-# TODO get the replace value from config
+# TODO get the replacement value from config
 def _clean_arr(
     id_: str,
     ckeys: dict,
@@ -87,8 +88,8 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=False
         )
-    except RedisConnectionError:
-        _LOGGER.warning("Redis connection failed, recreating the redis client")
+    except (RedisError, RedisClusterException) as warn:
+        _LOGGER.warning("Redis connection failed, recreating the redis client, err: %r", warn)
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
@@ -100,6 +101,8 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     # Construct payload object
     _uuid = uuid.uuid4().hex
     win_list = [float(_val) for _val, _ in elements]
+
+    # Store win_arr as a matrix with columns representing features
     win_arr = np.asarray(win_list).reshape(-1, 1)
     win_arr = _clean_arr(_uuid, composite_keys, win_arr)
 
