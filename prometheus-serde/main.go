@@ -65,7 +65,7 @@ func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk
 
 	log.Infof("%s - Successfully decoded request", uuid)
 
-	results, err := processPrometheusData(req)
+	results, err := processPrometheusData(uuid, req)
 	if err != nil {
 		log.Errorf("%s - Process failed: %s", uuid, err)
 		return nil

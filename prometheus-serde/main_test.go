@@ -27,7 +27,7 @@ func TestProcessPrometheusData(t *testing.T) {
 			},
 		}
 
-		result, err := processPrometheusData(&req)
+		result, err := processPrometheusData("123", &req)
 		var metrics map[string]interface{}
 		err = json.Unmarshal(result[0], &metrics)
 		assert.NoError(t, err)
@@ -53,7 +53,7 @@ func TestProcessPrometheusData(t *testing.T) {
 			},
 		}
 
-		result, err := processPrometheusData(&req)
+		result, err := processPrometheusData("123", &req)
 		var metrics map[string]interface{}
 		err = json.Unmarshal(result[0], &metrics)
 		assert.NoError(t, err)
@@ -79,7 +79,7 @@ func TestProcessPrometheusData(t *testing.T) {
 			},
 		}
 
-		result, err := processPrometheusData(&req)
+		result, err := processPrometheusData("123", &req)
 		var metrics map[string]interface{}
 		err = json.Unmarshal(result[0], &metrics)
 		assert.NoError(t, err)
@@ -105,7 +105,7 @@ func TestProcessPrometheusData(t *testing.T) {
 			},
 		}
 
-		result, err := processPrometheusData(&req)
+		result, err := processPrometheusData("123", &req)
 		var metrics map[string]interface{}
 		err = json.Unmarshal(result[0], &metrics)
 		assert.NoError(t, err)
