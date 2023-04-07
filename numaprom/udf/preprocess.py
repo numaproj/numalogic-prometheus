@@ -6,7 +6,7 @@ from pynumaflow.function import Datum
 from numaprom import get_logger
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward, load_model
-from numaprom.watcher import get_metric_config
+from numaprom.tools import get_metric_config
 
 _LOGGER = get_logger(__name__)
 

@@ -16,7 +16,7 @@ from numaprom import get_logger
 from numaprom.entities import TrainerPayload
 from numaprom.clients.redis import get_redis_client
 from numaprom.tools import save_model, fetch_data
-from numaprom.watcher import get_metric_config
+from numaprom.tools import get_metric_config
 
 
 _LOGGER = get_logger(__name__)

@@ -16,7 +16,7 @@ from numaprom.tools import (
     load_model,
     msg_forward,
 )
-from numaprom.watcher import get_metric_config
+from numaprom.tools import get_metric_config
 
 _LOGGER = get_logger(__name__)
 

@@ -12,7 +12,7 @@ from numaprom.tools import (
     calculate_static_thresh,
     load_model,
 )
-from numaprom.watcher import get_metric_config
+from numaprom.tools import get_metric_config
 
 _LOGGER = get_logger(__name__)
 

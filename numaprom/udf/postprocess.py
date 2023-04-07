@@ -14,7 +14,7 @@ from numaprom.tools import (
     msgs_forward,
     WindowScorer,
 )
-from numaprom.watcher import get_metric_config, get_unified_config
+from numaprom.tools import get_metric_config, get_unified_config
 
 _LOGGER = get_logger(__name__)
 
