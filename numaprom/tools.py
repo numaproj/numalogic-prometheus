@@ -183,7 +183,6 @@ def get_app_config(namespace: str, metric: str):
     return app_config
 
 
-@cache
 def get_metric_config(namespace: str, metric: str) -> Optional[MetricConf]:
     app_config = get_app_config(namespace, metric)
     metric_config = list(filter(lambda conf: (conf.metric == metric), app_config.metric_configs))
@@ -192,7 +191,6 @@ def get_metric_config(namespace: str, metric: str) -> Optional[MetricConf]:
     return metric_config[0]
 
 
-@cache
 def get_unified_config(namespace: str, metric: str) -> Optional[UnifiedConf]:
     app_config = get_app_config(namespace, metric)
     unified_config = list(

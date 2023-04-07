@@ -7,7 +7,7 @@ from unittest.mock import patch, Mock
 
 import numpy as np
 
-from numaprom import tools, watcher
+from numaprom import watcher
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import StreamPayload
 from numaprom.tools import (
@@ -105,20 +105,34 @@ class TestTools(unittest.TestCase):
 
     def test_get_app_config_time(self):
         _start_time = time.perf_counter()
-        app_config = get_app_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        get_app_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
         time1 = time.perf_counter() - _start_time
         _start_time = time.perf_counter()
-
-        # from given config
-        app_config = get_app_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        get_app_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
         time2 = time.perf_counter() - _start_time
+        _start_time = time.perf_counter()
+        self.assertTrue(time2 < time1)
 
-        print(time1)
-        print(time2)
+    def test_get_metric_config_time(self):
+        _start_time = time.perf_counter()
+        get_metric_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        time1 = time.perf_counter() - _start_time
+        _start_time = time.perf_counter()
+        get_metric_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        time2 = time.perf_counter() - _start_time
+        self.assertTrue(time2 < time1)
+
+    def test_get_unified_config_time(self):
+        _start_time = time.perf_counter()
+        get_unified_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        time1 = time.perf_counter() - _start_time
+        _start_time = time.perf_counter()
+        get_unified_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        time2 = time.perf_counter() - _start_time
         self.assertTrue(time2 < time1)
 
 
-@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
+@patch.object(watcher, "load_configs", Mock(return_value=mock_configs()))
 class TestWindowScorer(unittest.TestCase):
     def test_get_winscore(self):
         metric_conf = get_metric_config(

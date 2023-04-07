@@ -8,7 +8,7 @@ from unittest.mock import patch, Mock
 from numalogic.registry import MLflowRegistry
 from pynumaflow.sink import Datum
 
-from numaprom import tools
+from numaprom import watcher
 from numaprom._constants import TESTS_DIR
 from numaprom.clients.prometheus import Prometheus
 from tests.tools import (
@@ -35,7 +35,7 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
 
 
 @patch("numaprom.tools.set_aws_session", Mock(return_value=None))
-@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
+@patch.object(watcher, "load_configs", Mock(return_value=mock_configs()))
 class TestTrainer(unittest.TestCase):
     train_payload = {
         "uuid": "123124543",
