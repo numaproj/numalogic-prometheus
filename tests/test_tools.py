@@ -41,9 +41,7 @@ class TestTools(unittest.TestCase):
 
     def test_get_app_config(self):
         # from given config
-        app_config = get_app_config(
-            metric="rollout_latency", namespace="sandbox_numalogic_demo1"
-        )
+        app_config = get_app_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
         self.assertTrue(app_config)
         self.assertEqual(app_config.namespace, "sandbox_numalogic_demo1")
 
@@ -107,17 +105,13 @@ class TestTools(unittest.TestCase):
 
     def test_get_app_config_time(self):
         _start_time = time.perf_counter()
-        app_config = get_app_config(
-            metric="rollout_latency", namespace="sandbox_numalogic_demo1"
-        )
-        time1 = time.perf_counter()-_start_time
+        app_config = get_app_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        time1 = time.perf_counter() - _start_time
         _start_time = time.perf_counter()
 
         # from given config
-        app_config = get_app_config(
-            metric="rollout_latency", namespace="sandbox_numalogic_demo1"
-        )
-        time2 = time.perf_counter()-_start_time
+        app_config = get_app_config(metric="rollout_latency", namespace="sandbox_numalogic_demo1")
+        time2 = time.perf_counter() - _start_time
 
         print(time1)
         print(time2)

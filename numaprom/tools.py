@@ -128,7 +128,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
 
 
 def load_model(
-        skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
+    skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
 ) -> Optional[ArtifactData]:
     set_aws_session()
     try:
@@ -145,7 +145,7 @@ def load_model(
 
 
 def save_model(
-        skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
+    skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
     set_aws_session()
     tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
@@ -186,9 +186,7 @@ def get_app_config(namespace: str, metric: str):
 @cache
 def get_metric_config(namespace: str, metric: str) -> Optional[MetricConf]:
     app_config = get_app_config(namespace, metric)
-    metric_config = list(
-        filter(lambda conf: (conf.metric == metric), app_config.metric_configs)
-    )
+    metric_config = list(filter(lambda conf: (conf.metric == metric), app_config.metric_configs))
     if not metric_config:
         return app_config.metric_configs[0]
     return metric_config[0]
@@ -206,7 +204,7 @@ def get_unified_config(namespace: str, metric: str) -> Optional[UnifiedConf]:
 
 
 def fetch_data(
-        payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None
+    payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None
 ) -> pd.DataFrame:
     _start_time = time.time()
 

@@ -46,7 +46,7 @@ def update_configs():
 
 class ConfigHandler(FileSystemEventHandler):
     def on_any_event(self, event):
-        if event.event_type == 'created' or event.event_type == 'modified':
+        if event.event_type == "created" or event.event_type == "modified":
             _file = os.path.basename(event.src_path)
             _dir = os.path.basename(os.path.dirname(event.src_path))
 
