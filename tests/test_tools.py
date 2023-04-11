@@ -1,6 +1,5 @@
 import os
 import socket
-import time
 import unittest
 from collections import OrderedDict
 from unittest.mock import patch, Mock

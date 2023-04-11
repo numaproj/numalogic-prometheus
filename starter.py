@@ -3,6 +3,7 @@ import sys
 from pynumaflow.function import UserDefinedFunctionServicer
 from pynumaflow.sink import UserDefinedSinkServicer
 
+from numaprom._constants import CONFIG_PATHS
 from numaprom.factory import HandlerFactory
 from numaprom.watcher import Watcher, ConfigHandler
 
@@ -19,6 +20,5 @@ if __name__ == "__main__":
 
     server.start()
 
-    config_paths = ["./numaprom/configs", "./numaprom/default-configs"]
-    w = Watcher(config_paths, ConfigHandler())
+    w = Watcher(CONFIG_PATHS, ConfigHandler())
     w.run()

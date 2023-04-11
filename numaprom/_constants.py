@@ -18,3 +18,5 @@ TRAIN_VTX_KEY = "train"
 INFERENCE_VTX_KEY = "inference"
 THRESHOLD_VTX_KEY = "threshold"
 POSTPROC_VTX_KEY = "postproc"
+
+CONFIG_PATHS = ["./numaprom/configs", "./numaprom/default-configs"]
