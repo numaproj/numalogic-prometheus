@@ -12,8 +12,14 @@ class TestConfigManager(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.cm = ConfigManager()
         cls.payload = {"name": "rollout_latency", "namespace": "sandbox_numalogic_demo1"}
-        cls.argocd_payload = {"name": "namespace_app_http_server_requests_error_rate", "namespace": "abc"}
-        cls.rollouts_payload = {"name": "namespace_app_rollouts_http_request_error_rate", "namespace": "abc"}
+        cls.argocd_payload = {
+            "name": "namespace_app_http_server_requests_error_rate",
+            "namespace": "abc",
+        }
+        cls.rollouts_payload = {
+            "name": "namespace_app_rollouts_http_request_error_rate",
+            "namespace": "abc",
+        }
         cls.random_payload = {"name": "random", "namespace": "abc"}
 
     def test_update_configs(self):
@@ -27,24 +33,29 @@ class TestConfigManager(unittest.TestCase):
 
     def test_get_app_config(self):
         # from given config
-        app_config = self.cm.get_app_config(metric=self.payload["name"], namespace=self.payload["namespace"])
+        app_config = self.cm.get_app_config(
+            metric=self.payload["name"], namespace=self.payload["namespace"]
+        )
         self.assertTrue(app_config)
         self.assertEqual(app_config.namespace, "sandbox_numalogic_demo1")
 
         # from given default config
-        app_config = self.cm.get_app_config(metric=self.rollouts_payload["name"],
-                                            namespace=self.rollouts_payload["namespace"])
+        app_config = self.cm.get_app_config(
+            metric=self.rollouts_payload["name"], namespace=self.rollouts_payload["namespace"]
+        )
         self.assertTrue(app_config)
         self.assertEqual(app_config.namespace, "default-argorollouts")
 
-        app_config = self.cm.get_app_config(metric=self.argocd_payload["name"],
-                                            namespace=self.argocd_payload["namespace"])
+        app_config = self.cm.get_app_config(
+            metric=self.argocd_payload["name"], namespace=self.argocd_payload["namespace"]
+        )
         self.assertTrue(app_config)
         self.assertEqual(app_config.namespace, "default-argocd")
 
         # default config
-        service_config = self.cm.get_app_config(metric=self.random_payload["name"],
-                                                namespace=self.random_payload["namespace"])
+        service_config = self.cm.get_app_config(
+            metric=self.random_payload["name"], namespace=self.random_payload["namespace"]
+        )
         self.assertTrue(service_config)
         self.assertEqual(service_config.namespace, "default")
 

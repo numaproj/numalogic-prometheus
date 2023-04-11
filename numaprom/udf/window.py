@@ -70,7 +70,9 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     msg = orjson.loads(datum.value)
 
     cm = ConfigManager()
-    metric_config = cm.get_metric_config({"name": msg["name"], "namespace": msg["labels"]["namespace"]})
+    metric_config = cm.get_metric_config(
+        {"name": msg["name"], "namespace": msg["labels"]["namespace"]}
+    )
     win_size = metric_config.numalogic_conf.model.conf["seq_len"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 

@@ -41,8 +41,10 @@ class TestWindowScorer(unittest.TestCase):
     def test_get_winscore(self):
         cm = ConfigManager()
         metric_conf = cm.get_metric_config(
-            {"name": "namespace_app_rollouts_http_request_error_rate",
-             "namespace": "sandbox_numalogic_demo2"}
+            {
+                "name": "namespace_app_rollouts_http_request_error_rate",
+                "namespace": "sandbox_numalogic_demo2",
+            }
         )
         stream = np.random.uniform(low=1, high=2, size=(10, 1))
         payload = StreamPayload(

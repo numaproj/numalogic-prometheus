@@ -17,7 +17,6 @@ config = {}
 
 
 class ConfigManager:
-
     @staticmethod
     def load_configs():
         schema: NumapromConf = OmegaConf.structured(NumapromConf)
@@ -77,16 +76,25 @@ class ConfigManager:
         return app_config
 
     def get_metric_config(self, composite_keys: dict) -> Optional[MetricConf]:
-        app_config = self.get_app_config(metric=composite_keys["name"], namespace=composite_keys["namespace"])
-        metric_config = list(filter(lambda conf: (conf.metric == composite_keys["name"]), app_config.metric_configs))
+        app_config = self.get_app_config(
+            metric=composite_keys["name"], namespace=composite_keys["namespace"]
+        )
+        metric_config = list(
+            filter(lambda conf: (conf.metric == composite_keys["name"]), app_config.metric_configs)
+        )
         if not metric_config:
             return app_config.metric_configs[0]
         return metric_config[0]
 
     def get_unified_config(self, composite_keys: dict) -> Optional[UnifiedConf]:
-        app_config = self.get_app_config(metric=composite_keys["name"], namespace=composite_keys["namespace"])
+        app_config = self.get_app_config(
+            metric=composite_keys["name"], namespace=composite_keys["namespace"]
+        )
         unified_config = list(
-            filter(lambda conf: (composite_keys["name"] in conf.unified_metrics), app_config.unified_configs)
+            filter(
+                lambda conf: (composite_keys["name"] in conf.unified_metrics),
+                app_config.unified_configs,
+            )
         )
         if not unified_config:
             return None
