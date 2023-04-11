@@ -3,7 +3,7 @@ import socket
 import time
 from collections import OrderedDict
 from datetime import timedelta, datetime
-from functools import wraps, cache
+from functools import wraps
 from json import JSONDecodeError
 from typing import Optional, Sequence, List
 
