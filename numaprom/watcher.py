@@ -13,10 +13,10 @@ from numaprom import NumapromConf, get_logger, AppConf, MetricConf, UnifiedConf
 
 _LOGGER = get_logger(__name__)
 
-CONFIG = {}
-
 
 class ConfigManager:
+    config = {}
+
     @staticmethod
     def load_configs():
         schema: NumapromConf = OmegaConf.structured(NumapromConf)
@@ -36,30 +36,30 @@ class ConfigManager:
     def update_configs(self):
         app_configs, default_configs, default_numalogic = self.load_configs()
 
-        CONFIG["app_configs"] = dict()
+        self.config["app_configs"] = dict()
         for _config in app_configs:
-            CONFIG["app_configs"][_config.namespace] = _config
+            self.config["app_configs"][_config.namespace] = _config
 
-        CONFIG["default_configs"] = dict(map(lambda c: (c.namespace, c), default_configs))
-        CONFIG["default_numalogic"] = default_numalogic
+        self.config["default_configs"] = dict(map(lambda c: (c.namespace, c), default_configs))
+        self.config["default_numalogic"] = default_numalogic
 
-        _LOGGER.info("Successfully updated configs - %s", CONFIG)
-        return CONFIG
+        _LOGGER.info("Successfully updated configs - %s", self.config)
+        return self.config
 
     @cache
     def get_app_config(self, metric: str, namespace: str) -> Optional[AppConf]:
-        if not CONFIG:
+        if not self.config:
             self.update_configs()
 
         app_config = None
 
         # search and load from app configs
-        if namespace in CONFIG["app_configs"]:
-            app_config = CONFIG["app_configs"][namespace]
+        if namespace in self.config["app_configs"]:
+            app_config = self.config["app_configs"][namespace]
 
         # if not search and load from default configs
         if not app_config:
-            for key, _conf in CONFIG["default_configs"].items():
+            for key, _conf in self.config["default_configs"].items():
                 if metric in _conf.unified_configs[0].unified_metrics:
                     app_config = _conf
                     break
@@ -71,7 +71,7 @@ class ConfigManager:
         # loading and setting default numalogic config
         for metric_config in app_config.metric_configs:
             if OmegaConf.is_missing(metric_config, "numalogic_conf"):
-                metric_config.numalogic_conf = CONFIG["default_numalogic"]
+                metric_config.numalogic_conf = self.config["default_numalogic"]
 
         return app_config
 
