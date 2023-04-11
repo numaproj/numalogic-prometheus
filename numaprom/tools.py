@@ -17,17 +17,15 @@ from mlflow.exceptions import RestException
 from numalogic.config import PostprocessFactory
 from numalogic.models.threshold import SigmoidThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
-from omegaconf import OmegaConf
 from pynumaflow.function import Messages, Message
 
-from numaprom import get_logger, MetricConf, AppConf, UnifiedConf
+from numaprom import get_logger, MetricConf
 from numaprom._constants import (
     DEFAULT_TRACKING_URI,
     DEFAULT_PROMETHEUS_SERVER,
 )
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.clients.prometheus import Prometheus
-from numaprom.watcher import update_configs, config
 
 _LOGGER = get_logger(__name__)
 
@@ -152,53 +150,6 @@ def save_model(
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
-
-
-@cache
-def get_app_config(namespace: str, metric: str):
-    if not config:
-        update_configs()
-
-    app_config = None
-    # search and load from app configs
-    if namespace in config["app_configs"]:
-        app_config = config["app_configs"][namespace]
-
-    # if not search and load from default configs
-    if not app_config:
-        for key, _conf in config["default_configs"].items():
-            if metric in _conf.unified_configs[0].unified_metrics:
-                app_config = _conf
-                break
-
-    # if not in default configs, initialize Namespace conf with default values
-    if not app_config:
-        app_config = OmegaConf.structured(AppConf)
-
-    # loading and setting default numalogic config
-    for metric_config in app_config.metric_configs:
-        if OmegaConf.is_missing(metric_config, "numalogic_conf"):
-            metric_config.numalogic_conf = config["default_numalogic"]
-
-    return app_config
-
-
-def get_metric_config(namespace: str, metric: str) -> Optional[MetricConf]:
-    app_config = get_app_config(namespace, metric)
-    metric_config = list(filter(lambda conf: (conf.metric == metric), app_config.metric_configs))
-    if not metric_config:
-        return app_config.metric_configs[0]
-    return metric_config[0]
-
-
-def get_unified_config(namespace: str, metric: str) -> Optional[UnifiedConf]:
-    app_config = get_app_config(namespace, metric)
-    unified_config = list(
-        filter(lambda conf: (metric in conf.unified_metrics), app_config.unified_configs)
-    )
-    if not unified_config:
-        return None
-    return unified_config[0]
 
 
 def fetch_data(

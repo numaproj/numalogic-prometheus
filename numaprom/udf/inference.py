@@ -16,7 +16,7 @@ from numaprom.tools import (
     load_model,
     msg_forward,
 )
-from numaprom.tools import get_metric_config
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -73,9 +73,8 @@ def inference(_: str, datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Load config
-    metric_config = get_metric_config(
-        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-    )
+    cm = ConfigManager()
+    metric_config = cm.get_metric_config(payload.composite_keys)
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model

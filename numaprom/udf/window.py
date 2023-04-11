@@ -13,8 +13,7 @@ from numaprom import get_logger
 from numaprom.entities import StreamPayload, Status, Header
 from numaprom.clients.redis import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys
-from numaprom.tools import get_metric_config
-
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -70,7 +69,8 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
 
-    metric_config = get_metric_config(metric=msg["name"], namespace=msg["labels"]["namespace"])
+    cm = ConfigManager()
+    metric_config = cm.get_metric_config({"name": msg["name"], "namespace": msg["labels"]["namespace"]})
     win_size = metric_config.numalogic_conf.model.conf["seq_len"]
     buff_size = int(os.getenv("BUFF_SIZE", 10 * win_size))
 

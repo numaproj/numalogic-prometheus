@@ -12,7 +12,7 @@ from numaprom.tools import (
     calculate_static_thresh,
     load_model,
 )
-from numaprom.tools import get_metric_config
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -44,9 +44,8 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     )
 
     # Load config
-    metric_config = get_metric_config(
-        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-    )
+    cm = ConfigManager()
+    metric_config = cm.get_metric_config(payload.composite_keys)
     thresh_cfg = metric_config.numalogic_conf.threshold
 
     # Check if payload needs static inference

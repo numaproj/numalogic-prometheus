@@ -14,7 +14,7 @@ from numaprom.tools import (
     msgs_forward,
     WindowScorer,
 )
-from numaprom.tools import get_metric_config, get_unified_config
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -129,9 +129,8 @@ def __construct_unified_payload(
 
 
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
-    unified_config = get_unified_config(
-        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-    )
+    cm = ConfigManager()
+    unified_config = cm.get_unified_config(payload.composite_keys)
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
     _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
@@ -180,9 +179,8 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     payload = StreamPayload(**orjson.loads(_in_msg))
 
     # Load config
-    metric_config = get_metric_config(
-        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-    )
+    cm = ConfigManager()
+    metric_config = cm.get_metric_config(payload.composite_keys)
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 

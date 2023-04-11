@@ -1,5 +1,7 @@
 import os
 import time
+from functools import cache
+from typing import Optional
 
 from omegaconf import OmegaConf
 from watchdog.observers import Observer
@@ -7,51 +9,101 @@ from numalogic.config import NumalogicConf
 from watchdog.events import FileSystemEventHandler
 
 from numaprom._constants import CONFIG_DIR, DEFAULT_CONFIG_DIR
-from numaprom import NumapromConf, get_logger
+from numaprom import NumapromConf, get_logger, AppConf, MetricConf, UnifiedConf
 
 _LOGGER = get_logger(__name__)
 
 config = {}
 
 
-def load_configs():
-    schema: NumapromConf = OmegaConf.structured(NumapromConf)
+class ConfigManager:
 
-    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
-    app_configs = OmegaConf.merge(schema, conf).configs
+    @staticmethod
+    def load_configs():
+        schema: NumapromConf = OmegaConf.structured(NumapromConf)
 
-    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "config.yaml"))
-    default_configs = OmegaConf.merge(schema, conf).configs
+        conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
+        app_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "numalogic_config.yaml"))
-    schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
-    default_numalogic = OmegaConf.merge(schema, conf)
+        conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "config.yaml"))
+        default_configs = OmegaConf.merge(schema, conf).configs
 
-    return app_configs, default_configs, default_numalogic
+        conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "numalogic_config.yaml"))
+        schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
+        default_numalogic = OmegaConf.merge(schema, conf)
 
+        return app_configs, default_configs, default_numalogic
 
-def update_configs():
-    app_configs, default_configs, default_numalogic = load_configs()
+    def update_configs(self):
+        app_configs, default_configs, default_numalogic = self.load_configs()
 
-    config["app_configs"] = dict()
-    for _config in app_configs:
-        config["app_configs"][_config.namespace] = _config
+        config["app_configs"] = dict()
+        for _config in app_configs:
+            config["app_configs"][_config.namespace] = _config
 
-    config["default_configs"] = dict(map(lambda c: (c.namespace, c), default_configs))
-    config["default_numalogic"] = default_numalogic
+        config["default_configs"] = dict(map(lambda c: (c.namespace, c), default_configs))
+        config["default_numalogic"] = default_numalogic
 
-    _LOGGER.info("Successfully updated configs - %s", config)
-    return config
+        _LOGGER.info("Successfully updated configs - %s", config)
+        return config
+
+    @cache
+    def get_app_config(self, metric: str, namespace: str) -> Optional[AppConf]:
+        if not config:
+            self.update_configs()
+
+        app_config = None
+
+        # search and load from app configs
+        if namespace in config["app_configs"]:
+            app_config = config["app_configs"][namespace]
+
+        # if not search and load from default configs
+        if not app_config:
+            for key, _conf in config["default_configs"].items():
+                if metric in _conf.unified_configs[0].unified_metrics:
+                    app_config = _conf
+                    break
+
+        # if not in default configs, initialize Namespace conf with default values
+        if not app_config:
+            app_config = OmegaConf.structured(AppConf)
+
+        # loading and setting default numalogic config
+        for metric_config in app_config.metric_configs:
+            if OmegaConf.is_missing(metric_config, "numalogic_conf"):
+                metric_config.numalogic_conf = config["default_numalogic"]
+
+        return app_config
+
+    def get_metric_config(self, composite_keys: dict) -> Optional[MetricConf]:
+        app_config = self.get_app_config(metric=composite_keys["name"], namespace=composite_keys["namespace"])
+        metric_config = list(filter(lambda conf: (conf.metric == composite_keys["name"]), app_config.metric_configs))
+        if not metric_config:
+            return app_config.metric_configs[0]
+        return metric_config[0]
+
+    def get_unified_config(self, composite_keys: dict) -> Optional[UnifiedConf]:
+        app_config = self.get_app_config(metric=composite_keys["name"], namespace=composite_keys["namespace"])
+        unified_config = list(
+            filter(lambda conf: (composite_keys["name"] in conf.unified_metrics), app_config.unified_configs)
+        )
+        if not unified_config:
+            return None
+        return unified_config[0]
 
 
 class ConfigHandler(FileSystemEventHandler):
+    def ___init__(self):
+        self.config_manger = ConfigManager()
+
     def on_any_event(self, event):
         if event.event_type == "created" or event.event_type == "modified":
             _file = os.path.basename(event.src_path)
             _dir = os.path.basename(os.path.dirname(event.src_path))
 
             _LOGGER.info("Watchdog received %s event - %s/%s", event.event_type, _dir, _file)
-            update_configs()
+            self.config_manger.update_configs()
 
 
 class Watcher:

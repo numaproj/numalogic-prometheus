@@ -16,8 +16,7 @@ from numaprom import get_logger
 from numaprom.entities import TrainerPayload
 from numaprom.clients.redis import get_redis_client
 from numaprom.tools import save_model, fetch_data
-from numaprom.tools import get_metric_config
-
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -105,9 +104,8 @@ def train(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        metric_config = get_metric_config(
-            metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-        )
+        cm = ConfigManager()
+        metric_config = cm.get_metric_config(payload.composite_keys)
         model_cfg = metric_config.numalogic_conf.model
 
         train_df = fetch_data(
