@@ -34,10 +34,7 @@ def get_redis_client(
             MasterNotFoundError,
         ),
     )
-    sentinel_args = {
-        "sentinels": [(host, port)],
-        "socket_timeout": 0.1,
-    }
+    sentinel_args = {"sentinels": [(host, port)], "socket_timeout": 0.1, "decode_responses": True}
 
     _LOGGER.info("Sentinel redis params: %s", sentinel_args)
 
@@ -45,7 +42,6 @@ def get_redis_client(
         **sentinel_args,
         sentinel_kwargs=dict(password=password),
         password=password,
-        decode_responses=True,
         retry=retry,
     )
     redis_client = sentinel.master_for(mastername)
