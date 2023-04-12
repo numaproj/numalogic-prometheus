@@ -5,7 +5,8 @@ from pynumaflow.function import Datum
 
 from numaprom import get_logger
 from numaprom.entities import Status, StreamPayload, Header
-from numaprom.tools import msg_forward, load_model, get_metric_config
+from numaprom.tools import msg_forward, load_model
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -19,9 +20,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
     _LOGGER.info("%s - Received Payload: %r ", payload.uuid, payload)
 
     # Load config
-    metric_config = get_metric_config(
-        metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-    )
+    metric_config = ConfigManager().get_metric_config(payload.composite_keys)
     preprocess_cfgs = metric_config.numalogic_conf.preprocess
 
     # Load preprocess artifact

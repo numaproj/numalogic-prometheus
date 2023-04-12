@@ -5,9 +5,9 @@ import orjson
 from freezegun import freeze_time
 from unittest.mock import patch, Mock
 
-from numaprom import tools
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import PrometheusPayload, StreamPayload, Header
+from numaprom.watcher import ConfigManager
 from tests import redis_client
 from tests.tools import (
     get_postproc_input,
@@ -22,7 +22,7 @@ STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 @patch("numaprom.tools.set_aws_session", Mock(return_value=None))
-@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
+@patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))
 class TestPostProcess(unittest.TestCase):
     postproc_input = None
 

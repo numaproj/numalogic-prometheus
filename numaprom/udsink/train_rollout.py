@@ -15,7 +15,8 @@ from torch.utils.data import DataLoader
 from numaprom import get_logger
 from numaprom.entities import TrainerPayload
 from numaprom.clients.sentinel import get_redis_client
-from numaprom.tools import get_metric_config, save_model, fetch_data
+from numaprom.tools import save_model, fetch_data
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -118,10 +119,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        metric_config = get_metric_config(
-            metric=payload.composite_keys["name"], namespace=payload.composite_keys["namespace"]
-        )
-
+        metric_config = ConfigManager().get_metric_config(payload.composite_keys)
         model_cfg = metric_config.numalogic_conf.model
 
         # ToDo: standardize the label name

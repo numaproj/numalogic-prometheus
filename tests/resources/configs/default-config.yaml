@@ -1,0 +1,38 @@
+configs:
+  - namespace: "default-argorollouts"
+    metric_configs:
+      - metric: "namespace_app_rollouts_http_request_error_rate"
+        composite_keys: [ "namespace", "name", "app", "rollouts_pod_template_hash" ]
+        static_threshold: 3
+        static_threshold_wt: 0.7
+      - metric: "namespace_app_rollouts_http_request_latency"
+        composite_keys: [ "namespace", "name", "app", "rollouts_pod_template_hash" ]
+        static_threshold: 3
+    unified_configs:
+      - unified_metric_name: "namespace_app_rollouts_unified_anomaly"
+        unified_metrics: [ "namespace_app_rollouts_http_request_error_rate",
+                           "namespace_app_rollouts_http_request_latency" ]
+  - namespace: "default-argocd"
+    metric_configs:
+      - metric: "namespace_app_http_server_requests_errors"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 3
+      - metric: "namespace_app_http_server_requests_error_rate"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 3
+      - metric: "namespace_app_http_server_requests_latency"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 3
+      - metric: "namespace_app_cpu_utilization"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 80
+      - metric: "namespace_app_memory_utilization"
+        composite_keys: [ "namespace", "name" ]
+        static_threshold: 80
+    unified_configs:
+      - unified_metric_name: "namespace_app_unified_anomaly"
+        unified_metrics: [ "namespace_app_http_server_requests_errors",
+                           "namespace_app_http_server_requests_error_rate",
+                           "namespace_app_http_server_requests_latency",
+                           "namespace_app_cpu_utilization",
+                           "namespace_app_memory_utilization" ]
