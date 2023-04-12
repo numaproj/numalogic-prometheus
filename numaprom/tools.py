@@ -14,18 +14,15 @@ import pytz
 from botocore.session import get_session
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.exceptions import RestException
-from numalogic.config import NumalogicConf, PostprocessFactory
+from numalogic.config import PostprocessFactory
 from numalogic.models.threshold import SigmoidThreshold
 from numalogic.registry import MLflowRegistry, ArtifactData
-from omegaconf import OmegaConf
 from pynumaflow.function import Messages, Message
 
-from numaprom import get_logger, MetricConf, ServiceConf, NumapromConf, UnifiedConf
+from numaprom import get_logger, MetricConf
 from numaprom._constants import (
     DEFAULT_TRACKING_URI,
     DEFAULT_PROMETHEUS_SERVER,
-    CONFIG_DIR,
-    DEFAULT_CONFIG_DIR,
 )
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.clients.prometheus import Prometheus
@@ -153,69 +150,6 @@ def save_model(
     ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
-
-
-def get_all_configs():
-    schema: NumapromConf = OmegaConf.structured(NumapromConf)
-
-    conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
-    given_configs = OmegaConf.merge(schema, conf).configs
-
-    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "config.yaml"))
-    default_configs = OmegaConf.merge(schema, conf).configs
-
-    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "numalogic_config.yaml"))
-    schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
-    default_numalogic = OmegaConf.merge(schema, conf)
-
-    return given_configs, default_configs, default_numalogic
-
-
-def get_service_config(metric: str, namespace: str):
-    given_configs, default_configs, default_numalogic = get_all_configs()
-
-    # search and load from given configs
-    service_config = list(filter(lambda conf: (conf.namespace == namespace), given_configs))
-
-    # if not search and load from default configs
-    if not service_config:
-        for _conf in default_configs:
-            if metric in _conf.unified_configs[0].unified_metrics:
-                service_config = [_conf]
-                break
-
-    # if not in default configs, initialize Namespace conf with default values
-    if not service_config:
-        service_config = OmegaConf.structured(ServiceConf)
-    else:
-        service_config = service_config[0]
-
-    # loading and setting default numalogic config
-    for metric_config in service_config.metric_configs:
-        if OmegaConf.is_missing(metric_config, "numalogic_conf"):
-            metric_config.numalogic_conf = default_numalogic
-
-    return service_config
-
-
-def get_metric_config(metric: str, namespace: str) -> Optional[MetricConf]:
-    service_config = get_service_config(metric, namespace)
-    metric_config = list(
-        filter(lambda conf: (conf.metric == metric), service_config.metric_configs)
-    )
-    if not metric_config:
-        return service_config.metric_configs[0]
-    return metric_config[0]
-
-
-def get_unified_config(metric: str, namespace: str) -> Optional[UnifiedConf]:
-    service_config = get_service_config(metric, namespace)
-    unified_config = list(
-        filter(lambda conf: (metric in conf.unified_metrics), service_config.unified_configs)
-    )
-    if not unified_config:
-        return None
-    return unified_config[0]
 
 
 def fetch_data(

@@ -5,9 +5,9 @@ from unittest.mock import patch, Mock
 
 from pynumaflow.function._dtypes import DROP
 
-from numaprom import tools
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import StreamPayload
+from numaprom.watcher import ConfigManager
 from tests.tools import get_datum, get_stream_data, mockenv, mock_configs
 from tests import redis_client, window
 
@@ -15,7 +15,7 @@ DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-@patch.object(tools, "get_all_configs", Mock(return_value=mock_configs()))
+@patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))
 class TestWindow(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

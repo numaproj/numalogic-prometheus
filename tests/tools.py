@@ -18,7 +18,7 @@ from numalogic.registry import ArtifactData, MLflowRegistry
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 
-from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, DEFAULT_CONFIG_DIR
+from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, DEFAULT_CONFIG_DIR, TESTS_RESOURCES
 from numaprom.factory import HandlerFactory
 from numaprom import NumapromConf
 
@@ -255,14 +255,14 @@ def mock_rollout_query_metric2(*_, **__):
 def mock_configs():
     schema: NumapromConf = OmegaConf.structured(NumapromConf)
 
-    conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "config.yaml"))
-    given_configs = OmegaConf.merge(schema, conf).configs
+    conf = OmegaConf.load(os.path.join(TESTS_RESOURCES, "configs", "config.yaml"))
+    app_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "config.yaml"))
+    conf = OmegaConf.load(os.path.join(TESTS_RESOURCES, "configs", "default-config.yaml"))
     default_configs = OmegaConf.merge(schema, conf).configs
 
-    conf = OmegaConf.load(os.path.join(TESTS_DIR, "resources", "numalogic_config.yaml"))
+    conf = OmegaConf.load(os.path.join(TESTS_RESOURCES, "configs", "numalogic_config.yaml"))
     schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
     default_numalogic = OmegaConf.merge(schema, conf)
 
-    return given_configs, default_configs, default_numalogic
+    return app_configs, default_configs, default_numalogic

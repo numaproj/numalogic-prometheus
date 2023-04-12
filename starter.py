@@ -3,7 +3,9 @@ import sys
 from pynumaflow.function import UserDefinedFunctionServicer
 from pynumaflow.sink import UserDefinedSinkServicer
 
+from numaprom._constants import CONFIG_PATHS
 from numaprom.factory import HandlerFactory
+from numaprom.watcher import Watcher, ConfigHandler
 
 if __name__ == "__main__":
     step_handler = HandlerFactory.get_handler(sys.argv[2])
@@ -17,3 +19,6 @@ if __name__ == "__main__":
         raise ValueError(f"sys arg: {server_type} not understood!")
 
     server.start()
+
+    w = Watcher(CONFIG_PATHS, ConfigHandler())
+    w.run()
