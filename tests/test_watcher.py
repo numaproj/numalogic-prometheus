@@ -99,6 +99,7 @@ class TestConfigManager(unittest.TestCase):
         )
         time1 = time.perf_counter() - _start_time
         _start_time = time.perf_counter()
+        self.assertTrue(ConfigManager().get_app_config.cache_info().currsize >= 1)
         ConfigManager().get_app_config(
             metric=self.payload["name"], namespace=self.payload["namespace"]
         )
