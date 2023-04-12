@@ -14,14 +14,15 @@ from pynumaflow.sink import Datum, Responses, Response
 
 from numaprom import get_logger
 from numaprom.entities import TrainerPayload
-from numaprom.clients.redis import get_redis_client
+from numaprom.clients.sentinel import get_redis_client
 from numaprom.tools import get_metric_config, save_model, fetch_data
 
 _LOGGER = get_logger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
-PORT = os.getenv("REDIS_PORT")
+PORT = int(os.getenv("REDIS_PORT", 6379))
 AUTH = os.getenv("REDIS_AUTH")
+MASTERNAME = os.getenv("REDIS_MASTERNAME")
 EXPIRY = int(os.getenv("REDIS_EXPIRY", 300))
 MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
@@ -75,7 +76,9 @@ def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
 
 
 def _is_new_request(payload: TrainerPayload) -> bool:
-    redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=False)
+    redis_client = get_redis_client(
+        HOST, PORT, password=AUTH, mastername=MASTERNAME, recreate=False
+    )
     _ckeys = ":".join([payload.composite_keys["namespace"], payload.composite_keys["name"]])
     r_key = f"train::{_ckeys}"
 

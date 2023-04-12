@@ -6,10 +6,11 @@ from orjson import orjson
 from redis.exceptions import RedisError, RedisClusterException
 
 from pynumaflow.function import Datum
+from redis.sentinel import MasterNotFoundError
 
 from numaprom import get_logger, UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
-from numaprom.clients.redis import get_redis_client
+from numaprom.clients.sentinel import get_redis_client
 from numaprom.tools import (
     msgs_forward,
     get_unified_config,
@@ -20,14 +21,15 @@ from numaprom.tools import (
 _LOGGER = get_logger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
-PORT = os.getenv("REDIS_PORT")
+PORT = int(os.getenv("REDIS_PORT", 6379))
 AUTH = os.getenv("REDIS_AUTH")
+MASTERNAME = os.getenv("REDIS_MASTERNAME")
 
 
 def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
-    r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
+    r = get_redis_client(HOST, PORT, password=AUTH, mastername=MASTERNAME, recreate=recreate)
 
     metric_name = payload.composite_keys["name"]
 
@@ -147,7 +149,7 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=False, unified_config=unified_config
         )
-    except (RedisError, RedisClusterException) as warn:
+    except (RedisError, RedisClusterException, MasterNotFoundError) as warn:
         _LOGGER.warning(
             "%s - Redis connection failed, recreating the redis client; err: %r", payload.uuid, warn
         )
