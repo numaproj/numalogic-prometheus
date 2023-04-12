@@ -111,6 +111,7 @@ class ConfigHandler(FileSystemEventHandler):
             _dir = os.path.basename(os.path.dirname(event.src_path))
 
             _LOGGER.info("Watchdog received %s event - %s/%s", event.event_type, _dir, _file)
+            self.config_manger.get_app_config.cache_clear()
             self.config_manger.update_configs()
 
 
