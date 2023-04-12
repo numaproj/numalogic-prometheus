@@ -1,6 +1,6 @@
 import os
 import time
-from functools import cache
+from functools import lru_cache
 from typing import Optional
 
 from omegaconf import OmegaConf
@@ -48,7 +48,7 @@ class ConfigManager:
         return cls.config
 
     @classmethod
-    @cache
+    @lru_cache(maxsize=100)
     def get_app_config(cls, metric: str, namespace: str) -> Optional[AppConf]:
         if not cls.config:
             cls.update_configs()

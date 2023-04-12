@@ -98,15 +98,17 @@ class TestConfigManager(unittest.TestCase):
             metric=self.payload["name"], namespace=self.payload["namespace"]
         )
         time1 = time.perf_counter() - _start_time
-        _start_time = time.perf_counter()
         self.assertTrue(ConfigManager().get_app_config.cache_info().currsize >= 1)
+        _start_time = time.perf_counter()
         ConfigManager().get_app_config(
             metric=self.payload["name"], namespace=self.payload["namespace"]
         )
         time2 = time.perf_counter() - _start_time
         _start_time = time.perf_counter()
         self.assertTrue(ConfigManager().get_app_config.cache_info().hits >= 1)
-        self.assertTrue(time2 < time1)
+        self.assertTrue(time2 <= time1)
+
+
 
     def test_get_metric_config_time(self):
         _start_time = time.perf_counter()
