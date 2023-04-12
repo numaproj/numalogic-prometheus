@@ -118,9 +118,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        cm = ConfigManager()
-        metric_config = cm.get_metric_config(payload.composite_keys)
-
+        metric_config = ConfigManager().get_metric_config(payload.composite_keys)
         model_cfg = metric_config.numalogic_conf.model
 
         # ToDo: standardize the label name

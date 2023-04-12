@@ -33,33 +33,35 @@ class ConfigManager:
 
         return app_configs, default_configs, default_numalogic
 
-    def update_configs(self):
-        app_configs, default_configs, default_numalogic = self.load_configs()
+    @classmethod
+    def update_configs(cls):
+        app_configs, default_configs, default_numalogic = cls.load_configs()
 
-        self.config["app_configs"] = dict()
+        cls.config["app_configs"] = dict()
         for _config in app_configs:
-            self.config["app_configs"][_config.namespace] = _config
+            cls.config["app_configs"][_config.namespace] = _config
 
-        self.config["default_configs"] = dict(map(lambda c: (c.namespace, c), default_configs))
-        self.config["default_numalogic"] = default_numalogic
+        cls.config["default_configs"] = dict(map(lambda c: (c.namespace, c), default_configs))
+        cls.config["default_numalogic"] = default_numalogic
 
-        _LOGGER.info("Successfully updated configs - %s", self.config)
-        return self.config
+        _LOGGER.info("Successfully updated configs - %s", cls.config)
+        return cls.config
 
+    @classmethod
     @cache
-    def get_app_config(self, metric: str, namespace: str) -> Optional[AppConf]:
-        if not self.config:
-            self.update_configs()
+    def get_app_config(cls, metric: str, namespace: str) -> Optional[AppConf]:
+        if not cls.config:
+            cls.update_configs()
 
         app_config = None
 
         # search and load from app configs
-        if namespace in self.config["app_configs"]:
-            app_config = self.config["app_configs"][namespace]
+        if namespace in cls.config["app_configs"]:
+            app_config = cls.config["app_configs"][namespace]
 
         # if not search and load from default configs
         if not app_config:
-            for key, _conf in self.config["default_configs"].items():
+            for key, _conf in cls.config["default_configs"].items():
                 if metric in _conf.unified_configs[0].unified_metrics:
                     app_config = _conf
                     break
@@ -71,12 +73,13 @@ class ConfigManager:
         # loading and setting default numalogic config
         for metric_config in app_config.metric_configs:
             if OmegaConf.is_missing(metric_config, "numalogic_conf"):
-                metric_config.numalogic_conf = self.config["default_numalogic"]
+                metric_config.numalogic_conf = cls.config["default_numalogic"]
 
         return app_config
 
-    def get_metric_config(self, composite_keys: dict) -> Optional[MetricConf]:
-        app_config = self.get_app_config(
+    @classmethod
+    def get_metric_config(cls, composite_keys: dict) -> Optional[MetricConf]:
+        app_config = cls.get_app_config(
             metric=composite_keys["name"], namespace=composite_keys["namespace"]
         )
         metric_config = list(
@@ -86,8 +89,9 @@ class ConfigManager:
             return app_config.metric_configs[0]
         return metric_config[0]
 
-    def get_unified_config(self, composite_keys: dict) -> Optional[UnifiedConf]:
-        app_config = self.get_app_config(
+    @classmethod
+    def get_unified_config(cls, composite_keys: dict) -> Optional[UnifiedConf]:
+        app_config = cls.get_app_config(
             metric=composite_keys["name"], namespace=composite_keys["namespace"]
         )
         unified_config = list(

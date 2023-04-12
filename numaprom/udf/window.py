@@ -69,8 +69,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
 
-    cm = ConfigManager()
-    metric_config = cm.get_metric_config(
+    metric_config = ConfigManager().get_metric_config(
         {"name": msg["name"], "namespace": msg["labels"]["namespace"]}
     )
     win_size = metric_config.numalogic_conf.model.conf["seq_len"]

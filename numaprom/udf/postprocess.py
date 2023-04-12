@@ -129,8 +129,7 @@ def __construct_unified_payload(
 
 
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
-    cm = ConfigManager()
-    unified_config = cm.get_unified_config(payload.composite_keys)
+    unified_config = ConfigManager().get_unified_config(payload.composite_keys)
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
     _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
@@ -179,8 +178,7 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     payload = StreamPayload(**orjson.loads(_in_msg))
 
     # Load config
-    cm = ConfigManager()
-    metric_config = cm.get_metric_config(payload.composite_keys)
+    metric_config = ConfigManager().get_metric_config(payload.composite_keys)
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 

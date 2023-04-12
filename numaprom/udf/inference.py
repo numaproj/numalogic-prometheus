@@ -73,8 +73,7 @@ def inference(_: str, datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Load config
-    cm = ConfigManager()
-    metric_config = cm.get_metric_config(payload.composite_keys)
+    metric_config = ConfigManager().get_metric_config(payload.composite_keys)
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model

@@ -20,8 +20,7 @@ def preprocess(_: str, datum: Datum) -> bytes:
     _LOGGER.info("%s - Received Payload: %r ", payload.uuid, payload)
 
     # Load config
-    cm = ConfigManager()
-    metric_config = cm.get_metric_config(payload.composite_keys)
+    metric_config = ConfigManager().get_metric_config(payload.composite_keys)
     preprocess_cfgs = metric_config.numalogic_conf.preprocess
 
     # Load preprocess artifact
