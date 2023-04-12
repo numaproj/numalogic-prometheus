@@ -108,8 +108,6 @@ class TestConfigManager(unittest.TestCase):
         self.assertTrue(ConfigManager().get_app_config.cache_info().hits >= 1)
         self.assertTrue(time2 <= time1)
 
-
-
     def test_get_metric_config_time(self):
         _start_time = time.perf_counter()
         ConfigManager().get_metric_config(self.payload)
