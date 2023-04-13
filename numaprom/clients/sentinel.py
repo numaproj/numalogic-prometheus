@@ -44,5 +44,5 @@ def get_redis_client(
         password=password,
         retry=retry,
     )
-    redis_client = sentinel.master_for(mastername)
-    return redis_client
+    SENTINEL_MASTER_CLIENT = sentinel.master_for(mastername)
+    return SENTINEL_MASTER_CLIENT
