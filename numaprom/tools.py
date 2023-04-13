@@ -224,7 +224,7 @@ def get_unified_config(composite_keys: dict) -> Optional[UnifiedConf]:
 
 
 def fetch_data(
-    payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None
+    payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None, hours: int = 36
 ) -> pd.DataFrame:
     _start_time = time.time()
 
@@ -232,7 +232,7 @@ def fetch_data(
     datafetcher = Prometheus(prometheus_server)
 
     end_dt = datetime.now(pytz.utc)
-    start_dt = end_dt - timedelta(hours=36)
+    start_dt = end_dt - timedelta(hours=hours)
 
     df = datafetcher.query_metric(
         metric_name=payload.composite_keys["name"],

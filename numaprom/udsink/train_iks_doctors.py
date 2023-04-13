@@ -23,7 +23,8 @@ HOST = os.getenv("REDIS_HOST")
 PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 EXPIRY = int(os.getenv("REDIS_EXPIRY", 360))
-MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
+MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 360))
+TRAIN_HOURS = int(os.getenv("TRAIN_HOURS", 36))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
@@ -115,7 +116,8 @@ def train_iks_doctors(datums: Iterator[Datum]) -> Responses:
         train_df = fetch_data(
             payload,
             metric_config,
-            {}
+            {},
+            hours=TRAIN_HOURS
         )
 
         try:
