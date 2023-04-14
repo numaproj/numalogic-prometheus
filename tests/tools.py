@@ -18,9 +18,9 @@ from numalogic.registry import ArtifactData, MLflowRegistry
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 
-from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, DEFAULT_CONFIG_DIR, TESTS_RESOURCES
+from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, TESTS_RESOURCES
 from numaprom.factory import HandlerFactory
-from numaprom import NumapromConf
+from numaprom import DataConf
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
@@ -253,7 +253,7 @@ def mock_rollout_query_metric2(*_, **__):
 
 
 def mock_configs():
-    schema: NumapromConf = OmegaConf.structured(NumapromConf)
+    schema: DataConf = OmegaConf.structured(DataConf)
 
     conf = OmegaConf.load(os.path.join(TESTS_RESOURCES, "configs", "config.yaml"))
     app_configs = OmegaConf.merge(schema, conf).configs

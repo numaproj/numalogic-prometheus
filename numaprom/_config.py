@@ -34,5 +34,30 @@ class AppConf:
 
 
 @dataclass
-class NumapromConf:
+class DataConf:
     configs: List[AppConf]
+
+
+@dataclass
+class RedisConf:
+    host: str
+    port: int
+    auth: str
+    expiry: int
+
+
+@dataclass
+class PrometheusConf:
+    server: str
+
+
+@dataclass
+class RegistryConf:
+    tracking_uri: str
+
+
+@dataclass
+class PipelineConf:
+    redis_conf: RedisConf
+    prometheus_conf: PrometheusConf
+    registry_conf: RedisConf

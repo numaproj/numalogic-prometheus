@@ -9,7 +9,7 @@ from numalogic.config import NumalogicConf
 from watchdog.events import FileSystemEventHandler
 
 from numaprom._constants import CONFIG_DIR, DEFAULT_CONFIG_DIR
-from numaprom import NumapromConf, get_logger, AppConf, MetricConf, UnifiedConf
+from numaprom import DataConf, get_logger, AppConf, MetricConf, UnifiedConf
 
 _LOGGER = get_logger(__name__)
 
@@ -19,7 +19,7 @@ class ConfigManager:
 
     @staticmethod
     def load_configs():
-        schema: NumapromConf = OmegaConf.structured(NumapromConf)
+        schema: DataConf = OmegaConf.structured(DataConf)
 
         conf = OmegaConf.load(os.path.join(CONFIG_DIR, "config.yaml"))
         app_configs = OmegaConf.merge(schema, conf).configs
