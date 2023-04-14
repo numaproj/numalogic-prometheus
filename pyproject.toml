@@ -13,13 +13,12 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Intended Audience :: Developers",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10"
 ]
 repository = "https://github.com/numaproj/numalogic-prometheus"
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.11"
+python = "~3.10"
 redis = "^4.3.1"
 pynumaflow = "~0.3"
 numalogic = {version = "~0.3.7", extras = ["mlflow"]}
