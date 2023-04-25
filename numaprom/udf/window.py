@@ -11,15 +11,16 @@ from redis.exceptions import RedisError, RedisClusterException
 
 from numaprom import get_logger
 from numaprom.entities import StreamPayload, Status, Header
-from numaprom.clients.redis import get_redis_client
+from numaprom.clients.sentinel import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
 HOST = os.getenv("REDIS_HOST")
-PORT = os.getenv("REDIS_PORT")
+PORT = int(os.getenv("REDIS_PORT", 6379))
 AUTH = os.getenv("REDIS_AUTH")
+MASTERNAME = os.getenv("REDIS_MASTERNAME")
 
 
 # TODO get the replacement value from config
@@ -46,7 +47,9 @@ def __aggregate_window(
     Returns an empty list if adding the element does not create a new entry
     to the set.
     """
-    redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
+    redis_client = get_redis_client(
+        HOST, PORT, password=AUTH, mastername=MASTERNAME, recreate=recreate
+    )
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})
         pl.zremrangebyrank(key, -(buff_size + 10), -buff_size)
