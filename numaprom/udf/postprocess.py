@@ -17,16 +17,14 @@ from numaprom.tools import (
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
-
-HOST = os.getenv("REDIS_HOST")
-PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
 
 
 def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
-    r = get_redis_client(HOST, PORT, password=AUTH, recreate=recreate)
+    redis_conf = ConfigManager().get_redis_config()
+    r = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH, recreate=recreate)
 
     metric_name = payload.composite_keys["name"]
 

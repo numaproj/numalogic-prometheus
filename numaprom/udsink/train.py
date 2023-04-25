@@ -20,11 +20,7 @@ from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
-HOST = os.getenv("REDIS_HOST")
-PORT = os.getenv("REDIS_PORT")
 AUTH = os.getenv("REDIS_AUTH")
-EXPIRY = int(os.getenv("REDIS_EXPIRY", 300))
-MIN_TRAIN_SIZE = int(os.getenv("MIN_TRAIN_SIZE", 2000))
 
 
 def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
@@ -76,7 +72,8 @@ def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
 
 
 def _is_new_request(payload: TrainerPayload) -> bool:
-    redis_client = get_redis_client(HOST, PORT, password=AUTH, recreate=False)
+    redis_conf = ConfigManager().get_redis_config()
+    redis_client = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH, recreate=False)
     _ckeys = ":".join([payload.composite_keys["namespace"], payload.composite_keys["name"]])
     r_key = f"train::{_ckeys}"
 
@@ -84,7 +81,7 @@ def _is_new_request(payload: TrainerPayload) -> bool:
     if value:
         return False
 
-    redis_client.setex(r_key, time=EXPIRY, value=1)
+    redis_client.setex(r_key, time=redis_conf.expiry, value=1)
     return True
 
 
@@ -108,15 +105,15 @@ def train(datums: List[Datum]) -> Responses:
         model_cfg = metric_config.numalogic_conf.model
 
         train_df = fetch_data(
-            payload, metric_config, {"namespace": payload.composite_keys["namespace"]}
+            payload, metric_config, {"namespace": payload.composite_keys["namespace"]}, hours=metric_config.train_hours
         )
         train_df = clean_data(train_df)
 
-        if len(train_df) < MIN_TRAIN_SIZE:
+        if len(train_df) < metric_config.min_train_size:
             _LOGGER.warning(
                 "%s - Skipping training, train data less than minimum required: %s, df shape: %s",
                 payload.uuid,
-                MIN_TRAIN_SIZE,
+                metric_config.min_train_size,
                 train_df.shape,
             )
             responses.append(Response.as_success(_datum.id))

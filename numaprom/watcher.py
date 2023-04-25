@@ -8,6 +8,7 @@ from watchdog.observers import Observer
 from numalogic.config import NumalogicConf
 from watchdog.events import FileSystemEventHandler
 
+from numaprom._config import PipelineConf, RedisConf, PrometheusConf, RegistryConf
 from numaprom._constants import CONFIG_DIR, DEFAULT_CONFIG_DIR
 from numaprom import DataConf, get_logger, AppConf, MetricConf, UnifiedConf
 
@@ -31,11 +32,15 @@ class ConfigManager:
         schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
         default_numalogic = OmegaConf.merge(schema, conf)
 
-        return app_configs, default_configs, default_numalogic
+        conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "pipeline_config.yaml"))
+        schema: PipelineConf = OmegaConf.structured(PipelineConf)
+        pipeline_config = OmegaConf.merge(schema, conf)
+
+        return app_configs, default_configs, default_numalogic, pipeline_config
 
     @classmethod
     def update_configs(cls):
-        app_configs, default_configs, default_numalogic = cls.load_configs()
+        app_configs, default_configs, default_numalogic, pipeline_config = cls.load_configs()
 
         cls.config["app_configs"] = dict()
         for _config in app_configs:
@@ -43,6 +48,7 @@ class ConfigManager:
 
         cls.config["default_configs"] = dict(map(lambda c: (c.namespace, c), default_configs))
         cls.config["default_numalogic"] = default_numalogic
+        cls.config["pipeline_config"] = pipeline_config
 
         _LOGGER.info("Successfully updated configs - %s", cls.config)
         return cls.config
@@ -103,6 +109,24 @@ class ConfigManager:
         if not unified_config:
             return None
         return unified_config[0]
+
+    @classmethod
+    def get_pipeline_config(cls) -> PipelineConf:
+        if not cls.config:
+            cls.update_configs()
+        return cls.config["pipeline_config"]
+
+    @classmethod
+    def get_redis_config(cls) -> RedisConf:
+        return cls.get_pipeline_config().redis_conf
+
+    @classmethod
+    def get_prometheus_config(cls) -> PrometheusConf:
+        return cls.get_pipeline_config().prometheus_conf
+
+    @classmethod
+    def get_registry_config(cls) -> RegistryConf:
+        return cls.get_pipeline_config().registry_conf
 
 
 class ConfigHandler(FileSystemEventHandler):
