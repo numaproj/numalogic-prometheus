@@ -3,4 +3,4 @@ kind: Kustomization
 namespace: numaflow-system
 resources:
   - namespace.yaml
-  - https://github.intuit.com/oss-analytics/numaproj/numaflow-versions/v0.7.2?ref=main
+  - https://github.com/numaproj/numaflow/releases/download/v0.7.2/install.yaml
