@@ -14,7 +14,7 @@ from pynumaflow.sink import Datum, Responses, Response
 
 from numaprom import get_logger
 from numaprom.entities import TrainerPayload
-from numaprom.clients.redis import get_redis_client
+from numaprom.clients.sentinel import get_redis_client
 from numaprom.tools import save_model, fetch_data
 from numaprom.watcher import ConfigManager
 
@@ -73,7 +73,9 @@ def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
 
 def _is_new_request(payload: TrainerPayload) -> bool:
     redis_conf = ConfigManager().get_redis_config()
-    redis_client = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH, recreate=False)
+    redis_client = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH,
+                         mastername=redis_conf.master_name, recreate=recreate)
+
     _ckeys = ":".join([payload.composite_keys["namespace"], payload.composite_keys["name"]])
     r_key = f"train::{_ckeys}"
 

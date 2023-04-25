@@ -1,26 +1,27 @@
+import datetime
+import json
 import os
 import sys
-import json
-import torch
-import datetime
+from unittest import mock
+from unittest.mock import MagicMock, patch, Mock
+
 import numpy as np
 import pandas as pd
-from unittest import mock
-from omegaconf import OmegaConf
-from sklearn.preprocessing import MinMaxScaler
-from unittest.mock import MagicMock, patch, Mock
+import torch
 from mlflow.entities.model_registry import ModelVersion
-
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
 from numalogic.models.threshold import StdDevThreshold
 from numalogic.registry import ArtifactData, MLflowRegistry
+from omegaconf import OmegaConf
 from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
+from sklearn.preprocessing import MinMaxScaler
 
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, TESTS_RESOURCES
 from numaprom.factory import HandlerFactory
 from numaprom import DataConf
+
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")

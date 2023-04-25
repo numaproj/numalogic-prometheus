@@ -11,7 +11,7 @@ from redis.exceptions import RedisError, RedisClusterException
 
 from numaprom import get_logger
 from numaprom.entities import StreamPayload, Status, Header
-from numaprom.clients.redis import get_redis_client
+from numaprom.clients.sentinel import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys
 from numaprom.watcher import ConfigManager
 
@@ -45,7 +45,9 @@ def __aggregate_window(
     to the set.
     """
     redis_conf = ConfigManager().get_redis_config()
-    redis_client = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH, recreate=recreate)
+    r = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH,
+                         mastername=redis_conf.master_name, recreate=recreate)
+
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})
         pl.zremrangebyrank(key, -(buff_size + 10), -buff_size)
