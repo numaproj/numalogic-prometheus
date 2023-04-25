@@ -3,8 +3,6 @@ kind: Pipeline
 metadata:
   name: numalogic-prometheus-pipeline
 spec:
-  watermark:
-    disabled: false
   limits:
     readBatchSize: 10
     bufferMaxLength: 1000
