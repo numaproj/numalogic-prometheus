@@ -43,7 +43,7 @@ class DataConf:
 @dataclass
 class RedisConf:
     host: str
-    port: str
+    port: int
     expiry: int = 300
     master_name: str = "mymaster"
 
