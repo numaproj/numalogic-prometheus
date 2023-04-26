@@ -17,10 +17,7 @@ from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
-HOST = os.getenv("REDIS_HOST")
-PORT = int(os.getenv("REDIS_PORT", 6379))
 AUTH = os.getenv("REDIS_AUTH")
-MASTERNAME = os.getenv("REDIS_MASTERNAME")
 
 
 # TODO get the replacement value from config
@@ -47,9 +44,15 @@ def __aggregate_window(
     Returns an empty list if adding the element does not create a new entry
     to the set.
     """
+    redis_conf = ConfigManager.get_redis_config()
     redis_client = get_redis_client(
-        HOST, PORT, password=AUTH, mastername=MASTERNAME, recreate=recreate
+        redis_conf.host,
+        redis_conf.port,
+        password=AUTH,
+        mastername=redis_conf.master_name,
+        recreate=recreate,
     )
+
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})
         pl.zremrangebyrank(key, -(buff_size + 10), -buff_size)
@@ -72,7 +75,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
 
-    metric_config = ConfigManager().get_metric_config(
+    metric_config = ConfigManager.get_metric_config(
         {"name": msg["name"], "namespace": msg["labels"]["namespace"]}
     )
     win_size = metric_config.numalogic_conf.model.conf["seq_len"]

@@ -1,4 +1,3 @@
-import os
 import socket
 import time
 from collections import OrderedDict
@@ -20,12 +19,9 @@ from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger, MetricConf
-from numaprom._constants import (
-    DEFAULT_TRACKING_URI,
-    DEFAULT_PROMETHEUS_SERVER,
-)
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.clients.prometheus import Prometheus
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
@@ -130,8 +126,10 @@ def load_model(
 ) -> Optional[ArtifactData]:
     set_aws_session()
     try:
-        tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-        ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
+        registry_conf = ConfigManager.get_registry_config()
+        ml_registry = MLflowRegistry(
+            tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
+        )
         return ml_registry.load(skeys=skeys, dkeys=dkeys)
     except RestException as warn:
         if warn.error_code == 404:
@@ -146,22 +144,27 @@ def save_model(
     skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
     set_aws_session()
-    tracking_uri = os.getenv("TRACKING_URI", DEFAULT_TRACKING_URI)
-    ml_registry = MLflowRegistry(tracking_uri=tracking_uri, artifact_type=artifact_type)
+    registry_conf = ConfigManager.get_registry_config()
+    ml_registry = MLflowRegistry(
+        tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
+    )
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
 
 
 def fetch_data(
-    payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None
+    payload: TrainerPayload,
+    metric_config: MetricConf,
+    labels: dict,
+    return_labels=None,
+    hours: int = 36,
 ) -> pd.DataFrame:
     _start_time = time.time()
-
-    prometheus_server = os.getenv("PROMETHEUS_SERVER", DEFAULT_PROMETHEUS_SERVER)
-    datafetcher = Prometheus(prometheus_server)
+    prometheus_conf = ConfigManager.get_prometheus_config()
+    datafetcher = Prometheus(prometheus_conf.server)
 
     end_dt = datetime.now(pytz.utc)
-    start_dt = end_dt - timedelta(hours=36)
+    start_dt = end_dt - timedelta(hours=hours)
 
     df = datafetcher.query_metric(
         metric_name=payload.composite_keys["name"],

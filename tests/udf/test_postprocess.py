@@ -9,11 +9,7 @@ from numaprom._constants import TESTS_DIR
 from numaprom.entities import PrometheusPayload, StreamPayload, Header
 from numaprom.watcher import ConfigManager
 from tests import redis_client
-from tests.tools import (
-    get_postproc_input,
-    get_datum,
-    mock_configs,
-)
+from tests.tools import get_postproc_input, get_datum, mock_configs
 from numaprom.udf.postprocess import postprocess
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")

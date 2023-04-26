@@ -11,24 +11,25 @@ from redis.sentinel import MasterNotFoundError
 from numaprom import get_logger, UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.clients.sentinel import get_redis_client
-from numaprom.tools import (
-    msgs_forward,
-    WindowScorer,
-)
+from numaprom.tools import msgs_forward, WindowScorer
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
-HOST = os.getenv("REDIS_HOST")
-PORT = int(os.getenv("REDIS_PORT", 6379))
 AUTH = os.getenv("REDIS_AUTH")
-MASTERNAME = os.getenv("REDIS_MASTERNAME")
 
 
 def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
-    r = get_redis_client(HOST, PORT, password=AUTH, mastername=MASTERNAME, recreate=recreate)
+    redis_conf = ConfigManager.get_redis_config()
+    r = get_redis_client(
+        redis_conf.host,
+        redis_conf.port,
+        password=AUTH,
+        mastername=redis_conf.master_name,
+        recreate=recreate,
+    )
 
     metric_name = payload.composite_keys["name"]
 
@@ -87,9 +88,7 @@ def __construct_publisher_payload(
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
 
-    labels = {
-        "model_version": str(stream_payload.get_metadata("version")),
-    }
+    labels = {"model_version": str(stream_payload.get_metadata("version"))}
 
     for key in stream_payload.composite_keys:
         if key != "name":
@@ -111,9 +110,7 @@ def __construct_unified_payload(
 ) -> PrometheusPayload:
     namespace = stream_payload.composite_keys["namespace"]
 
-    labels = {
-        "model_version": str(stream_payload.get_metadata("version")),
-    }
+    labels = {"model_version": str(stream_payload.get_metadata("version"))}
 
     for key in stream_payload.composite_keys:
         if key != "name":
@@ -131,7 +128,7 @@ def __construct_unified_payload(
 
 
 def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
-    unified_config = ConfigManager().get_unified_config(payload.composite_keys)
+    unified_config = ConfigManager.get_unified_config(payload.composite_keys)
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
     _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
@@ -180,7 +177,7 @@ def postprocess(_: str, datum: Datum) -> List[bytes]:
     payload = StreamPayload(**orjson.loads(_in_msg))
 
     # Load config
-    metric_config = ConfigManager().get_metric_config(payload.composite_keys)
+    metric_config = ConfigManager.get_metric_config(payload.composite_keys)
 
     _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
 

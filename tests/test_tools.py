@@ -8,10 +8,7 @@ import numpy as np
 
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import StreamPayload
-from numaprom.tools import (
-    is_host_reachable,
-    WindowScorer,
-)
+from numaprom.tools import is_host_reachable, WindowScorer
 from numaprom.watcher import ConfigManager
 from tests.tools import mock_configs
 

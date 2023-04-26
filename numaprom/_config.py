@@ -19,9 +19,11 @@ class MetricConf:
     composite_keys: List[str] = field(default_factory=lambda: ["namespace", "name"])
     static_threshold: int = 3
     static_threshold_wt: float = 0.0
-    scrape_interval: int = 30
+    train_hours: int = 36
+    min_train_size: int = 2000
     retrain_freq_hr: int = 8
     resume_training: bool = False
+    scrape_interval: int = 30
     numalogic_conf: NumalogicConf = MISSING
 
 
@@ -34,5 +36,31 @@ class AppConf:
 
 
 @dataclass
-class NumapromConf:
+class DataConf:
     configs: List[AppConf]
+
+
+@dataclass
+class RedisConf:
+    host: str
+    port: int
+    expiry: int = 300
+    master_name: str = "mymaster"
+
+
+@dataclass
+class PrometheusConf:
+    server: str
+    pushgateway: str
+
+
+@dataclass
+class RegistryConf:
+    tracking_uri: str
+
+
+@dataclass
+class PipelineConf:
+    redis_conf: RedisConf
+    prometheus_conf: PrometheusConf
+    registry_conf: RegistryConf

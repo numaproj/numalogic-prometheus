@@ -7,11 +7,7 @@ from pynumaflow.function import Datum
 from numaprom import get_logger
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
-from numaprom.tools import (
-    conditional_forward,
-    calculate_static_thresh,
-    load_model,
-)
+from numaprom.tools import conditional_forward, calculate_static_thresh, load_model
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
@@ -44,8 +40,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     )
 
     # Load config
-    cm = ConfigManager()
-    metric_config = cm.get_metric_config(payload.composite_keys)
+    metric_config = ConfigManager.get_metric_config(payload.composite_keys)
     thresh_cfg = metric_config.numalogic_conf.threshold
 
     # Check if payload needs static inference

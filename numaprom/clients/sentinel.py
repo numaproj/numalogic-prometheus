@@ -39,10 +39,7 @@ def get_redis_client(
     _LOGGER.info("Sentinel redis params: %s", sentinel_args)
 
     sentinel = Sentinel(
-        **sentinel_args,
-        sentinel_kwargs=dict(password=password),
-        password=password,
-        retry=retry,
+        **sentinel_args, sentinel_kwargs=dict(password=password), password=password, retry=retry
     )
     SENTINEL_MASTER_CLIENT = sentinel.master_for(mastername)
     return SENTINEL_MASTER_CLIENT
