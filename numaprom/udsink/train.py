@@ -72,7 +72,7 @@ def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
 
 
 def _is_new_request(payload: TrainerPayload) -> bool:
-    redis_conf = ConfigManager().get_redis_config()
+    redis_conf = ConfigManager.get_redis_config()
     redis_client = get_redis_client(
         redis_conf.host,
         redis_conf.port,
@@ -108,7 +108,7 @@ def train(datums: List[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        metric_config = ConfigManager().get_metric_config(payload.composite_keys)
+        metric_config = ConfigManager.get_metric_config(payload.composite_keys)
         model_cfg = metric_config.numalogic_conf.model
 
         train_df = fetch_data(

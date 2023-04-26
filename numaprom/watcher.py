@@ -131,7 +131,7 @@ class ConfigManager:
 
 class ConfigHandler(FileSystemEventHandler):
     def ___init__(self):
-        self.config_manger = ConfigManager()
+        self.config_manger = ConfigManager
 
     def on_any_event(self, event):
         if event.event_type == "created" or event.event_type == "modified":

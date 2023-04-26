@@ -44,7 +44,7 @@ def __aggregate_window(
     Returns an empty list if adding the element does not create a new entry
     to the set.
     """
-    redis_conf = ConfigManager().get_redis_config()
+    redis_conf = ConfigManager.get_redis_config()
     redis_client = get_redis_client(
         redis_conf.host,
         redis_conf.port,
@@ -75,7 +75,7 @@ def window(_: str, datum: Datum) -> Optional[bytes]:
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
 
-    metric_config = ConfigManager().get_metric_config(
+    metric_config = ConfigManager.get_metric_config(
         {"name": msg["name"], "namespace": msg["labels"]["namespace"]}
     )
     win_size = metric_config.numalogic_conf.model.conf["seq_len"]

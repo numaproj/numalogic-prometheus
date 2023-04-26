@@ -126,7 +126,7 @@ def load_model(
 ) -> Optional[ArtifactData]:
     set_aws_session()
     try:
-        registry_conf = ConfigManager().get_registry_config()
+        registry_conf = ConfigManager.get_registry_config()
         ml_registry = MLflowRegistry(
             tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
         )
@@ -144,7 +144,7 @@ def save_model(
     skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
 ) -> Optional[ModelVersion]:
     set_aws_session()
-    registry_conf = ConfigManager().get_registry_config()
+    registry_conf = ConfigManager.get_registry_config()
     ml_registry = MLflowRegistry(
         tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
     )
@@ -160,7 +160,7 @@ def fetch_data(
     hours: int = 36,
 ) -> pd.DataFrame:
     _start_time = time.time()
-    prometheus_conf = ConfigManager().get_prometheus_config()
+    prometheus_conf = ConfigManager.get_prometheus_config()
     datafetcher = Prometheus(prometheus_conf.server)
 
     end_dt = datetime.now(pytz.utc)
