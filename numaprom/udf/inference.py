@@ -12,10 +12,7 @@ from torch.utils.data import DataLoader
 from numaprom import get_logger, MetricConf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
-from numaprom.tools import (
-    load_model,
-    msg_forward,
-)
+from numaprom.tools import load_model, msg_forward
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
@@ -45,11 +42,7 @@ def _is_model_stale(
     date_updated = artifact_data.extras["last_updated_timestamp"] / 1000
     stale_date = (datetime.now() - timedelta(hours=int(metric_config.retrain_freq_hr))).timestamp()
     if date_updated < stale_date:
-        _LOGGER.info(
-            "%s - Model found is stale for %s",
-            payload.uuid,
-            payload.composite_keys,
-        )
+        _LOGGER.info("%s - Model found is stale for %s", payload.uuid, payload.composite_keys)
         return True
     return False
 

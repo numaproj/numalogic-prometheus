@@ -27,7 +27,7 @@ class TestConfigManager(unittest.TestCase):
         self.assertTrue(len(config), 3)
 
     def test_load_configs(self):
-        app_configs, default_configs, default_numalogic = self.cm.load_configs()
+        app_configs, default_configs, default_numalogic, pipeline_config = self.cm.load_configs()
         print(type(app_configs))
         print(type(default_configs))
 

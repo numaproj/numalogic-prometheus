@@ -18,7 +18,8 @@ from pynumaflow.function import Datum, Messages
 from pynumaflow.function._dtypes import DROP
 from sklearn.preprocessing import MinMaxScaler
 
-from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, TESTS_RESOURCES
+from numaprom._config import PipelineConf
+from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY, TESTS_RESOURCES, DEFAULT_CONFIG_DIR
 from numaprom.factory import HandlerFactory
 from numaprom import DataConf
 
@@ -266,4 +267,8 @@ def mock_configs():
     schema: NumalogicConf = OmegaConf.structured(NumalogicConf)
     default_numalogic = OmegaConf.merge(schema, conf)
 
-    return app_configs, default_configs, default_numalogic
+    conf = OmegaConf.load(os.path.join(DEFAULT_CONFIG_DIR, "pipeline_config.yaml"))
+    schema: PipelineConf = OmegaConf.structured(PipelineConf)
+    pipeline_config = OmegaConf.merge(schema, conf)
+
+    return app_configs, default_configs, default_numalogic, pipeline_config

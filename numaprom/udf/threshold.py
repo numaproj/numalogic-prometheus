@@ -7,11 +7,7 @@ from pynumaflow.function import Datum
 from numaprom import get_logger
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
-from numaprom.tools import (
-    conditional_forward,
-    calculate_static_thresh,
-    load_model,
-)
+from numaprom.tools import conditional_forward, calculate_static_thresh, load_model
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)

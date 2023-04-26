@@ -1,4 +1,3 @@
-import os
 import socket
 import time
 from collections import OrderedDict
@@ -20,10 +19,6 @@ from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger, MetricConf
-from numaprom._constants import (
-    DEFAULT_TRACKING_URI,
-    DEFAULT_PROMETHEUS_SERVER,
-)
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.clients.prometheus import Prometheus
 from numaprom.watcher import ConfigManager
@@ -132,7 +127,9 @@ def load_model(
     set_aws_session()
     try:
         registry_conf = ConfigManager().get_registry_config()
-        ml_registry = MLflowRegistry(tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type)
+        ml_registry = MLflowRegistry(
+            tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
+        )
         return ml_registry.load(skeys=skeys, dkeys=dkeys)
     except RestException as warn:
         if warn.error_code == 404:
@@ -148,13 +145,19 @@ def save_model(
 ) -> Optional[ModelVersion]:
     set_aws_session()
     registry_conf = ConfigManager().get_registry_config()
-    ml_registry = MLflowRegistry(tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type)
+    ml_registry = MLflowRegistry(
+        tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
+    )
     version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
     return version
 
 
 def fetch_data(
-    payload: TrainerPayload, metric_config: MetricConf, labels: dict, return_labels=None, hours: int = 36
+    payload: TrainerPayload,
+    metric_config: MetricConf,
+    labels: dict,
+    return_labels=None,
+    hours: int = 36,
 ) -> pd.DataFrame:
     _start_time = time.time()
     prometheus_conf = ConfigManager().get_prometheus_config()

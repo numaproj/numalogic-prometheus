@@ -10,12 +10,7 @@ from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
 from numaprom.watcher import ConfigManager
 from tests import redis_client
-from tests.tools import (
-    get_threshold_input,
-    get_datum,
-    return_threshold_clf,
-    mock_configs,
-)
+from tests.tools import get_threshold_input, get_datum, return_threshold_clf, mock_configs
 
 # Make sure to import this in the end
 from numaprom.udf import threshold

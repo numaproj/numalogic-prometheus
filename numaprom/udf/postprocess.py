@@ -11,10 +11,7 @@ from redis.sentinel import MasterNotFoundError
 from numaprom import get_logger, UnifiedConf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.clients.sentinel import get_redis_client
-from numaprom.tools import (
-    msgs_forward,
-    WindowScorer,
-)
+from numaprom.tools import msgs_forward, WindowScorer
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
@@ -26,8 +23,13 @@ def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
     redis_conf = ConfigManager().get_redis_config()
-    r = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH,
-                         mastername=redis_conf.master_name, recreate=recreate)
+    r = get_redis_client(
+        redis_conf.host,
+        redis_conf.port,
+        password=AUTH,
+        mastername=redis_conf.master_name,
+        recreate=recreate,
+    )
 
     metric_name = payload.composite_keys["name"]
 
@@ -86,9 +88,7 @@ def __construct_publisher_payload(
     metric_name = stream_payload.composite_keys["name"]
     namespace = stream_payload.composite_keys["namespace"]
 
-    labels = {
-        "model_version": str(stream_payload.get_metadata("version")),
-    }
+    labels = {"model_version": str(stream_payload.get_metadata("version"))}
 
     for key in stream_payload.composite_keys:
         if key != "name":
@@ -110,9 +110,7 @@ def __construct_unified_payload(
 ) -> PrometheusPayload:
     namespace = stream_payload.composite_keys["namespace"]
 
-    labels = {
-        "model_version": str(stream_payload.get_metadata("version")),
-    }
+    labels = {"model_version": str(stream_payload.get_metadata("version"))}
 
     for key in stream_payload.composite_keys:
         if key != "name":

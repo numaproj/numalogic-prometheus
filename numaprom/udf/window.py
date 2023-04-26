@@ -45,8 +45,13 @@ def __aggregate_window(
     to the set.
     """
     redis_conf = ConfigManager().get_redis_config()
-    r = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH,
-                         mastername=redis_conf.master_name, recreate=recreate)
+    redis_client = get_redis_client(
+        redis_conf.host,
+        redis_conf.port,
+        password=AUTH,
+        mastername=redis_conf.master_name,
+        recreate=recreate,
+    )
 
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})

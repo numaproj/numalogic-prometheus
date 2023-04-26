@@ -86,9 +86,14 @@ def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
 
 def _is_new_request(payload: TrainerPayload) -> bool:
     redis_conf = ConfigManager().get_redis_config()
-    redis_client = get_redis_client(redis_conf.host, redis_conf.port, password=AUTH,
-                         mastername=redis_conf.master_name, recreate=recreate)
-    
+    redis_client = get_redis_client(
+        redis_conf.host,
+        redis_conf.port,
+        password=AUTH,
+        mastername=redis_conf.master_name,
+        recreate=False,
+    )
+
     _ckeys = ":".join([payload.composite_keys["namespace"], payload.composite_keys["name"]])
     r_key = f"trainrollout::{_ckeys}"
     value = redis_client.get(r_key)
@@ -131,7 +136,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             metric_config,
             {"namespace": payload.composite_keys["namespace"]},
             return_labels=[hash_label],
-            hours=metric_config.train_hours
+            hours=metric_config.train_hours,
         )
         try:
             train_df = clean_data(train_df, hash_label)
