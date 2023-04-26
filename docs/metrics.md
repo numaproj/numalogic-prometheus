@@ -1,13 +1,14 @@
 
 # Metrics:
 
-## Default Metrics:
-
-By default, `numalogic-prometheus` supports two use cases: Argo CD and Argo Rollouts.
+By default, `numalogic-prometheus` supports two use cases: Argo CD and Argo Rollouts. The metrics required by these
+use cases are configured in [prometheus rules](../manifests/prerequisites/prometheus/prometheus-rules.yaml) and the
+metrics that have `numalogic: "true"` label are collected and sent to the `numalogic-prometheus-pipeline` by the 
+prometheus remote writer. 
 
 ### Argo CD:
 
-For Argo CD use case, below are the golden signal metrics (cpu, memory, error counts, error rates and latencies) configured in the [prometheus rules](https://github.com/numaproj/numalogic-prometheus/blob/main/manifests/prometheus/prometheus-rules.yaml) and sent to the pipeline.
+For Argo CD use case, below are the golden signal metrics (cpu, memory, error counts, error rates and latencies).
 
 ```shell
 namespace_app_pod_http_server_requests_errors
@@ -29,8 +30,7 @@ namespace_argo_cd_unified_anomaly
 ```
 
 ### Argo Rollouts:
-For Argo CD use case, below are the golden signal metrics (error rates and latencies) configured in the [prometheus rules](../manifests/prerequisites/prometheus/prometheus-rules.yaml) and sent to the pipeline.
-
+For Argo CD use case, below are the golden signal metrics (error rates and latencies).
 ```shell
 namespace_hash_pod_http_server_requests_error_rate
 namespace_hash_pod_http_server_requests_latency
@@ -47,28 +47,35 @@ Refer to [prometheus-rules.yaml](../manifests/prerequisites/prometheus/prometheu
 
 ## On-boarding New Metrics:
 
+To on-board a new metric, add your metric to [prometheus-rules.yaml](../manifests/prerequisites/prometheus/prometheus-rules.yaml) 
+and add a `numalogic: "true"` label to send it to the pipeline. 
+
 Any new metric that is sent to the pipeline, takes in the below default config and emits the respective anomaly score.
 
 ```shell
-"default": {
-    "keys": ["namespace", "name"],
-    "scrape_interval": 5,
-    "model_config": {
-        "name": "default",
-        "win_size": 12,
-        "threshold_min": 0.1,
-        "model_name": "ae_sparse",
-        "retrain_freq_hr": 8,
-        "resume_training": "True",
-        "num_epochs": 100,
-        "keys": ["namespace", "name"],        
-    },
-    "output_config":{
-      "unified_strategy": None,
-      "unified_metric_name": None,
-      "unified_metrics": None
-    }
-}
+  numalogic_config.yaml: |
+    model:
+      name: "SparseVanillaAE"
+      conf:
+        seq_len: 12
+        n_features: 1
+        encoder_layersizes:
+          - 16
+          - 8
+        decoder_layersizes:
+          - 8
+          - 16
+        dropout_p: 0.25
+    trainer:
+      max_epochs: 30
+    preprocess:
+      - name: "StandardScaler"
+    threshold:
+      name: "StdDevThreshold"
+    postprocess:
+      name: "TanhNorm"
+      stateful: false
 ```
 
-To configure a new metric with a specific ML parameters, provide the config in the above format. To get a unified anomaly score for a set of metrics, add the metrics list to `metrics` field.
+To configure a new metric with a specific ML parameters, provide the config in the above format. 
+To get a unified anomaly score for a set of metrics, add the metrics list to `metrics` field.

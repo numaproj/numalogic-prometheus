@@ -3,10 +3,8 @@ kind: Pipeline
 metadata:
   name: numalogic-prometheus-pipeline
 spec:
-  watermark:
-    disabled: true
   limits:
-    readBatchSize: 100
+    readBatchSize: 10
     bufferMaxLength: 1000
     bufferUsageLimit: 100
   vertices:
@@ -20,26 +18,44 @@ spec:
         max: 1
       udf:
         container:
-          image: quay.io/numaio/numaflow-udf/prometheus-serde
+          image: quay.io/numaio/numalogic-prometheus/udf/prometheus-serde:v0.1.5
+        env:
+          - name: NUMAFLOW_DEBUG
+            value: "true"
     - name: filter
       scale:
         min: 1
         max: 1
       udf:
         container:
-          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.3.1a0
           args:
             - python
             - starter.py
             - udf
             - metric_filter
+          env:
+            - name: DEBUG
+              value: "true"
     - name: window
       scale:
         min: 1
         max: 1
+      volumes:
+        - configMap:
+            name: numalogic-prometheus-app-configs
+          name: app-configs
+        - configMap:
+            name: numalogic-prometheus-default-configs
+          name: default-configs
       udf:
         container:
-          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.3.1a0
+          volumeMounts:
+            - mountPath: /app/numaprom/configs
+              name: app-configs
+            - mountPath: /app/numaprom/default-configs
+              name: default-configs
           args:
             - python
             - starter.py
@@ -52,35 +68,68 @@ spec:
               value: "6379"
             - name: REDIS_AUTH
               value: "5rmmfXtsbL"
+            - name: DEBUG
+              value: "true"
       limits:
         readBatchSize: 1
     - name: preprocess
       scale:
         min: 1
         max: 5
+      volumes:
+        - configMap:
+            name: numalogic-prometheus-app-configs
+          name: app-configs
+        - configMap:
+            name: numalogic-prometheus-default-configs
+          name: default-configs
       udf:
         container:
-          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.3.0
+          volumeMounts:
+            - mountPath: /app/numaprom/configs
+              name: app-configs
+            - mountPath: /app/numaprom/default-configs
+              name: default-configs
           args:
             - python
             - starter.py
             - udf
             - preprocess
+          env:
+            - name: DEBUG
+              value: "true"
+            - name: TRACKING_URI
+              value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
     - name: inference
       scale:
         min: 1
         max: 5
+      volumes:
+        - configMap:
+            name: numalogic-prometheus-app-configs
+          name: app-configs
+        - configMap:
+            name: numalogic-prometheus-default-configs
+          name: default-configs
       udf:
         container:
-          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.3.0
+          volumeMounts:
+            - mountPath: /app/numaprom/configs
+              name: app-configs
+            - mountPath: /app/numaprom/default-configs
+              name: default-configs
           args:
             - python
             - starter.py
             - udf
             - inference
           env:
-            - name: TRACKING_URI
-              value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
+              - name: DEBUG
+                value: "true"
+              - name: TRACKING_URI
+                value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
       metadata:
         annotations:
           iam.amazonaws.com/role: <MLFLOW_S3_ROLE_ARN>
@@ -88,27 +137,58 @@ spec:
       scale:
         min: 1
         max: 5
+      volumes:
+        - configMap:
+            name: numalogic-prometheus-app-configs
+          name: app-configs
+        - configMap:
+            name: numalogic-prometheus-default-configs
+          name: default-configs
       udf:
         container:
-          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.3.0
+          volumeMounts:
+            - mountPath: /app/numaprom/configs
+              name: app-configs
+            - mountPath: /app/numaprom/default-configs
+              name: default-configs
           args:
             - python
             - starter.py
             - udf
             - threshold
+          env:
+            - name: DEBUG
+              value: "true"
+            - name: TRACKING_URI
+              value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
     - name: postprocess
       scale:
         min: 1
         max: 5
+      volumes:
+        - configMap:
+            name: numalogic-prometheus-app-configs
+          name: app-configs
+        - configMap:
+            name: numalogic-prometheus-default-configs
+          name: default-configs
       udf:
         container:
-          image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.3.0
+          volumeMounts:
+            - mountPath: /app/numaprom/configs
+              name: app-configs
+            - mountPath: /app/numaprom/default-configs
+              name: default-configs
           args:
             - python
             - starter.py
             - udf
             - postprocess
           env:
+            - name: DEBUG
+              value: "true"
             - name: REDIS_HOST
               value: numalogic-redis-cluster.numalogic-prometheus.svc.cluster.local
             - name: REDIS_PORT
@@ -119,16 +199,30 @@ spec:
       scale:
         min: 1
         max: 5
+      volumes:
+        - configMap:
+            name: numalogic-prometheus-app-configs
+          name: app-configs
+        - configMap:
+            name: numalogic-prometheus-default-configs
+          name: default-configs
       sink:
         udsink:
           container:
-            image: quay.io/numaio/numalogic-prometheus/udf:v0.1.0a0
+            image: quay.io/numaio/numalogic-prometheus/udf:v0.3.0
+            volumeMounts:
+              - mountPath: /app/numaprom/configs
+                name: app-configs
+              - mountPath: /app/numaprom/default-configs
+                name: default-configs
             args:
               - python
               - starter.py
               - udsink
               - train
             env:
+              - name: DEBUG
+                value: "true"
               - name: TRACKING_URI
                 value: "http://mlflow-service.numalogic-prometheus.svc.cluster.local:5000"
               - name: PROMETHEUS_SERVER
@@ -153,7 +247,7 @@ spec:
                 value: "pushgateway.monitoring.svc.cluster.local:9091"
               - name: "METRICS_LABELS"
                 value: "intuit_alert=true"
-            image: quay.io/numaio/numaflow-sink/prometheus-pusher
+            image: quay.io/numaio/numaflow-sink/prometheus-pusher:v0.0.9
     - name: output
       scale:
         min: 1
