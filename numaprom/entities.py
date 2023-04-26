@@ -21,6 +21,7 @@ class Status(str, Enum):
     POST_PROCESSED = "post_processed"
     ARTIFACT_NOT_FOUND = "artifact_not_found"
     ARTIFACT_STALE = "artifact_is_stale"
+    RUNTIME_ERROR = "runtime_error"
 
 
 class Header(str, Enum):

@@ -27,7 +27,7 @@ setup:
 	poetry install --with dev --all-extras
 
 test:
-	poetry run pytest tests/
+	poetry run pytest -v tests/
 
 requirements:
 	poetry export -f requirements.txt --output requirements.txt --without-hashes

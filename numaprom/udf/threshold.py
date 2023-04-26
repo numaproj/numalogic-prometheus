@@ -50,8 +50,8 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
-        _LOGGER.debug(
-            "%s - Models not found in the previous steps, performing static thresholding. Keys: %s",
+        _LOGGER.info(
+            "%s - Sending to trainer and performing static thresholding. Keys: %s",
             payload.uuid,
             payload.composite_keys,
         )
@@ -95,6 +95,6 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
 
     _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
     _LOGGER.debug(
-        "%s - Time taken in threshold: %.4f", payload.uuid, time.perf_counter() - _start_time
+        "%s - Time taken in threshold: %.4f sec", payload.uuid, time.perf_counter() - _start_time
     )
     return messages

@@ -29,7 +29,11 @@ def _run_inference(
     stream_loader = DataLoader(StreamingDataset(stream_data, numalogic_conf.model.conf["seq_len"]))
 
     trainer = AutoencoderTrainer()
-    recon_err = trainer.predict(model, dataloaders=stream_loader)
+    try:
+        recon_err = trainer.predict(model, dataloaders=stream_loader)
+    except Exception as err:
+        _LOGGER.exception("%s - Runtime error while performing inference: %r", payload.uuid, err)
+        raise RuntimeError("Failed to infer") from err
 
     _LOGGER.info("%s - Successfully inferred", payload.uuid)
 
@@ -96,7 +100,17 @@ def inference(_: str, datum: Datum) -> bytes:
         payload.set_header(Header.MODEL_STALE)
 
     # Generate predictions
-    payload = _run_inference(payload, artifact_data, numalogic_conf)
+    try:
+        payload = _run_inference(payload, artifact_data, numalogic_conf)
+    except RuntimeError:
+        _LOGGER.info(
+            "%s - Failed to infer, forwarding for static thresholding. Keys: %s",
+            payload.uuid,
+            payload.composite_keys,
+        )
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.RUNTIME_ERROR)
+        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     _LOGGER.info("%s - Sending Payload: %s ", payload.uuid, payload)
     _LOGGER.debug(
