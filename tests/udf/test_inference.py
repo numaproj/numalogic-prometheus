@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch, Mock
 
 from freezegun import freeze_time
+from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import MLflowRegistry
 from orjson import orjson
 
@@ -47,6 +48,22 @@ class TestInference(unittest.TestCase):
 
                 self.assertEqual(payload.status, Status.INFERRED)
                 self.assertEqual(payload.header, Header.MODEL_INFERENCE)
+                self.assertTrue(payload.win_arr)
+                self.assertTrue(payload.win_ts_arr)
+
+    @freeze_time("2022-02-20 12:00:00")
+    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
+    @patch.object(AutoencoderTrainer, "predict", Mock(side_effect=RuntimeError))
+    def test_inference_err(self):
+        for msg in self.inference_input.items():
+            _in = get_datum(msg.value)
+            _out = inference("", _in)
+            for _datum in _out.items():
+                out_data = _datum.value.decode("utf-8")
+                payload = StreamPayload(**orjson.loads(out_data))
+
+                self.assertEqual(payload.status, Status.RUNTIME_ERROR)
+                self.assertEqual(payload.header, Header.STATIC_INFERENCE)
                 self.assertTrue(payload.win_arr)
                 self.assertTrue(payload.win_ts_arr)
 
