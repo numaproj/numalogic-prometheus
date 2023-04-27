@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.3.2a0 (2023-04-26)
+
+ * [6920ffa](https://github.com/numaproj/numalogic-prometheus/commit/6920ffa8d7d60b278f9b89f9d4ebea94dffde75d) feat: env vars to config (#125)
+ * [d75cd12](https://github.com/numaproj/numalogic-prometheus/commit/d75cd12e2c24354cf2d6fbb9244f2dddbf890bec) fix: catch inference errors and send for static thresholding (#126)
+ * [1c9d7c7](https://github.com/numaproj/numalogic-prometheus/commit/1c9d7c7a00332c2f81f265191cdf3046b2b16392) fix: manifests for open source (#124)
+
+### Contributors
+
+ * Avik Basu
+ * Nandita Koppisetty
+
+## v0.3.1a0 (2023-04-24)
+
+
+### Contributors
+
+
+## v0.3.1 (2023-04-26)
+
+ * [6fa37ba](https://github.com/numaproj/numalogic-prometheus/commit/6fa37ba04c12261947d7bfed15fb3f7aeef7da24) fix: catch inference errors and send for static thresholding
+ * [1c9d7c7](https://github.com/numaproj/numalogic-prometheus/commit/1c9d7c7a00332c2f81f265191cdf3046b2b16392) fix: manifests for open source (#124)
+ * [76fb7fa](https://github.com/numaproj/numalogic-prometheus/commit/76fb7fa3420ee48d5f37b9bf81dc3cdeb9345b90) chore!: drop support for python 3.9 (#123)
+ * [9ce0db0](https://github.com/numaproj/numalogic-prometheus/commit/9ce0db021f71b7baf8bd25bab95251e4d8eb73b9) feat: support sentinel redis (#118)
+
+### Contributors
+
+ * Avik Basu
+ * Nandita Koppisetty
+
+## v0.3.0 (2023-04-14)
+
+
+### Contributors
+
+
+## v0.2.8 (2023-04-14)
+
+ * [2d49c4f](https://github.com/numaproj/numalogic-prometheus/commit/2d49c4f3daeb50e7606563f1dc5eae213d1667ec) feat: watchdog observer for config auto loading (#119)
+
+### Contributors
+
+ * Nandita Koppisetty
+
 ## v0.2.7 (2023-04-05)
 
  * [f19a68f](https://github.com/numaproj/numalogic-prometheus/commit/f19a68f027ef3a1c5b658a45bd2ac9457a27a86e) fix: catch braoder redis exceptions (#115)
