@@ -30,7 +30,8 @@ jobs:
     - name: Install dependencies
       run: |
         poetry env use ${{ matrix.python-version }}
-        poetry install --all-extras --with dev,torch
+        poetry install --all-extras --with dev
+        poetry run pip install --no-cache -r requirements/requirements-torch.txt
 
     - name: Run Coverage
       run: |

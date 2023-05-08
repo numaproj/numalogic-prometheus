@@ -36,7 +36,6 @@ mlflow = "^2.2"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-pytorch-lightning = "^2.0"
 coverage = "^6.3"
 black = "^22.1"
 fakeredis = "^2.11"
