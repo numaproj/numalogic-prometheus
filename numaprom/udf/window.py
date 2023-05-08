@@ -18,14 +18,6 @@ from numaprom.watcher import ConfigManager
 _LOGGER = get_logger(__name__)
 
 AUTH = os.getenv("REDIS_AUTH")
-# REDIS_CONF = ConfigManager.get_redis_config()
-# REDIS_CLIENT = get_redis_client(
-#     REDIS_CONF.host,
-#     REDIS_CONF.port,
-#     password=AUTH,
-#     mastername=REDIS_CONF.master_name,
-#     recreate=False,
-# )
 
 
 # TODO get the replacement value from config
