@@ -1,21 +1,33 @@
+import os
 import time
 from datetime import datetime, timedelta
 
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder import AutoencoderTrainer
-from numalogic.registry import ArtifactData
+from numalogic.registry import ArtifactData, RedisRegistry
 from numalogic.tools.data import StreamingDataset
+from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
 from pynumaflow.function import Datum
 from torch.utils.data import DataLoader
 
 from numaprom import get_logger, MetricConf
+from numaprom.clients.sentinel import get_redis_client
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
-from numaprom.tools import load_model, msg_forward
+from numaprom.tools import msg_forward
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
+AUTH = os.getenv("REDIS_AUTH")
+REDIS_CONF = ConfigManager.get_redis_config()
+REDIS_CLIENT = get_redis_client(
+    REDIS_CONF.host,
+    REDIS_CONF.port,
+    password=AUTH,
+    mastername=REDIS_CONF.master_name,
+    recreate=False,
+)
 
 
 def _run_inference(
@@ -74,10 +86,23 @@ def inference(_: str, datum: Datum) -> bytes:
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model
-    artifact_data = load_model(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
-        dkeys=[numalogic_conf.model.name],
-    )
+    model_registry = RedisRegistry(client=REDIS_CLIENT)
+    try:
+        artifact_data = model_registry.load(
+            skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+            dkeys=[numalogic_conf.model.name],
+        )
+    except RedisRegistryError as err:
+        _LOGGER.exception(
+            "%s - Error while fetching inference artifact, keys: %s, err: %r",
+            payload.uuid,
+            payload.composite_keys,
+            err,
+        )
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.RUNTIME_ERROR)
+        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+
     if not artifact_data:
         _LOGGER.info(
             "%s - Inference artifact not found, forwarding for static thresholding. Keys: %s",

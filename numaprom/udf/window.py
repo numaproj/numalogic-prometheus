@@ -18,6 +18,14 @@ from numaprom.watcher import ConfigManager
 _LOGGER = get_logger(__name__)
 
 AUTH = os.getenv("REDIS_AUTH")
+# REDIS_CONF = ConfigManager.get_redis_config()
+# REDIS_CLIENT = get_redis_client(
+#     REDIS_CONF.host,
+#     REDIS_CONF.port,
+#     password=AUTH,
+#     mastername=REDIS_CONF.master_name,
+#     recreate=False,
+# )
 
 
 # TODO get the replacement value from config
@@ -52,16 +60,17 @@ def __aggregate_window(
         mastername=redis_conf.master_name,
         recreate=recreate,
     )
-
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})
         pl.zremrangebyrank(key, -(buff_size + 10), -buff_size)
         pl.zrange(key, -win_size, -1, withscores=True, score_cast_func=int)
         out = pl.execute()
     _is_new, _, _window = out
+    # print(_is_new, _window)
     if not _is_new:
         return []
-    _window = list(map(lambda x: (float(x[0].split("::")[0]), x[1]), _window))
+    _window = list(map(lambda x: (float(x[0].decode().split("::")[0]), x[1]), _window))
+    # print(_window)
     return _window
 
 

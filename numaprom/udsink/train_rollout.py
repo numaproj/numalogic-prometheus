@@ -6,16 +6,19 @@ import numpy as np
 import pandas as pd
 from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
+from numalogic.registry import RedisRegistry
 from numalogic.tools.data import StreamingDataset
+from numalogic.tools.exceptions import RedisRegistryError
+from numalogic.tools.types import redis_client_t
 from orjson import orjson
 from pynumaflow.sink import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 
-from numaprom import get_logger
-from numaprom.entities import TrainerPayload
+from numaprom import get_logger, MetricConf
 from numaprom.clients.sentinel import get_redis_client
-from numaprom.tools import save_model, fetch_data
+from numaprom.entities import TrainerPayload
+from numaprom.tools import fetch_data
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
@@ -84,16 +87,7 @@ def _find_threshold(x_reconerr, thresh_cfg: ModelInfo):
     return thresh_clf
 
 
-def _is_new_request(payload: TrainerPayload) -> bool:
-    redis_conf = ConfigManager.get_redis_config()
-    redis_client = get_redis_client(
-        redis_conf.host,
-        redis_conf.port,
-        password=AUTH,
-        mastername=redis_conf.master_name,
-        recreate=False,
-    )
-
+def _is_new_request(redis_client, redis_conf, payload: TrainerPayload) -> bool:
     _ckeys = ":".join([payload.composite_keys["namespace"], payload.composite_keys["name"]])
     r_key = f"trainrollout::{_ckeys}"
     value = redis_client.get(r_key)
@@ -106,13 +100,21 @@ def _is_new_request(payload: TrainerPayload) -> bool:
 
 def train_rollout(datums: Iterator[Datum]) -> Responses:
     responses = Responses()
+    redis_conf = ConfigManager.get_redis_config()
+    redis_client = get_redis_client(
+        redis_conf.host,
+        redis_conf.port,
+        password=AUTH,
+        mastername=redis_conf.master_name,
+        recreate=False,
+    )
 
     for _datum in datums:
         payload = TrainerPayload(**orjson.loads(_datum.value))
 
         _LOGGER.debug("%s - Starting Training for keys: %s", payload.uuid, payload.composite_keys)
 
-        is_new = _is_new_request(payload)
+        is_new = _is_new_request(redis_client, redis_conf, payload)
         if not is_new:
             _LOGGER.debug(
                 "%s - Skipping rollouts train request with keys: %s",
@@ -123,9 +125,8 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             continue
 
         metric_config = ConfigManager.get_metric_config(payload.composite_keys)
-        model_cfg = metric_config.numalogic_conf.model
 
-        # ToDo: standardize the label name
+        # TODO: standardize the label name
         if "rollouts_pod_template_hash" in payload.composite_keys:
             hash_label = "rollouts_pod_template_hash"
         else:
@@ -157,78 +158,92 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             responses.append(Response.as_success(_datum.id))
             continue
 
-        preproc_cfgs = metric_config.numalogic_conf.preprocess
-        x_train, preproc_clf = _preprocess(train_df.to_numpy(), preproc_cfgs)
-
-        trainer_cfg = metric_config.numalogic_conf.trainer
-        x_reconerr, anomaly_model, trainer = _train_model(
-            payload.uuid, x_train, model_cfg, trainer_cfg
-        )
-
-        thresh_cfg = metric_config.numalogic_conf.threshold
-        thresh_clf = _find_threshold(x_reconerr, thresh_cfg)
-
-        skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
-
-        # TODO 1. catch mlflow exception
-        # TODO 2. if one of the models fail to save,
-        #  delete the previously saved models and transition stage
-
-        # Save main model
-        version = save_model(
-            skeys=skeys,
-            dkeys=[model_cfg.name],
-            model=anomaly_model,
-            uuid=payload.uuid,
-            train_size=train_df.shape[0],
-        )
-        if version:
-            _LOGGER.info(
-                "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
-            )
-        else:
-            _LOGGER.error("%s - Error while saving Model with skeys: %s", payload.uuid, skeys)
-
-        # Save preproc model
-        version = save_model(
-            skeys=skeys,
-            dkeys=[_conf.name for _conf in preproc_cfgs],
-            model=preproc_clf,
-            artifact_type="sklearn",
-            uuid=payload.uuid,
-        )
-        if version:
-            _LOGGER.info(
-                "%s - Preproc model saved with skeys: %s with version: %s",
-                payload.uuid,
-                skeys,
-                version,
-            )
-        else:
-            _LOGGER.error(
-                "%s - Error while saving Preproc model with skeys: %s", payload.uuid, skeys
-            )
-
-        # Save threshold model
-        version = save_model(
-            skeys=skeys,
-            dkeys=[thresh_cfg.name],
-            model=thresh_clf,
-            artifact_type="sklearn",
-            uuid=payload.uuid,
-        )
-        if version:
-            _LOGGER.info(
-                "%s - Threshold model saved with skeys: %s with version: %s",
-                payload.uuid,
-                skeys,
-                version,
-            )
-        else:
-            _LOGGER.error(
-                "%s - Error while saving Threshold model with skeys: %s", payload.uuid, skeys
-            )
+        _train_and_save(metric_config, payload, redis_client, train_df)
 
         responses.append(Response.as_success(_datum.id))
 
     return responses
+
+
+def _train_and_save(
+    metric_config: MetricConf,
+    payload: TrainerPayload,
+    redis_client: redis_client_t,
+    train_df: pd.DataFrame,
+) -> None:
+    model_cfg = metric_config.numalogic_conf.model
+    preproc_cfgs = metric_config.numalogic_conf.preprocess
+
+    x_train, preproc_clf = _preprocess(train_df.to_numpy(), preproc_cfgs)
+
+    trainer_cfg = metric_config.numalogic_conf.trainer
+    x_reconerr, anomaly_model, trainer = _train_model(payload.uuid, x_train, model_cfg, trainer_cfg)
+
+    thresh_cfg = metric_config.numalogic_conf.threshold
+    thresh_clf = _find_threshold(x_reconerr, thresh_cfg)
+
+    skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
+
+    # TODO if one of the models fail to save, delete the previously saved models and transition stage
+    # Save main model
+    model_registry = RedisRegistry(client=redis_client)
+    try:
+        version = model_registry.save(
+            skeys=skeys,
+            dkeys=[model_cfg.name],
+            artifact=anomaly_model,
+            uuid=payload.uuid,
+            train_size=train_df.shape[0],
+        )
+    except RedisRegistryError as err:
+        _LOGGER.exception(
+            "%s - Error while saving Model with skeys: %s, err: %r", payload.uuid, skeys, err
+        )
+    else:
+        _LOGGER.info(
+            "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
+        )
+    # Save preproc model
+    try:
+        version = model_registry.save(
+            skeys=skeys,
+            dkeys=[_conf.name for _conf in preproc_cfgs],
+            artifact=preproc_clf,
+            uuid=payload.uuid,
+        )
+    except RedisRegistryError as err:
+        _LOGGER.exception(
+            "%s - Error while saving Preproc model with skeys: %s, err: %r",
+            payload.uuid,
+            skeys,
+            err,
+        )
+    else:
+        _LOGGER.info(
+            "%s - Preproc model saved with skeys: %s with version: %s",
+            payload.uuid,
+            skeys,
+            version,
+        )
+    # Save threshold model
+    try:
+        version = model_registry.save(
+            skeys=skeys,
+            dkeys=[thresh_cfg.name],
+            artifact=thresh_clf,
+            uuid=payload.uuid,
+        )
+    except RedisRegistryError as err:
+        _LOGGER.error(
+            "%s - Error while saving Threshold model with skeys: %s, err: %r",
+            payload.uuid,
+            skeys,
+            err,
+        )
+    else:
+        _LOGGER.info(
+            "%s - Threshold model saved with skeys: %s with version: %s",
+            payload.uuid,
+            skeys,
+            version,
+        )

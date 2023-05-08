@@ -50,7 +50,7 @@ def __save_to_redis(
     anomalies = []
     for m in unified_config.unified_metrics:
         if r.hexists(name=r_key, key=m):
-            anomalies.append(float(r.hget(name=r_key, key=m)))
+            anomalies.append(float(r.hget(name=r_key, key=m).decode()))
         else:
             _LOGGER.debug(
                 "%s - Unable to generate unified anomaly, missing metric: %s, redis_key: %s",

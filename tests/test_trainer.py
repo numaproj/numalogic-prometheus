@@ -10,12 +10,10 @@ from pynumaflow.sink import Datum
 
 from numaprom._constants import TESTS_DIR
 from numaprom.clients.prometheus import Prometheus
-from numaprom.watcher import ConfigManager
 from tests.tools import (
     mock_argocd_query_metric,
     mock_rollout_query_metric,
     mock_rollout_query_metric2,
-    mock_configs,
 )
 from tests import train, redis_client, train_rollout
 
@@ -34,8 +32,6 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
     )
 
 
-@patch("numaprom.tools.set_aws_session", Mock(return_value=None))
-@patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))
 class TestTrainer(unittest.TestCase):
     train_payload = {
         "uuid": "123124543",
