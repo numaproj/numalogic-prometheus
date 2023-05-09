@@ -1,7 +1,7 @@
 import os
 import time
 import uuid
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 import numpy.typing as npt
@@ -66,7 +66,7 @@ def __aggregate_window(
 
 
 @msg_forward
-def window(_: str, datum: Datum) -> Optional[bytes]:
+def window(_: List[str], datum: Datum) -> Optional[bytes]:
     """
     UDF to construct windowing of the streaming input data, required by ML models.
     """

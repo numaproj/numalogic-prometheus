@@ -163,7 +163,7 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
 
 
 @msgs_forward
-def postprocess(_: str, datum: Datum) -> List[bytes]:
+def postprocess(_: List[str], datum: Datum) -> List[bytes]:
     """
     UDF for performing the following steps:
 
