@@ -46,7 +46,7 @@ def msgs_forward(handler_func):
         msgs = Messages()
         for json_data in json_list:
             if json_data:
-                msgs.append(Message.to_all(json_data))
+                msgs.append(Message(json_data))
             else:
                 msgs.append(Message.to_drop())
         return msgs
@@ -60,7 +60,7 @@ def msg_forward(handler_func):
         json_data = handler_func(*args, **kwargs)
         msgs = Messages()
         if json_data:
-            msgs.append(Message.to_all(value=json_data))
+            msgs.append(Message(value=json_data))
         else:
             msgs.append(Message.to_drop())
         return msgs
@@ -75,7 +75,7 @@ def conditional_forward(hand_func):
         msgs = Messages()
         for vertex, json_data in data:
             if json_data and vertex:
-                msgs.append(Message.to_vtx(key=vertex.encode(), value=json_data))
+                msgs.append(Message(value=json_data, tags=[vertex.encode()]))
             else:
                 msgs.append(Message.to_drop())
         return msgs
