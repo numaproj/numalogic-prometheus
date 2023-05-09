@@ -141,6 +141,7 @@ def return_mock_lstmae(*_, **__):
         metadata={},
         extras={
             "creation_timestamp": 1653402941169,
+            "timestamp": 1653402941,
             "current_stage": "Production",
             "description": "",
             "last_updated_timestamp": 1645369200000,
@@ -163,6 +164,7 @@ def return_stale_model(*_, **__):
         metadata={},
         extras={
             "creation_timestamp": 1653402941169,
+            "timestamp": 1653402941,
             "current_stage": "Production",
             "description": "",
             "last_updated_timestamp": 1656615600000,

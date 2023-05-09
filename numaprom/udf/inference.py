@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime, timedelta
 
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder import AutoencoderTrainer
@@ -11,7 +10,7 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from torch.utils.data import DataLoader
 
-from numaprom import get_logger, MetricConf
+from numaprom import get_logger
 from numaprom.clients.sentinel import get_redis_client
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
@@ -50,17 +49,6 @@ def _run_inference(
     payload.set_status(Status.INFERRED)
     payload.set_metadata("version", artifact_data.extras.get("version"))
     return payload
-
-
-def _is_model_stale(
-    payload: StreamPayload, artifact_data: ArtifactData, metric_config: MetricConf
-) -> bool:
-    date_updated = artifact_data.extras["last_updated_timestamp"] / 1000
-    stale_date = (datetime.now() - timedelta(hours=int(metric_config.retrain_freq_hr))).timestamp()
-    if date_updated < stale_date:
-        _LOGGER.info("%s - Model found is stale for %s", payload.uuid, payload.composite_keys)
-        return True
-    return False
 
 
 @msg_forward
@@ -114,7 +102,7 @@ def inference(_: str, datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     # Check if current model is stale
-    if _is_model_stale(payload, artifact_data, metric_config):
+    if RedisRegistry.is_artifact_stale(artifact_data, int(metric_config.retrain_freq_hr)):
         payload.set_header(Header.MODEL_STALE)
 
     # Generate predictions
