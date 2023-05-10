@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Union
 from unittest.mock import patch, Mock
 
-from numalogic.registry import MLflowRegistry
 from pynumaflow.sink import Datum
 
 from numaprom._constants import TESTS_DIR
@@ -55,7 +54,6 @@ class TestTrainer(unittest.TestCase):
     def setUp(self) -> None:
         redis_client.flushall()
 
-    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
     def test_argocd_trainer_01(self):
         datums = [as_datum(self.train_payload)]
@@ -64,7 +62,6 @@ class TestTrainer(unittest.TestCase):
         self.assertEqual("1", _out.items()[0].id)
         self.assertEqual(1, len(_out.items()))
 
-    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
     def test_argocd_trainer_02(self):
         datums = [as_datum(self.train_payload), as_datum(self.train_payload, msg_id="2")]
@@ -76,14 +73,12 @@ class TestTrainer(unittest.TestCase):
         self.assertEqual("2", _out.items()[1].id)
         self.assertEqual(2, len(_out.items()))
 
-    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
     def test_argo_rollout_trainer_01(self):
         _out = train_rollout([as_datum(self.train_payload)])
         self.assertTrue(_out.items()[0].success)
         self.assertEqual("1", _out.items()[0].id)
 
-    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
     def test_argo_rollout_trainer_02(self):
         datums = [as_datum(self.train_payload), as_datum(self.train_payload, msg_id="2")]
@@ -95,7 +90,6 @@ class TestTrainer(unittest.TestCase):
         self.assertEqual("2", _out.items()[1].id)
         self.assertEqual(2, len(_out.items()))
 
-    @patch.object(MLflowRegistry, "save", Mock(return_value=1))
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric2()))
     def test_argo_rollout_trainer_03(self):
         _out = train_rollout([as_datum(self.train_payload2)])

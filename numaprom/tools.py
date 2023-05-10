@@ -4,21 +4,18 @@ from collections import OrderedDict
 from datetime import timedelta, datetime
 from functools import wraps
 from json import JSONDecodeError
-from typing import Optional, Sequence, List
+from typing import List
 
 import numpy as np
 import pandas as pd
 import pytz
-from mlflow.entities.model_registry import ModelVersion
-from mlflow.exceptions import RestException
 from numalogic.config import PostprocessFactory
 from numalogic.models.threshold import SigmoidThreshold
-from numalogic.registry import MLflowRegistry, ArtifactData
 from pynumaflow.function import Messages, Message
 
 from numaprom import get_logger, MetricConf
-from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.clients.prometheus import Prometheus
+from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
@@ -117,35 +114,6 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
             return True
     _LOGGER.error("Failed to resolve hostname: %s even after retries!")
     return False
-
-
-def load_model(
-    skeys: Sequence[str], dkeys: Sequence[str], artifact_type: str = "pytorch"
-) -> Optional[ArtifactData]:
-    try:
-        registry_conf = ConfigManager.get_registry_config()
-        ml_registry = MLflowRegistry(
-            tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
-        )
-        return ml_registry.load(skeys=skeys, dkeys=dkeys)
-    except RestException as warn:
-        if warn.error_code == 404:
-            return None
-        _LOGGER.warning("Non 404 error from mlflow: %r", warn)
-    except Exception as ex:
-        _LOGGER.error("Unexpected error while loading model from MLflow database: %r", ex)
-        return None
-
-
-def save_model(
-    skeys: Sequence[str], dkeys: Sequence[str], model, artifact_type="pytorch", **metadata
-) -> Optional[ModelVersion]:
-    registry_conf = ConfigManager.get_registry_config()
-    ml_registry = MLflowRegistry(
-        tracking_uri=registry_conf.tracking_uri, artifact_type=artifact_type
-    )
-    version = ml_registry.save(skeys=skeys, dkeys=dkeys, artifact=model, **metadata)
-    return version
 
 
 def fetch_data(

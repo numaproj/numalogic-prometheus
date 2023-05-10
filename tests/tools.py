@@ -9,8 +9,6 @@ from unittest.mock import MagicMock, patch, Mock
 import fakeredis
 import numpy as np
 import pandas as pd
-import torch
-from mlflow.entities.model_registry import ModelVersion
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
 from numalogic.models.threshold import StdDevThreshold
 from numalogic.registry import ArtifactData, RedisRegistry
@@ -21,7 +19,6 @@ from sklearn.preprocessing import MinMaxScaler
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY
 from numaprom.factory import HandlerFactory
 from tests import window, preprocess
-
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
@@ -111,28 +108,6 @@ def get_postproc_input(data_path: str, prev_clf_exists=True, prev_model_stale=Fa
                 if _msg.key == bytes(POSTPROC_VTX_KEY, "utf-8"):
                     out.append(_msg)
     return out
-
-
-def return_mock_vanilla(*_, **__):
-    return {
-        "primary_artifact": VanillaAE(2),
-        "metadata": torch.load(os.path.join(MODEL_DIR, "model_cpu.pth")),
-        "model_properties": ModelVersion(
-            creation_timestamp=1656615600000,
-            current_stage="Production",
-            description="",
-            last_updated_timestamp=datetime.datetime.now().timestamp() * 1000,
-            name="sandbox_numalogic_demo:metric_1",
-            run_id="6f1e582fb6194bbdaa4141feb2ce8e27",
-            run_link="",
-            source="mlflow-artifacts:/0/6f1e582fb6194bbdaa4141feb2ce8e27/artifacts/model",
-            status="READY",
-            status_message="",
-            tags={},
-            user_id="",
-            version="125",
-        ),
-    }
 
 
 def return_mock_lstmae(*_, **__):
