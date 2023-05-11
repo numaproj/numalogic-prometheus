@@ -21,11 +21,10 @@ repository = "https://github.com/numaproj/numalogic-prometheus"
 python = "~3.10"
 redis = {extras = ["hiredis"], version = "^4.5" }
 pynumaflow = "~0.3"
-# numalogic = {version = "0.4.dev5", extras = ["redis", "mlflow"], allow-prereleases = true}
+numalogic = {version = "0.4a0", extras = ["redis"], allow-prereleases = true}
 orjson = "^3.8.4"
 omegaconf = "^2.3.0"
 watchdog = "^3.0.0"
-numalogic = {git = "https://github.com/numaproj/numalogic.git", branch = "main", extras = ["redis"]}
 
 [tool.poetry.group.mlflowserver]
 optional = true
