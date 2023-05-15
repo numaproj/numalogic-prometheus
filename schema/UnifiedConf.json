@@ -1,0 +1,34 @@
+{
+  "title": "UnifiedConf",
+  "description": "UnifiedConf(*, unified_metric_name: str, unified_metrics: List[str], unified_strategy: str = 'max', unified_weights: List[float] = None)",
+  "type": "object",
+  "properties": {
+    "unified_metric_name": {
+      "title": "Unified Metric Name",
+      "type": "string"
+    },
+    "unified_metrics": {
+      "title": "Unified Metrics",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unified_strategy": {
+      "title": "Unified Strategy",
+      "default": "max",
+      "type": "string"
+    },
+    "unified_weights": {
+      "title": "Unified Weights",
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  "required": [
+    "unified_metric_name",
+    "unified_metrics"
+  ]
+}

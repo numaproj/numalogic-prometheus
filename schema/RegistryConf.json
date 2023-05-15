@@ -1,0 +1,14 @@
+{
+  "title": "RegistryConf",
+  "description": "RegistryConf(*, tracking_uri: str)",
+  "type": "object",
+  "properties": {
+    "tracking_uri": {
+      "title": "Tracking Uri",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tracking_uri"
+  ]
+}

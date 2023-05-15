@@ -38,3 +38,6 @@ requirements-dev:
 pipeline:
 	kustomize build manifests/prerequisites | kubectl apply -f -
 	kustomize build manifests/ | kubectl apply -f -
+
+schema: setup
+	python schema/schema_generator.py ./schema/

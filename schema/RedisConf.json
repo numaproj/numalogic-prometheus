@@ -1,0 +1,29 @@
+{
+  "title": "RedisConf",
+  "description": "RedisConf(*, host: str, port: int, expiry: int = 300, master_name: str = 'mymaster')",
+  "type": "object",
+  "properties": {
+    "host": {
+      "title": "Host",
+      "type": "string"
+    },
+    "port": {
+      "title": "Port",
+      "type": "integer"
+    },
+    "expiry": {
+      "title": "Expiry",
+      "default": 300,
+      "type": "integer"
+    },
+    "master_name": {
+      "title": "Master Name",
+      "default": "mymaster",
+      "type": "string"
+    }
+  },
+  "required": [
+    "host",
+    "port"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "title": "PrometheusConf",
+  "description": "PrometheusConf(*, server: str, pushgateway: str)",
+  "type": "object",
+  "properties": {
+    "server": {
+      "title": "Server",
+      "type": "string"
+    },
+    "pushgateway": {
+      "title": "Pushgateway",
+      "type": "string"
+    }
+  },
+  "required": [
+    "server",
+    "pushgateway"
+  ]
+}

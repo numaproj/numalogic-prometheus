@@ -1,22 +1,22 @@
 from typing import List
 from omegaconf import MISSING
-from dataclasses import dataclass, field
-
+from dataclasses import dataclass
+from pydantic import BaseModel, Field
 from numalogic.config import NumalogicConf
 
 
 @dataclass
-class UnifiedConf:
+class UnifiedConf(BaseModel):
     unified_metric_name: str
     unified_metrics: List[str]
     unified_strategy: str = "max"
-    unified_weights: List[float] = field(default_factory=list)
+    unified_weights: List[float] = Field(default_factory=list)
 
 
 @dataclass
-class MetricConf:
+class MetricConf(BaseModel):
     metric: str = "default"
-    composite_keys: List[str] = field(default_factory=lambda: ["namespace", "name"])
+    composite_keys: List[str] = Field(default_factory=lambda: ["namespace", "name"])
     static_threshold: int = 3
     static_threshold_wt: float = 0.0
     train_hours: int = 36
@@ -28,20 +28,20 @@ class MetricConf:
 
 
 @dataclass
-class AppConf:
+class AppConf(BaseModel):
     app: str = "default"
     namespace: str = "default"
-    metric_configs: List[MetricConf] = field(default_factory=lambda: [MetricConf()])
-    unified_configs: List[UnifiedConf] = field(default_factory=list)
+    metric_configs: List[MetricConf] = Field(default_factory=lambda: [MetricConf()])
+    unified_configs: List[UnifiedConf] = Field(default_factory=list)
 
 
 @dataclass
-class DataConf:
+class DataConf(BaseModel):
     configs: List[AppConf]
 
 
 @dataclass
-class RedisConf:
+class RedisConf(BaseModel):
     host: str
     port: int
     expiry: int = 300
@@ -49,18 +49,18 @@ class RedisConf:
 
 
 @dataclass
-class PrometheusConf:
+class PrometheusConf(BaseModel):
     server: str
     pushgateway: str
 
 
 @dataclass
-class RegistryConf:
+class RegistryConf(BaseModel):
     tracking_uri: str
 
 
 @dataclass
-class PipelineConf:
+class PipelineConf(BaseModel):
     redis_conf: RedisConf
     prometheus_conf: PrometheusConf
     registry_conf: RegistryConf

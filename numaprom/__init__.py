@@ -1,7 +1,16 @@
 import logging
 import os
 
-from numaprom._config import UnifiedConf, MetricConf, AppConf, DataConf
+from numaprom._config import (
+    UnifiedConf,
+    MetricConf,
+    AppConf,
+    DataConf,
+    RedisConf,
+    RegistryConf,
+    PrometheusConf,
+    PipelineConf,
+)
 
 
 def get_logger(name):
@@ -25,4 +34,14 @@ def get_logger(name):
     return logger
 
 
-__all__ = ["UnifiedConf", "MetricConf", "AppConf", "DataConf", "get_logger"]
+__all__ = [
+    "UnifiedConf",
+    "MetricConf",
+    "AppConf",
+    "DataConf",
+    "RedisConf",
+    "RegistryConf",
+    "PrometheusConf",
+    "PipelineConf",
+    "get_logger",
+]

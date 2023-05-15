@@ -26,6 +26,8 @@ boto3 = "^1.25.2"
 orjson = "^3.8.4"
 omegaconf = "^2.3.0"
 watchdog = "^3.0.0"
+jsonschema = "^4.17.3"
+pydantic = "^1.10.7"
 
 [tool.poetry.group.mlflowserver]
 optional = true
