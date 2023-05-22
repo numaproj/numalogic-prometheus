@@ -58,11 +58,9 @@ def __aggregate_window(
         pl.zrange(key, -win_size, -1, withscores=True, score_cast_func=int)
         out = pl.execute()
     _is_new, _, _window = out
-    # print(_is_new, _window)
     if not _is_new:
         return []
     _window = list(map(lambda x: (float(x[0].decode().split("::")[0]), x[1]), _window))
-    # print(_window)
     return _window
 
 

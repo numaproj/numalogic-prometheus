@@ -1,15 +1,18 @@
+import os
 from typing import Optional
 
+from numalogic.tools.types import redis_client_t
 from redis.backoff import ExponentialBackoff
-from redis.client import Redis
 from redis.exceptions import RedisClusterException, RedisError
 from redis.retry import Retry
 from redis.sentinel import Sentinel, MasterNotFoundError
 
 from numaprom import get_logger
+from numaprom._config import RedisConf
+from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
-SENTINEL_MASTER_CLIENT: Optional[Redis] = None
+SENTINEL_MASTER_CLIENT: Optional[redis_client_t] = None
 
 
 def get_redis_client(
@@ -19,7 +22,7 @@ def get_redis_client(
     mastername: str,
     decode_responses: bool = False,
     recreate: bool = False,
-) -> Redis:
+) -> redis_client_t:
     """
     Return a master redis client for sentinel connections, with retry.
     """
@@ -52,3 +55,18 @@ def get_redis_client(
     )
     SENTINEL_MASTER_CLIENT = sentinel.master_for(mastername)
     return SENTINEL_MASTER_CLIENT
+
+
+def get_redis_client_from_conf(redis_conf: RedisConf = None) -> redis_client_t:
+    """
+    Return a master redis client from config for sentinel connections, with retry.
+    """
+    if not redis_conf:
+        redis_conf = ConfigManager.get_redis_config()
+
+    return get_redis_client(
+        redis_conf.host,
+        redis_conf.port,
+        password=os.getenv("REDIS_AUTH"),
+        mastername=redis_conf.master_name,
+    )

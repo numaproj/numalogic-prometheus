@@ -35,11 +35,15 @@ def mock_configs():
 
 
 with patch("numaprom.clients.sentinel.get_redis_client") as mock_get_redis_client:
-    mock_get_redis_client.return_value = redis_client
-    with patch.object(ConfigManager, "load_configs") as mock_confs:
-        mock_confs.return_value = mock_configs()
-        from numaprom.udf import window, preprocess, inference, threshold
-        from numaprom.udsink import train, train_rollout
+    with patch(
+        "numaprom.clients.sentinel.get_redis_client_from_conf"
+    ) as mock_get_redis_client_from_conf:
+        mock_get_redis_client_from_conf.return_value = redis_client
+        mock_get_redis_client.return_value = redis_client
+        with patch.object(ConfigManager, "load_configs") as mock_confs:
+            mock_confs.return_value = mock_configs()
+            from numaprom.udf import window, preprocess, inference, threshold
+            from numaprom.udsink import train, train_rollout
 
 
 __all__ = [
