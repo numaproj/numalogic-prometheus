@@ -1,5 +1,6 @@
 import time
 from collections import OrderedDict
+from typing import List
 
 from orjson import orjson
 from pynumaflow.function import Datum
@@ -29,7 +30,7 @@ def _get_static_thresh_payload(payload, metric_config) -> bytes:
 
 
 @conditional_forward
-def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
+def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
 
