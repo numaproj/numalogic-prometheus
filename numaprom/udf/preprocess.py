@@ -1,5 +1,6 @@
 import os
 import time
+from typing import List
 
 import orjson
 from numalogic.registry import RedisRegistry
@@ -26,7 +27,7 @@ REDIS_CLIENT = get_redis_client(
 
 
 @msg_forward
-def preprocess(_: str, datum: Datum) -> bytes:
+def preprocess(_: List[str], datum: Datum) -> bytes:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
 
