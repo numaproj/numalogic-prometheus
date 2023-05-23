@@ -1,31 +1,28 @@
 import os
 import unittest
-import numpy as np
-from orjson import orjson
 from unittest.mock import patch, Mock
 
-from numalogic.registry import MLflowRegistry
+import numpy as np
+from numalogic.registry import RedisRegistry
+from orjson import orjson
+from pynumaflow.function import Messages
 
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, Header
-from numaprom.watcher import ConfigManager
-from tests.tools import get_prepoc_input, get_datum, return_preproc_clf, mock_configs
 
 # Make sure to import this in the end
-from tests import redis_client
-from numaprom.udf.preprocess import preprocess
+from tests import redis_client, preprocess
+from tests.tools import get_prepoc_input, get_datum, return_preproc_clf
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 STREAM_NAN_DATA_PATH = os.path.join(DATA_DIR, "stream_nan.json")
 
 
-@patch("numaprom.tools.set_aws_session", Mock(return_value=None))
 class TestPreprocess(unittest.TestCase):
-    preproc_input = None
+    preproc_input: Messages = None
 
     @classmethod
-    @patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.preproc_input = get_prepoc_input(STREAM_DATA_PATH)
@@ -34,7 +31,7 @@ class TestPreprocess(unittest.TestCase):
     def setUp(self) -> None:
         redis_client.flushall()
 
-    @patch.object(MLflowRegistry, "load", Mock(return_value=return_preproc_clf()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_preproc_clf()))
     def test_preprocess(self):
         for msg in self.preproc_input.items():
             _in = get_datum(msg.value)
@@ -49,7 +46,7 @@ class TestPreprocess(unittest.TestCase):
                 self.assertTrue(payload.win_ts_arr)
                 self.assertIsInstance(payload, StreamPayload)
 
-    @patch.object(MLflowRegistry, "load", Mock(return_value=None))
+    @patch.object(RedisRegistry, "load", Mock(return_value=None))
     def test_preprocess_no_clf(self):
         for msg in self.preproc_input.items():
             _in = get_datum(msg.value)
@@ -60,8 +57,7 @@ class TestPreprocess(unittest.TestCase):
             self.assertEqual(payload.header, Header.STATIC_INFERENCE)
             self.assertIsInstance(payload, StreamPayload)
 
-    @patch.object(MLflowRegistry, "load", Mock(return_value=return_preproc_clf()))
-    @patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_preproc_clf()))
     def test_preprocess_with_nan(self):
         preproc_input = get_prepoc_input(STREAM_NAN_DATA_PATH)
         assert preproc_input.items(), print("input items is empty", preproc_input)

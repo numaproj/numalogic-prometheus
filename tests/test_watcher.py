@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch, Mock
 
 from numaprom.watcher import ConfigManager
-from tests.tools import mock_configs
+from tests import mock_configs
 
 
 @patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))

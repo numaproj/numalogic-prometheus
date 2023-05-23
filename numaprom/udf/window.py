@@ -10,14 +10,12 @@ from pynumaflow.function import Datum
 from redis.exceptions import RedisError, RedisClusterException
 
 from numaprom import get_logger
+from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import StreamPayload, Status, Header
-from numaprom.clients.sentinel import get_redis_client
 from numaprom.tools import msg_forward, create_composite_keys
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
-
-AUTH = os.getenv("REDIS_AUTH")
 
 
 # TODO get the replacement value from config
@@ -44,15 +42,7 @@ def __aggregate_window(
     Returns an empty list if adding the element does not create a new entry
     to the set.
     """
-    redis_conf = ConfigManager.get_redis_config()
-    redis_client = get_redis_client(
-        redis_conf.host,
-        redis_conf.port,
-        password=AUTH,
-        mastername=redis_conf.master_name,
-        recreate=recreate,
-    )
-
+    redis_client = get_redis_client_from_conf(recreate=recreate)
     with redis_client.pipeline() as pl:
         pl.zadd(key, {f"{value}::{ts}": ts})
         pl.zremrangebyrank(key, -(buff_size + 10), -buff_size)
@@ -61,7 +51,7 @@ def __aggregate_window(
     _is_new, _, _window = out
     if not _is_new:
         return []
-    _window = list(map(lambda x: (float(x[0].split("::")[0]), x[1]), _window))
+    _window = list(map(lambda x: (float(x[0].decode().split("::")[0]), x[1]), _window))
     return _window
 
 

@@ -4,20 +4,18 @@ from unittest.mock import patch, Mock
 
 from freezegun import freeze_time
 from numalogic.models.autoencoder import AutoencoderTrainer
-from numalogic.registry import MLflowRegistry
+from numalogic.registry import RedisRegistry
 from orjson import orjson
+from pynumaflow.function import Messages
 
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, Header
-from numaprom.udf.inference import inference
-from numaprom.watcher import ConfigManager
-from tests import redis_client
+from tests import redis_client, inference
 from tests.tools import (
     get_inference_input,
     return_stale_model,
     return_mock_lstmae,
     get_datum,
-    mock_configs,
 )
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
@@ -25,19 +23,20 @@ MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-@patch("numaprom.tools.set_aws_session", Mock(return_value=None))
-@patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))
 class TestInference(unittest.TestCase):
+    inference_input: Messages = None
+
     @classmethod
-    @patch("numaprom.tools.set_aws_session", Mock(return_value=None))
-    @patch.object(ConfigManager, "load_configs", Mock(return_value=mock_configs()))
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)
         assert cls.inference_input.items(), print("input items is empty", cls.inference_input)
 
+    def setUp(self) -> None:
+        redis_client.flushall()
+
     @freeze_time("2022-02-20 12:00:00")
-    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_mock_lstmae()))
     def test_inference(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
@@ -52,7 +51,7 @@ class TestInference(unittest.TestCase):
                 self.assertTrue(payload.win_ts_arr)
 
     @freeze_time("2022-02-20 12:00:00")
-    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_mock_lstmae()))
     @patch.object(AutoencoderTrainer, "predict", Mock(side_effect=RuntimeError))
     def test_inference_err(self):
         for msg in self.inference_input.items():
@@ -67,7 +66,7 @@ class TestInference(unittest.TestCase):
                 self.assertTrue(payload.win_arr)
                 self.assertTrue(payload.win_ts_arr)
 
-    @patch.object(MLflowRegistry, "load", Mock(return_value=None))
+    @patch.object(RedisRegistry, "load", Mock(return_value=None))
     def test_no_model(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
@@ -79,10 +78,10 @@ class TestInference(unittest.TestCase):
             self.assertIsInstance(payload, StreamPayload)
 
     @freeze_time("2022-02-20 12:00:00")
-    @patch.object(MLflowRegistry, "load", Mock(return_value=return_mock_lstmae()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_mock_lstmae()))
     def test_no_prev_model(self):
         inference_input = get_inference_input(STREAM_DATA_PATH, prev_clf_exists=False)
-        assert self.inference_input.items(), print("input items is empty", self.inference_input)
+        assert inference_input.items(), print("input items is empty", inference_input)
         for msg in inference_input.items():
             _in = get_datum(msg.value)
             _out = inference("", _in)
@@ -92,7 +91,7 @@ class TestInference(unittest.TestCase):
             self.assertEqual(payload.header, Header.STATIC_INFERENCE)
             self.assertIsInstance(payload, StreamPayload)
 
-    @patch.object(MLflowRegistry, "load", Mock(return_value=return_stale_model()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):
         for msg in self.inference_input.items():
             _in = get_datum(msg.value)
@@ -102,3 +101,7 @@ class TestInference(unittest.TestCase):
                 self.assertTrue(payload)
                 self.assertEqual(payload.status, Status.INFERRED)
                 self.assertEqual(payload.header, Header.MODEL_STALE)
+
+
+if __name__ == "__main__":
+    unittest.main()

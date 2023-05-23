@@ -1,13 +1,16 @@
 import time
 from collections import OrderedDict
 
+from numalogic.registry import RedisRegistry
+from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
 from pynumaflow.function import Datum
 
 from numaprom import get_logger
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
+from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
-from numaprom.tools import conditional_forward, calculate_static_thresh, load_model
+from numaprom.tools import conditional_forward, calculate_static_thresh
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
@@ -56,11 +59,25 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         ]
 
     # load threshold artifact
-    thresh_artifact = load_model(
-        skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
-        dkeys=[thresh_cfg.name],
-        artifact_type="sklearn",
-    )
+    model_registry = RedisRegistry(client=get_redis_client_from_conf())
+    try:
+        thresh_artifact = model_registry.load(
+            skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
+            dkeys=[thresh_cfg.name],
+        )
+    except RedisRegistryError as err:
+        _LOGGER.exception(
+            "%s - Error while fetching threshold artifact, keys: %s, err: %r",
+            payload.uuid,
+            payload.composite_keys,
+            err,
+        )
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.RUNTIME_ERROR)
+        return [
+            (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
+            (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
+        ]
     if not thresh_artifact:
         _LOGGER.info(
             "%s - Threshold artifact not found, performing static thresholding. Keys: %s",
