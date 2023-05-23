@@ -1,4 +1,3 @@
-import os
 import time
 from collections import OrderedDict
 
@@ -9,13 +8,12 @@ from pynumaflow.function import Datum
 
 from numaprom import get_logger
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
-from numaprom.clients.sentinel import get_redis_client
+from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
 from numaprom.tools import conditional_forward, calculate_static_thresh
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
-AUTH = os.getenv("REDIS_AUTH")
 
 
 def _get_static_thresh_payload(payload, metric_config) -> bytes:
@@ -47,7 +45,6 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
     # Load config
     metric_config = ConfigManager.get_metric_config(payload.composite_keys)
     thresh_cfg = metric_config.numalogic_conf.threshold
-    redis_conf = ConfigManager.get_redis_config()
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
@@ -62,15 +59,7 @@ def threshold(_: str, datum: Datum) -> list[tuple[str, bytes]]:
         ]
 
     # load threshold artifact
-    model_registry = RedisRegistry(
-        client=get_redis_client(
-            redis_conf.host,
-            redis_conf.port,
-            password=AUTH,
-            mastername=redis_conf.master_name,
-            recreate=False,
-        )
-    )
+    model_registry = RedisRegistry(client=get_redis_client_from_conf())
     try:
         thresh_artifact = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],

@@ -25,6 +25,17 @@ def get_redis_client(
 ) -> redis_client_t:
     """
     Return a master redis client for sentinel connections, with retry.
+
+    Args:
+        host: Redis host
+        port: Redis port
+        password: Redis password
+        mastername: Redis sentinel master name
+        decode_responses: Whether to decode responses
+        recreate: Whether to flush and recreate the client
+
+    Returns:
+        Redis client instance
     """
     global SENTINEL_MASTER_CLIENT
 
@@ -57,9 +68,16 @@ def get_redis_client(
     return SENTINEL_MASTER_CLIENT
 
 
-def get_redis_client_from_conf(redis_conf: RedisConf = None) -> redis_client_t:
+def get_redis_client_from_conf(redis_conf: RedisConf = None, **kwargs) -> redis_client_t:
     """
     Return a master redis client from config for sentinel connections, with retry.
+
+    Args:
+        redis_conf: RedisConf object with host, port, master_name, etc.
+        **kwargs: Additional arguments to pass to get_redis_client.
+
+    Returns:
+        Redis client instance
     """
     if not redis_conf:
         redis_conf = ConfigManager.get_redis_config()
@@ -69,4 +87,5 @@ def get_redis_client_from_conf(redis_conf: RedisConf = None) -> redis_client_t:
         redis_conf.port,
         password=os.getenv("REDIS_AUTH"),
         mastername=redis_conf.master_name,
+        **kwargs
     )
