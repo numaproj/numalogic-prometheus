@@ -1,16 +1,16 @@
 import os
 import time
-import numpy as np
 from typing import List
-from orjson import orjson
-from redis.exceptions import RedisError, RedisClusterException
 
+import numpy as np
+from orjson import orjson
 from pynumaflow.function import Datum
+from redis.exceptions import RedisError, RedisClusterException
 from redis.sentinel import MasterNotFoundError
 
 from numaprom import get_logger, UnifiedConf
+from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
-from numaprom.clients.sentinel import get_redis_client
 from numaprom.tools import msgs_forward, WindowScorer
 from numaprom.watcher import ConfigManager
 
@@ -22,14 +22,7 @@ AUTH = os.getenv("REDIS_AUTH")
 def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ):
-    redis_conf = ConfigManager.get_redis_config()
-    r = get_redis_client(
-        redis_conf.host,
-        redis_conf.port,
-        password=AUTH,
-        mastername=redis_conf.master_name,
-        recreate=recreate,
-    )
+    r = get_redis_client_from_conf(recreate=recreate)
 
     metric_name = payload.composite_keys["name"]
 
@@ -50,7 +43,7 @@ def __save_to_redis(
     anomalies = []
     for m in unified_config.unified_metrics:
         if r.hexists(name=r_key, key=m):
-            anomalies.append(float(r.hget(name=r_key, key=m)))
+            anomalies.append(float(r.hget(name=r_key, key=m).decode()))
         else:
             _LOGGER.debug(
                 "%s - Unable to generate unified anomaly, missing metric: %s, redis_key: %s",
