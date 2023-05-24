@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Optional, List
+from typing import Optional
 
 from pynumaflow.function import Messages, Datum
 
@@ -12,7 +12,7 @@ _LOGGER = get_logger(__name__)
 
 @catch_exception
 @msg_forward
-def metric_filter(_: List[str], datum: Datum) -> Optional[Messages]:
+def metric_filter(_: list[str], datum: Datum) -> Optional[Messages]:
     """
     UDF to filter metrics by labels
     """

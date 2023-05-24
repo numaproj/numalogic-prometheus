@@ -13,7 +13,7 @@ from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
 from numalogic.models.threshold import StdDevThreshold
 from numalogic.registry import ArtifactData, RedisRegistry
 from pynumaflow.function import Datum, Messages
-from pynumaflow.function._dtypes import DROP
+from pynumaflow.function._dtypes import DROP, DatumMetadata
 from sklearn.preprocessing import MinMaxScaler
 
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY
@@ -33,10 +33,11 @@ def get_datum(data: str or bytes) -> Datum:
         data = json.dumps(data).encode("utf-8")
 
     return Datum(
-        key="random_key",
+        keys=["random_key"],
         value=data,
         event_time=datetime.datetime.now(),
         watermark=datetime.datetime.now(),
+        metadata=DatumMetadata(msg_id="", num_delivered=0),
     )
 
 
@@ -57,7 +58,10 @@ def get_prepoc_input(data_path: str) -> Messages:
     data = get_stream_data(data_path)
     for obj in data:
         _out = window("", get_datum(obj))
-        if _out.items()[0].key != DROP:
+        if len(_out.items()[0].tags) > 0:
+            if not _out.items()[0].tags[0] == DROP:
+                out.append(_out.items()[0])
+        else:
             out.append(_out.items()[0])
     return out
 
@@ -71,7 +75,10 @@ def get_inference_input(data_path: str, prev_clf_exists=True) -> Messages:
         for msg in preproc_input.items():
             _in = get_datum(msg.value)
             _out = preprocess("", _in)
-            if _out.items()[0].key != DROP:
+            if len(_out.items()[0].tags) > 0:
+                if not _out.items()[0].tags[0] == DROP:
+                    out.append(_out.items()[0])
+            else:
                 out.append(_out.items()[0])
     return out
 
@@ -90,7 +97,10 @@ def get_threshold_input(data_path: str, prev_clf_exists=True, prev_model_stale=F
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("inference")
             _out = handler_(None, _in)
-            if _out.items()[0].key != DROP:
+            if len(_out.items()[0].tags) > 0:
+                if not _out.items()[0].tags[0] == DROP:
+                    out.append(_out.items()[0])
+            else:
                 out.append(_out.items()[0])
     return out
 
@@ -105,8 +115,9 @@ def get_postproc_input(data_path: str, prev_clf_exists=True, prev_model_stale=Fa
             handler_ = HandlerFactory.get_handler("threshold")
             _out = handler_(None, _in)
             for _msg in _out.items():
-                if _msg.key == bytes(POSTPROC_VTX_KEY, "utf-8"):
-                    out.append(_msg)
+                for tag in _msg.tags:
+                    if tag == bytes(POSTPROC_VTX_KEY, "utf-8"):
+                        out.append(_msg)
     return out
 
 
