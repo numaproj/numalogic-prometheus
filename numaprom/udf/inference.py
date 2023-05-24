@@ -1,5 +1,4 @@
 import time
-
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import ArtifactData, RedisRegistry
@@ -43,7 +42,7 @@ def _run_inference(
 
 
 @msg_forward
-def inference(_: str, datum: Datum) -> bytes:
+def inference(_: list[str], datum: Datum) -> bytes:
     _start_time = time.perf_counter()
 
     _in_msg = datum.value.decode("utf-8")

@@ -26,16 +26,19 @@ class TestWindow(unittest.TestCase):
     def test_window(self):
         for idx, data in enumerate(self.input_stream):
             _out = window("", get_datum(data))
-            if not _out.items()[0].key == DROP:
-                _out = _out.items()[0].value.decode("utf-8")
-                payload = StreamPayload(**orjson.loads(_out))
-                self.assertTrue(payload)
+            if len(_out.items()[0].tags) > 0:
+                if not _out.items()[0].tags[0] == DROP:
+                    _out = _out.items()[0].value.decode("utf-8")
+                    payload = StreamPayload(**orjson.loads(_out))
+                    self.assertTrue(payload)
 
     def test_window_duplicate_element(self):
         uuids = set()
         for idx, data in enumerate(self.input_stream[-3:]):
             _out = window("", get_datum(data))
-            if not _out.items()[0].key == DROP:
+            if len(_out.items()[0].tags) > 0 and _out.items()[0].tags[0] == DROP:
+                continue
+            else:
                 _out = _out.items()[0].value.decode("utf-8")
                 payload = StreamPayload(**orjson.loads(_out))
                 uuids.add(payload.uuid)
@@ -51,7 +54,7 @@ class TestWindow(unittest.TestCase):
     def test_window_drop(self):
         for _d in self.input_stream:
             out = window("", get_datum(_d))
-            self.assertEqual(DROP, out.items()[0].key)
+            self.assertEqual(DROP, out.items()[0].tags[0])
             break
 
 

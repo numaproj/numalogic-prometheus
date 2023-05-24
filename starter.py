@@ -1,7 +1,7 @@
 import sys
 
-from pynumaflow.function import UserDefinedFunctionServicer
-from pynumaflow.sink import UserDefinedSinkServicer
+from pynumaflow.function import Server
+from pynumaflow.sink import Sink
 
 from numaprom._constants import CONFIG_PATHS
 from numaprom.factory import HandlerFactory
@@ -12,9 +12,9 @@ if __name__ == "__main__":
     server_type = sys.argv[1]
 
     if server_type == "udsink":
-        server = UserDefinedSinkServicer(step_handler)
+        server = Sink(step_handler)
     elif server_type == "udf":
-        server = UserDefinedFunctionServicer(step_handler)
+        server = Server(step_handler)
     else:
         raise ValueError(f"sys arg: {server_type} not understood!")
 

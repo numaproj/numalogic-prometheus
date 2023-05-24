@@ -12,7 +12,7 @@ _LOGGER = get_logger(__name__)
 
 @catch_exception
 @msg_forward
-def metric_filter(_: str, datum: Datum) -> Optional[Messages]:
+def metric_filter(_: list[str], datum: Datum) -> Optional[Messages]:
     """
     UDF to filter metrics by labels
     """

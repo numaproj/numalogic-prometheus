@@ -27,7 +27,7 @@ def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
         data = json.dumps(data)
 
     return Datum(
-        sink_msg_id=msg_id, value=data, event_time=datetime.now(), watermark=datetime.now()
+        sink_msg_id=msg_id, value=data, event_time=datetime.now(), watermark=datetime.now(), keys=[]
     )
 
 
