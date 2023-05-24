@@ -3,9 +3,9 @@ module github.com/numaproj/numalogic-prometheus/prometheus-serde
 go 1.19
 
 require (
-	github.com/numaproj/numaflow v0.7.2
-	github.com/numaproj/numaflow-go v0.3.4
-	github.com/prometheus/prometheus v0.43.0
+	github.com/numaproj/numaflow v0.8.0
+	github.com/numaproj/numaflow-go v0.4.5
+	github.com/prometheus/prometheus v0.43.1
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
 )
