@@ -246,10 +246,10 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f h1:KUppIJq7/+SVif2QVs3tOP0zanoHgBEVAwHxUSIzRqU=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
-github.com/numaproj/numaflow v0.7.2 h1:S6Hgovb8rDJjsEjIluJA3I2nlCWFA7pPJwBKHTWsksU=
-github.com/numaproj/numaflow v0.7.2/go.mod h1:zcCa1CM7yzx8bYeaeZ3bgg3/qDQEk06SNPdrrxU285s=
-github.com/numaproj/numaflow-go v0.3.4 h1:YMyq+dJLW5l68NWTNCUpLdox6tMXqmwcAebTONB6cuE=
-github.com/numaproj/numaflow-go v0.3.4/go.mod h1:U6a0JproBL8m/HT6Fh573WwMHG5kkX30ZB9i069uGWc=
+github.com/numaproj/numaflow v0.8.0 h1:9xAO9RPuHbLwMol/qNwQ+tNm+cdFg6vLyojJcVegRvs=
+github.com/numaproj/numaflow v0.8.0/go.mod h1:gEIVBuSwoFEMpKPWgHW+kB5z9qflaclyY92oPyGgPU8=
+github.com/numaproj/numaflow-go v0.4.5 h1:t8oDmP32eABCGBXAOOXSGeTEPzX+gPW0plPoeMNvrcA=
+github.com/numaproj/numaflow-go v0.4.5/go.mod h1:6hl5mLd3BFDNJ4gJhrft9vuHHPaog68iog2KkibHnbo=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/image-spec v1.0.2 h1:9yCKha/T5XdGtO0q9Q9a6T5NUCsTn/DrBg0D7ufOcFM=
@@ -286,8 +286,8 @@ github.com/prometheus/procfs v0.1.3/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4O
 github.com/prometheus/procfs v0.6.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
 github.com/prometheus/procfs v0.9.0 h1:wzCHvIvM5SxWqYvwgVL7yJY8Lz3PKn49KQtpgMYJfhI=
 github.com/prometheus/procfs v0.9.0/go.mod h1:+pB4zwohETzFnmlpe6yd2lSc+0/46IYZRB/chUwxUZY=
-github.com/prometheus/prometheus v0.43.0 h1:18iCSfrbAHbXvYFvR38U1Pt4uZmU9SmDcCpCrBKUiGg=
-github.com/prometheus/prometheus v0.43.0/go.mod h1:2BA14LgBeqlPuzObSEbh+Y+JwLH2GcqDlJKbF2sA6FM=
+github.com/prometheus/prometheus v0.43.1 h1:Z/Z0S0CoPUVtUnHGokFksWMssSw2Y1Ir9NnWS1pPWU0=
+github.com/prometheus/prometheus v0.43.1/go.mod h1:2BA14LgBeqlPuzObSEbh+Y+JwLH2GcqDlJKbF2sA6FM=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/scaleway/scaleway-sdk-go v1.0.0-beta.14 h1:yFl3jyaSVLNYXlnNYM5z2pagEk1dYQhfr1p20T1NyKY=

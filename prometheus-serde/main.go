@@ -47,7 +47,7 @@ func processPrometheusData(req *prompb.WriteRequest) ([][]byte, error) {
 	return result, nil
 }
 
-func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk.Messages {
+func handle(ctx context.Context, keys []string, data functionsdk.Datum) functionsdk.Messages {
 	req, err := remote.DecodeWriteRequest(bytes.NewReader(data.Value()))
 	if err != nil {
 		log.Errorf("Decode failed: %s", err)
@@ -64,7 +64,7 @@ func handle(ctx context.Context, key string, data functionsdk.Datum) functionsdk
 	for _, result := range results {
 		log.Debugf("Payload: %s", string(result))
 
-		mb = mb.Append(functionsdk.MessageToAll(result))
+		mb = mb.Append(functionsdk.NewMessage(result))
 	}
 
 	return mb
