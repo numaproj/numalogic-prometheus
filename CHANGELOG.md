@@ -1,6 +1,28 @@
 # Changelog
 
+## v0.4.1 (2023-05-25)
+
+ * [c0c2872](https://github.com/numaproj/numalogic-prometheus/commit/c0c28726e99ccc0c7b309323a88384fe0cd09ef6) fix: watcher run (#139)
+
+### Contributors
+
+ * Nandita Koppisetty
+
+## v0.4.0 (2023-05-24)
+
+ * [77675bb](https://github.com/numaproj/numalogic-prometheus/commit/77675bbeb88dc9a925612e5009900273d9c8d084) feat!: use numalogic v0.4a0 for using redis model store (#133)
+
+### Contributors
+
+ * Avik Basu
+
 ## v0.3.2a0 (2023-04-26)
+
+
+### Contributors
+
+
+## v0.3.2 (2023-04-27)
 
  * [6920ffa](https://github.com/numaproj/numalogic-prometheus/commit/6920ffa8d7d60b278f9b89f9d4ebea94dffde75d) feat: env vars to config (#125)
  * [d75cd12](https://github.com/numaproj/numalogic-prometheus/commit/d75cd12e2c24354cf2d6fbb9244f2dddbf890bec) fix: catch inference errors and send for static thresholding (#126)
