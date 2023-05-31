@@ -11,7 +11,7 @@ from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, Header
 
 # Make sure to import this in the end
-from tests import redis_client, preprocess
+from tests import redis_client, Preprocess
 from tests.tools import get_prepoc_input, get_datum, return_preproc_clf
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
@@ -30,12 +30,13 @@ class TestPreprocess(unittest.TestCase):
 
     def setUp(self) -> None:
         redis_client.flushall()
+        self.preprocess = Preprocess()
 
     @patch.object(RedisRegistry, "load", Mock(return_value=return_preproc_clf()))
     def test_preprocess(self):
         for msg in self.preproc_input.items():
             _in = get_datum(msg.value)
-            _out = preprocess("", _in)
+            _out = self.preprocess("", _in)
             for _datum in _out.items():
                 out_data = _datum.value.decode("utf-8")
                 payload = StreamPayload(**orjson.loads(out_data))
@@ -50,7 +51,7 @@ class TestPreprocess(unittest.TestCase):
     def test_preprocess_no_clf(self):
         for msg in self.preproc_input.items():
             _in = get_datum(msg.value)
-            _out = preprocess("", _in)
+            _out = self.preprocess("", _in)
             out_data = _out.items()[0].value.decode("utf-8")
             payload = StreamPayload(**orjson.loads(out_data))
             self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
@@ -64,7 +65,7 @@ class TestPreprocess(unittest.TestCase):
 
         for msg in preproc_input.items():
             _in = get_datum(msg.value)
-            _out = preprocess("", _in)
+            _out = self.preprocess("", _in)
             out_data = _out.items()[0].value.decode("utf-8")
             payload = StreamPayload(**orjson.loads(out_data))
             stream_arr = payload.get_stream_array()

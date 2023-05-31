@@ -1,37 +1,44 @@
-from typing import Callable, Union
+from typing import Callable
 
-from pynumaflow.function import Messages
-from pynumaflow.sink import Responses
+from pynumaflow.function import Messages, Server, MultiProcServer
+from pynumaflow.sink import Responses, Sink
 
-from numaprom.udf import preprocess, postprocess, window, metric_filter, inference, threshold
+from numaprom.udf import Preprocess, postprocess, window, metric_filter, inference, threshold
 from numaprom.udsink import train, train_rollout
 
 
 class HandlerFactory:
     @classmethod
-    def get_handler(cls, step: str) -> Callable[..., Union[Messages, Responses]]:
-        if step == "metric_filter":
-            return metric_filter
+    def get_handler(cls, step: str, *args, **kwargs) -> Callable[..., Messages | Responses]:
+        match step:
+            case "metric_filter":
+                return metric_filter
+            case "window":
+                return window
+            case "preprocess":
+                return Preprocess(*args, **kwargs)
+            case "inference":
+                return inference
+            case "postprocess":
+                return postprocess
+            case "threshold":
+                return threshold
+            case "train":
+                return train
+            case "train_rollout":
+                return train_rollout
+            case _:
+                raise ValueError(f"Invalid step provided: {step}")
 
-        if step == "window":
-            return window
 
-        if step == "preprocess":
-            return preprocess
+class ServerFactory:
+    _SERVERS = {
+        "inference": MultiProcServer,
+        "train": Sink,
+        "train_rollout": Sink,
+    }
 
-        if step == "inference":
-            return inference
-
-        if step == "postprocess":
-            return postprocess
-
-        if step == "threshold":
-            return threshold
-
-        if step == "train":
-            return train
-
-        if step == "train_rollout":
-            return train_rollout
-
-        raise NotImplementedError(f"Invalid step provided: {step}")
+    @classmethod
+    def get_server(cls, step: str, *args, **kwargs) -> Server | Sink:
+        server_cls = cls._SERVERS.get(step, Server)
+        return server_cls(*args, **kwargs)

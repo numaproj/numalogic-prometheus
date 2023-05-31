@@ -18,7 +18,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY
 from numaprom.factory import HandlerFactory
-from tests import window, preprocess
+from tests import window, Preprocess
 
 sys.modules["numaprom.mlflow"] = MagicMock()
 MODEL_DIR = os.path.join(TESTS_DIR, "resources", "models")
@@ -69,8 +69,8 @@ def get_prepoc_input(data_path: str) -> Messages:
 def get_inference_input(data_path: str, prev_clf_exists=True) -> Messages:
     out = Messages()
     preproc_input = get_prepoc_input(data_path)
-    print("PREPROC", preproc_input, prev_clf_exists)
     _mock_return = return_preproc_clf() if prev_clf_exists else None
+    preprocess = Preprocess()
     with patch.object(RedisRegistry, "load", Mock(return_value=_mock_return)):
         for msg in preproc_input.items():
             _in = get_datum(msg.value)

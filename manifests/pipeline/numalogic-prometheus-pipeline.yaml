@@ -31,8 +31,7 @@ spec:
           image: quay.io/numaio/numalogic-prometheus/udf:v0.3.1a0
           args:
             - python
-            - starter.py
-            - udf
+            - -m
             - metric_filter
           env:
             - name: DEBUG
@@ -58,8 +57,7 @@ spec:
               name: default-configs
           args:
             - python
-            - starter.py
-            - udf
+            - -m
             - window
           env:
             - name: REDIS_HOST
@@ -93,8 +91,7 @@ spec:
               name: default-configs
           args:
             - python
-            - starter.py
-            - udf
+            - -m
             - preprocess
           env:
             - name: DEBUG
@@ -122,8 +119,7 @@ spec:
               name: default-configs
           args:
             - python
-            - starter.py
-            - udf
+            - -m
             - inference
           env:
               - name: DEBUG
@@ -154,8 +150,7 @@ spec:
               name: default-configs
           args:
             - python
-            - starter.py
-            - udf
+            - -m
             - threshold
           env:
             - name: DEBUG
@@ -183,8 +178,7 @@ spec:
               name: default-configs
           args:
             - python
-            - starter.py
-            - udf
+            - -m
             - postprocess
           env:
             - name: DEBUG
@@ -217,8 +211,7 @@ spec:
                 name: default-configs
             args:
               - python
-              - starter.py
-              - udsink
+              - -m
               - train
             env:
               - name: DEBUG
