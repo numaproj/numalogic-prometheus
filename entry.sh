@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eux
 
-python starter.py
+python -m numaprom
