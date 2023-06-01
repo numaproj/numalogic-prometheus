@@ -3,7 +3,7 @@ import time
 from typing import List
 
 import orjson
-from numalogic.registry import RedisRegistry
+from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
 from pynumaflow.function import Datum
 
@@ -39,7 +39,8 @@ def preprocess(_: List[str], datum: Datum) -> bytes:
     preprocess_cfgs = metric_config.numalogic_conf.preprocess
 
     # Load preprocess artifact
-    model_registry = RedisRegistry(client=REDIS_CLIENT)
+    cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
+    model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=cache)
     try:
         preproc_artifact = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],

@@ -1,7 +1,7 @@
 import time
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder import AutoencoderTrainer
-from numalogic.registry import ArtifactData, RedisRegistry
+from numalogic.registry import ArtifactData, RedisRegistry, LocalLRUCache
 from numalogic.tools.data import StreamingDataset
 from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
@@ -64,7 +64,8 @@ def inference(_: list[str], datum: Datum) -> bytes:
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model
-    model_registry = RedisRegistry(client=REDIS_CLIENT)
+    cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
+    model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=cache)
     try:
         artifact_data = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],

@@ -2,7 +2,7 @@ import time
 from collections import OrderedDict
 from typing import List
 
-from numalogic.registry import RedisRegistry
+from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
 from pynumaflow.function import Datum
@@ -60,7 +60,8 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
         ]
 
     # load threshold artifact
-    model_registry = RedisRegistry(client=get_redis_client_from_conf())
+    cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
+    model_registry = RedisRegistry(client=get_redis_client_from_conf(), cache_registry=cache)
     try:
         thresh_artifact = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
