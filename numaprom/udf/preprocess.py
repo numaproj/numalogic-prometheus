@@ -39,8 +39,9 @@ def preprocess(_: List[str], datum: Datum) -> bytes:
     preprocess_cfgs = metric_config.numalogic_conf.preprocess
 
     # Load preprocess artifact
-    cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
-    model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=cache)
+    local_cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
+    model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=local_cache)
+
     try:
         preproc_artifact = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
