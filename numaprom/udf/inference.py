@@ -20,7 +20,7 @@ REDIS_CLIENT = get_redis_client_from_conf()
 
 
 def _run_inference(
-        payload: StreamPayload, artifact_data: ArtifactData, numalogic_conf: NumalogicConf
+    payload: StreamPayload, artifact_data: ArtifactData, numalogic_conf: NumalogicConf
 ) -> StreamPayload:
     model = artifact_data.artifact
     stream_data = payload.get_stream_array()
@@ -64,7 +64,7 @@ def inference(_: list[str], datum: Datum) -> bytes:
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model
-    local_cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
+    local_cache = LocalLRUCache(ttl=3600)  # setting ttl to 1 hour
     model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=local_cache)
     try:
         artifact_data = model_registry.load(

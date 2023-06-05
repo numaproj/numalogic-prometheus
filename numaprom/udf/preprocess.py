@@ -39,7 +39,7 @@ def preprocess(_: List[str], datum: Datum) -> bytes:
     preprocess_cfgs = metric_config.numalogic_conf.preprocess
 
     # Load preprocess artifact
-    local_cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
+    local_cache = LocalLRUCache(ttl=3600)  # setting ttl to 1 hour
     model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=local_cache)
 
     try:

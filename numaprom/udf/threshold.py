@@ -16,6 +16,7 @@ from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 
+
 def _get_static_thresh_payload(payload, metric_config) -> bytes:
     """
     Calculates static thresholding, and returns a serialized json bytes payload.
@@ -59,7 +60,7 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
         ]
 
     # load threshold artifact
-    local_cache = LocalLRUCache(ttl=28800)  # setting ttl to 8 hours
+    local_cache = LocalLRUCache(ttl=3600)  # setting ttl to 1 hour
     model_registry = RedisRegistry(client=get_redis_client_from_conf(), cache_registry=local_cache)
     try:
         thresh_artifact = model_registry.load(
