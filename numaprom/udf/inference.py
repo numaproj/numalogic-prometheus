@@ -1,3 +1,4 @@
+import os
 import time
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder import AutoencoderTrainer
@@ -17,6 +18,7 @@ from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 REDIS_CLIENT = get_redis_client_from_conf()
+LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))
 
 
 def _run_inference(

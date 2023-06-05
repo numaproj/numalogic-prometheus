@@ -24,6 +24,7 @@ REDIS_CLIENT = get_redis_client(
     mastername=REDIS_CONF.master_name,
     recreate=False,
 )
+LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
 
 @msg_forward
@@ -39,7 +40,7 @@ def preprocess(_: List[str], datum: Datum) -> bytes:
     preprocess_cfgs = metric_config.numalogic_conf.preprocess
 
     # Load preprocess artifact
-    local_cache = LocalLRUCache(ttl=3600)  # setting ttl to 1 hour
+    local_cache = LocalLRUCache(ttl=LOCAL_CACHE_TTL)
     model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=local_cache)
 
     try:

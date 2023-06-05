@@ -1,3 +1,4 @@
+import os
 import time
 from collections import OrderedDict
 from typing import List
@@ -15,6 +16,7 @@ from numaprom.tools import conditional_forward, calculate_static_thresh
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
+LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
 
 def _get_static_thresh_payload(payload, metric_config) -> bytes:
@@ -60,7 +62,7 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
         ]
 
     # load threshold artifact
-    local_cache = LocalLRUCache(ttl=3600)  # setting ttl to 1 hour
+    local_cache = LocalLRUCache(ttl=LOCAL_CACHE_TTL)
     model_registry = RedisRegistry(client=get_redis_client_from_conf(), cache_registry=local_cache)
     try:
         thresh_artifact = model_registry.load(
