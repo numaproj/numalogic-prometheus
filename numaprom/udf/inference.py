@@ -18,7 +18,7 @@ from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
 REDIS_CLIENT = get_redis_client_from_conf()
-LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))
+LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
 
 def _run_inference(
@@ -66,7 +66,7 @@ def inference(_: list[str], datum: Datum) -> bytes:
     numalogic_conf = metric_config.numalogic_conf
 
     # Load inference model
-    local_cache = LocalLRUCache(ttl=3600)  # setting ttl to 1 hour
+    local_cache = LocalLRUCache(ttl=LOCAL_CACHE_TTL)
     model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=local_cache)
     try:
         artifact_data = model_registry.load(
