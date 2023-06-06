@@ -1394,14 +1394,14 @@ files = [
 
 [[package]]
 name = "numalogic"
-version = "0.4.0"
+version = "0.4.0.post1"
 description = "Collection of operational Machine Learning models and tools."
 category = "main"
 optional = false
 python-versions = ">=3.9,<3.11"
 files = [
-    {file = "numalogic-0.4.0-py3-none-any.whl", hash = "sha256:153e2e9a430938a202d4fa96bb96a51d47fa04171d7a98d0af1c380ece4e54e9"},
-    {file = "numalogic-0.4.0.tar.gz", hash = "sha256:255cb808210975531306c0c4a382b8a79a71a03cecf6340448566e57f0754698"},
+    {file = "numalogic-0.4.0.post1-py3-none-any.whl", hash = "sha256:497fdbf4e28e4fa93e3fcda1752ee2ed4345d46bf9032a55eaa8dd2b179f2a2f"},
+    {file = "numalogic-0.4.0.post1.tar.gz", hash = "sha256:83bbf7fa228b5242c27a5e06039baa1ee6e74b50d952c0f877a70fb49158a7e6"},
 ]
 
 [package.dependencies]
