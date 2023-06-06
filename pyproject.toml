@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "numalogic-prometheus"
-version = "0.4.1"
+version = "0.4.2"
 description = "ML inference on numaflow using numalogic on Prometheus metrics"
 authors = ["Numalogic developers"]
 packages = [{ include = "numaprom" }]
@@ -21,7 +21,7 @@ repository = "https://github.com/numaproj/numalogic-prometheus"
 python = "~3.10"
 redis = {extras = ["hiredis"], version = "^4.5" }
 pynumaflow = "~0.4.1"
-numalogic = {version = "0.4a0", extras = ["redis"], allow-prereleases = true}
+numalogic = {version = "~0.4", extras = ["redis"]}
 orjson = "^3.8.4"
 omegaconf = "^2.3.0"
 watchdog = "^3.0.0"

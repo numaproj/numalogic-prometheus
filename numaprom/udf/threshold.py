@@ -1,8 +1,9 @@
+import os
 import time
 from collections import OrderedDict
 from typing import List
 
-from numalogic.registry import RedisRegistry
+from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
 from pynumaflow.function import Datum
@@ -15,6 +16,7 @@ from numaprom.tools import conditional_forward, calculate_static_thresh
 from numaprom.watcher import ConfigManager
 
 _LOGGER = get_logger(__name__)
+LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
 
 def _get_static_thresh_payload(payload, metric_config) -> bytes:
@@ -60,7 +62,8 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
         ]
 
     # load threshold artifact
-    model_registry = RedisRegistry(client=get_redis_client_from_conf())
+    local_cache = LocalLRUCache(ttl=LOCAL_CACHE_TTL)
+    model_registry = RedisRegistry(client=get_redis_client_from_conf(), cache_registry=local_cache)
     try:
         thresh_artifact = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],

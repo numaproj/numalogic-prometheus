@@ -1,7 +1,7 @@
 # numalogic-prometheus
 
 
-Numalogic-prometheus is a AIOps pipeline to do in cluster anomaly detection for any prometheus metrics. It is built on our streaming platform [numaflow](https://numaflow.numaproj.io/quick-start/#installation) using [nuamlogic](https://github.com/numaproj/numalogic) as the ML library.  
+Numalogic-prometheus is a AIOps pipeline to do in cluster anomaly detection for any prometheus metrics. It is built on our streaming platform [numaflow](https://numaflow.numaproj.io/quick-start/#installation) using [numalogic](https://github.com/numaproj/numalogic) as the ML library.  
 
 By default, it provides anomaly detection for Argo CD and Argo Rollouts metrics, to identify issues before deploying/rolling out new changes. 
 
