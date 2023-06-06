@@ -19,7 +19,7 @@ class MetricConf:
     composite_keys: List[str] = field(default_factory=lambda: ["namespace", "name"])
     static_threshold: int = 3
     static_threshold_wt: float = 0.0
-    train_hours: int = 24 * 7
+    train_hours: int = 24 * 8  # 8 days worth of data
     min_train_size: int = 2000
     retrain_freq_hr: int = 24
     resume_training: bool = False
