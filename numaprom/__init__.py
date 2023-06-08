@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 
 from numaprom._config import UnifiedConf, MetricConf, AppConf, DataConf
 
