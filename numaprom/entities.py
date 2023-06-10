@@ -1,15 +1,16 @@
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Optional, Any, Union, OrderedDict, TypeVar
+from typing import Optional, Any, Union, TypeVar
+from collections import OrderedDict
 
 import numpy as np
 import numpy.typing as npt
 import orjson
 from typing_extensions import Self
 
-Vector = List[float]
-Matrix = Union[Vector, List[Vector], npt.NDArray[float]]
+Vector = list[float]
+Matrix = Union[Vector, list[Vector], npt.NDArray[float]]
 
 
 class Status(str, Enum):
@@ -49,9 +50,9 @@ class TrainerPayload(_BasePayload):
 class StreamPayload(_BasePayload):
     win_raw_arr: Matrix
     win_arr: Matrix
-    win_ts_arr: List[str]
+    win_ts_arr: list[str]
     status: Status = Status.RAW
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     header: Header = Header.MODEL_INFERENCE
 
     @property
@@ -67,7 +68,7 @@ class StreamPayload(_BasePayload):
             return np.asarray(self.win_raw_arr)
         return np.asarray(self.win_arr)
 
-    def get_metadata(self, key: str) -> Dict[str, Any]:
+    def get_metadata(self, key: str) -> dict[str, Any]:
         return copy(self.metadata[key])
 
     def set_win_arr(self, arr: Matrix) -> None:
@@ -84,8 +85,8 @@ class StreamPayload(_BasePayload):
 
     def __repr__(self) -> str:
         return (
-            "header: %s, win_raw_arr: %s, win_arr: %s, win_ts_arr: %s, composite_keys: %s, metadata: %s}"
-            % (
+            "header: {}, win_raw_arr: {}, win_arr: {}, win_ts_arr: {}, composite_keys:"
+            " {}, metadata: {}}}".format(
                 self.header,
                 list(self.win_raw_arr),
                 list(self.win_arr),
@@ -122,7 +123,7 @@ class PrometheusPayload:
     subsystem: Optional[str]
     type: str
     value: float
-    labels: Dict[str, str]
+    labels: dict[str, str]
 
     def as_json(self) -> bytes:
         return orjson.dumps(
@@ -152,9 +153,8 @@ class PrometheusPayload:
 
     def __repr__(self) -> str:
         return (
-            "{timestamp_ms: %s, name: %s, namespace: %s, "
-            "subsystem: %s, type: %s, value: %s, labels: %s}"
-            % (
+            "{{timestamp_ms: {}, name: {}, namespace: {}, "
+            "subsystem: {}, type: {}, value: {}, labels: {}}}".format(
                 self.timestamp_ms,
                 self.name,
                 self.namespace,

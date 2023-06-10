@@ -1,11 +1,9 @@
 import requests
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional
+from typing import Optional
 
-from numaprom import get_logger
-
-_LOGGER = get_logger(__name__)
+from numaprom import _LOGGER
 
 
 class Prometheus:
@@ -17,8 +15,8 @@ class Prometheus:
         metric_name: str,
         start: float,
         end: float,
-        labels_map: Dict = None,
-        return_labels: List[str] = None,
+        labels_map: dict = None,
+        return_labels: list[str] = None,
         step: int = 30,
     ) -> pd.DataFrame:
         query = metric_name
@@ -26,7 +24,7 @@ class Prometheus:
             label_list = [str(key + "=" + "'" + labels_map[key] + "'") for key in labels_map]
             query = metric_name + "{" + ",".join(label_list) + "}"
 
-        _LOGGER.debug("Prometheus Query: %s", query)
+        _LOGGER.debug("Prometheus Query: {query}", query=query)
 
         if end < start:
             raise ValueError("end_time must not be before start_time")
@@ -48,7 +46,7 @@ class Prometheus:
             df.index = pd.to_datetime(df.index.astype(int), unit="s")
         return df
 
-    def query_range(self, query: str, start: float, end: float, step: int = 30) -> Optional[Dict]:
+    def query_range(self, query: str, start: float, end: float, step: int = 30) -> Optional[dict]:
         results = {}
         data_points = (end - start) / step
         temp_start = start
@@ -74,7 +72,7 @@ class Prometheus:
 
     def query_range_limit(
         self, query: str, start: float, end: float, step: int = 30
-    ) -> Optional[Dict]:
+    ) -> Optional[dict]:
         data_points = (end - start) / step
 
         if data_points > 11000:
@@ -89,10 +87,10 @@ class Prometheus:
             )
             results = response.json()["data"]["result"][0]
         except Exception as ex:
-            _LOGGER.exception("Prometheus error: %r", ex)
+            _LOGGER.exception("Prometheus error: {err}", err=ex)
         return results
 
-    def query(self, query: str) -> Optional[Dict]:
+    def query(self, query: str) -> Optional[dict]:
         results = []
         try:
             response = requests.get(
@@ -103,6 +101,6 @@ class Prometheus:
             else:
                 _LOGGER.debug("Prometheus query has returned empty results.")
         except Exception as ex:
-            _LOGGER.exception("error: %r", ex)
+            _LOGGER.exception("error: {err}", err=ex)
 
         return results

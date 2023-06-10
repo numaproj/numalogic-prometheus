@@ -1,28 +1,24 @@
 import os
 import time
 from collections import OrderedDict
-from typing import List
 
 from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
 from pynumaflow.function import Datum
 
-from numaprom import get_logger
+from numaprom import _LOGGER
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
 from numaprom.tools import conditional_forward, calculate_static_thresh
 from numaprom.watcher import ConfigManager
 
-_LOGGER = get_logger(__name__)
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
 
 def _get_static_thresh_payload(payload, metric_config) -> bytes:
-    """
-    Calculates static thresholding, and returns a serialized json bytes payload.
-    """
+    """Calculates static thresholding, and returns a serialized json bytes payload."""
     static_scores = calculate_static_thresh(payload, metric_config.static_threshold)
 
     payload.set_win_arr(static_scores)
@@ -30,12 +26,16 @@ def _get_static_thresh_payload(payload, metric_config) -> bytes:
     payload.set_status(Status.ARTIFACT_NOT_FOUND)
     payload.set_metadata("version", -1)
 
-    _LOGGER.info("%s - Static thresholding complete for payload: %s", payload.uuid, payload)
+    _LOGGER.info(
+        "{uuid} - Static thresholding complete for payload: {payload}",
+        uuid=payload.uuid,
+        payload=payload,
+    )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
 
 @conditional_forward
-def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
+def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
 
@@ -52,9 +52,9 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
         _LOGGER.info(
-            "%s - Sending to trainer and performing static thresholding. Keys: %s",
-            payload.uuid,
-            payload.composite_keys,
+            "{uuid} - Sending to trainer and performing static thresholding. Keys: {keys}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
         )
         return [
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
@@ -71,10 +71,10 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
         )
     except RedisRegistryError as err:
         _LOGGER.exception(
-            "%s - Error while fetching threshold artifact, keys: %s, err: %r",
-            payload.uuid,
-            payload.composite_keys,
-            err,
+            "{uuid} - Error while fetching threshold artifact, keys: {keys}, err: {err}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
+            err=err,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
@@ -84,9 +84,9 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
         ]
     if not thresh_artifact:
         _LOGGER.info(
-            "%s - Threshold artifact not found, performing static thresholding. Keys: %s",
-            payload.uuid,
-            payload.composite_keys,
+            "{uuid} - Threshold artifact not found, performing static thresholding. Keys: {keys}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
@@ -109,8 +109,10 @@ def threshold(_: List[str], datum: Datum) -> list[tuple[str, bytes]]:
     payload.set_status(Status.THRESHOLD)
     messages.append((POSTPROC_VTX_KEY, orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)))
 
-    _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
+    _LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
     _LOGGER.debug(
-        "%s - Time taken in threshold: %.4f sec", payload.uuid, time.perf_counter() - _start_time
+        "{uuid} - Time taken in threshold: {time} sec",
+        uuid=payload.uuid,
+        time=time.perf_counter() - _start_time,
     )
     return messages

@@ -1,7 +1,7 @@
 import os
 import time
 import uuid
-from typing import Optional, List
+from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -9,13 +9,11 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from redis.exceptions import RedisError, RedisClusterException
 
-from numaprom import get_logger
+from numaprom import _LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import StreamPayload, Status, Header
 from numaprom.tools import msg_forward, create_composite_keys
 from numaprom.watcher import ConfigManager
-
-_LOGGER = get_logger(__name__)
 
 
 # TODO get the replacement value from config
@@ -28,7 +26,10 @@ def _clean_arr(
 ) -> npt.NDArray[float]:
     if not np.isfinite(arr).any():
         _LOGGER.warning(
-            "%s - Non finite values encountered: %s for keys: %s", id_, list(arr), ckeys
+            "{id} - Non finite values encountered: {arr} for keys: {keys}",
+            id=id_,
+            arr=list(arr),
+            keys=ckeys,
         )
     return np.nan_to_num(arr, nan=replace_val, posinf=inf_replace, neginf=-inf_replace)
 
@@ -36,8 +37,7 @@ def _clean_arr(
 def __aggregate_window(
     key: str, ts: str, value: float, win_size: int, buff_size: int, recreate: bool
 ) -> list[tuple[float, float]]:
-    """
-    Adds an element to the sliding window using a redis sorted set.
+    """Adds an element to the sliding window using a redis sorted set.
 
     Returns an empty list if adding the element does not create a new entry
     to the set.
@@ -56,11 +56,9 @@ def __aggregate_window(
 
 
 @msg_forward
-def window(_: List[str], datum: Datum) -> Optional[bytes]:
-    """
-    UDF to construct windowing of the streaming input data, required by ML models.
-    """
-    _LOGGER.debug("Received Msg: %s ", datum.value)
+def window(_: list[str], datum: Datum) -> Optional[bytes]:
+    """UDF to construct windowing of the streaming input data, required by ML models."""
+    _LOGGER.debug("Received Msg: {data} ", data=datum.value)
 
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
@@ -86,7 +84,9 @@ def window(_: List[str], datum: Datum) -> Optional[bytes]:
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=False
         )
     except (RedisError, RedisClusterException) as warn:
-        _LOGGER.warning("Redis connection failed, recreating the redis client, err: %r", warn)
+        _LOGGER.warning(
+            "Redis connection failed, recreating the redis client, err: {err}", err=warn
+        )
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
@@ -114,8 +114,10 @@ def window(_: List[str], datum: Datum) -> Optional[bytes]:
         metadata=dict(src_labels=msg["labels"]),
     )
 
-    _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
+    _LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
     _LOGGER.debug(
-        "%s - Time taken in window: %.4f sec", payload.uuid, time.perf_counter() - _start_time
+        "{uuid} - Time taken in window: {time} sec",
+        uuid=payload.uuid,
+        time=time.perf_counter() - _start_time,
     )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

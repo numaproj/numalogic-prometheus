@@ -1,36 +1,54 @@
 import logging
 import os
+import sys
 
+from loguru import logger
 from numaprom._config import UnifiedConf, MetricConf, AppConf, DataConf
 
 
-def get_logger(name):
-    formatter = logging.Formatter("%(asctime)s-%(levelname)s-%(message)s")
-    logger = logging.getLogger(name)
+class InterceptHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
 
-    numalogic_logger = logging.getLogger("numalogic")
-    pl_logger = logging.getLogger("pytorch_lightning")
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
-    logger.addHandler(stream_handler)
 
+def __get_logger() -> logger:
+    # Collect logs from logging library
+    logging.basicConfig(handlers=[InterceptHandler()], level=0)
+    logger.remove()
+
+    # define log sink
+    sink = sys.stderr
+
+    # define library log levels
+    filter_levels = {
+        "watchdog": "ERROR",
+        "pytorch_lightning": "ERROR",
+        "pynumaflow": "ERROR",
+    }
     if os.getenv("DEBUG", False):
-        logger.setLevel(logging.DEBUG)
-        stream_handler.setLevel(logging.DEBUG)
-        numalogic_logger.setLevel(logging.DEBUG)
+        filter_levels["numalogic"] = "DEBUG"
+        filter_levels["numaprom"] = "DEBUG"
+        logger.add(sink=sink, level="DEBUG", colorize=True, filter=filter_levels)
     else:
-        logger.setLevel(logging.INFO)
-        stream_handler.setLevel(logging.INFO)
-        numalogic_logger.setLevel(logging.INFO)
+        filter_levels["numalogic"] = "INFO"
+        filter_levels["numaprom"] = "INFO"
+        logger.add(sink=sink, level="INFO", colorize=True, filter=filter_levels)
 
-    pl_logger.setLevel(logging.ERROR)
-    numalogic_logger.propagate = True
-    pl_logger.propagate = False
-    numalogic_logger.addHandler(stream_handler)
-    pl_logger.addHandler(stream_handler)
+    logger.info("Starting Logger...")
     return logger
 
 
-__all__ = ["UnifiedConf", "MetricConf", "AppConf", "DataConf", "get_logger"]
+# get Logger
+_LOGGER = __get_logger()
+
+__all__ = ["UnifiedConf", "MetricConf", "AppConf", "DataConf", "_LOGGER"]

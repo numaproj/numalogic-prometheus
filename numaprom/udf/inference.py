@@ -9,14 +9,13 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from torch.utils.data import DataLoader
 
-from numaprom import get_logger
+from numaprom import _LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
 from numaprom.watcher import ConfigManager
 
-_LOGGER = get_logger(__name__)
 REDIS_CLIENT = get_redis_client_from_conf()
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
@@ -32,10 +31,12 @@ def _run_inference(
     try:
         recon_err = trainer.predict(model, dataloaders=stream_loader)
     except Exception as err:
-        _LOGGER.exception("%s - Runtime error while performing inference: %r", payload.uuid, err)
+        _LOGGER.exception(
+            "{uuid} - Runtime error while performing inference: {err}", uuid=payload.uuid, err=err
+        )
         raise RuntimeError("Failed to infer") from err
 
-    _LOGGER.info("%s - Successfully inferred", payload.uuid)
+    _LOGGER.info("{uuid} - Successfully inferred", uuid=payload.uuid)
 
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
@@ -55,9 +56,10 @@ def inference(_: list[str], datum: Datum) -> bytes:
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
         _LOGGER.debug(
-            "%s - Models not found in the previous steps, forwarding for static thresholding. Keys: %s",
-            payload.uuid,
-            payload.composite_keys,
+            "{uuid} - Models not found in the previous steps, forwarding for "
+            "static thresholding. Keys: {keys}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
         )
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
@@ -75,10 +77,10 @@ def inference(_: list[str], datum: Datum) -> bytes:
         )
     except RedisRegistryError as err:
         _LOGGER.exception(
-            "%s - Error while fetching inference artifact, keys: %s, err: %r",
-            payload.uuid,
-            payload.composite_keys,
-            err,
+            "{uuid} - Error while fetching inference artifact, keys: {keys}, err: {err}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
+            err=err,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
@@ -86,9 +88,9 @@ def inference(_: list[str], datum: Datum) -> bytes:
 
     if not artifact_data:
         _LOGGER.info(
-            "%s - Inference artifact not found, forwarding for static thresholding. Keys: %s",
-            payload.uuid,
-            payload.composite_keys,
+            "{uuid} - Inference artifact not found, forwarding for static thresholding. Keys: {keys}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
@@ -103,16 +105,18 @@ def inference(_: list[str], datum: Datum) -> bytes:
         payload = _run_inference(payload, artifact_data, numalogic_conf)
     except RuntimeError:
         _LOGGER.info(
-            "%s - Failed to infer, forwarding for static thresholding. Keys: %s",
-            payload.uuid,
-            payload.composite_keys,
+            "{uuid} - Failed to infer, forwarding for static thresholding. Keys: {keys}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
-    _LOGGER.info("%s - Sending Payload: %s ", payload.uuid, payload)
+    _LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
     _LOGGER.debug(
-        "%s - Time taken in inference: %.4f sec", payload.uuid, time.perf_counter() - _start_time
+        "{uuid} - Time taken in inference: {time} sec",
+        uuid=payload.uuid,
+        time=time.perf_counter() - _start_time,
     )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

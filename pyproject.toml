@@ -25,6 +25,7 @@ numalogic = {version = "~0.4", extras = ["redis"]}
 orjson = "^3.8.4"
 omegaconf = "^2.3.0"
 watchdog = "^3.0.0"
+loguru = "^0.7.0"
 
 [tool.poetry.group.mlflowserver]
 optional = true
@@ -51,8 +52,7 @@ exclude = '''
 /(
     \.eggs
   | \.git
-  | \.hg
-  | \.mypy_cache
+  | \.hgdsadsadassmmm
   | \.tox
   | \.venv
   | \.idea

@@ -1,6 +1,5 @@
 import os
 import time
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -15,13 +14,11 @@ from pynumaflow.sink import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 
-from numaprom import get_logger
+from numaprom import _LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import TrainerPayload
 from numaprom.tools import fetch_data
 from numaprom.watcher import ConfigManager
-
-_LOGGER = get_logger(__name__)
 
 
 REQUEST_EXPIRY = int(os.getenv("REQUEST_EXPIRY", 300))
@@ -46,13 +43,17 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     trainer = AutoencoderTrainer(**trainer_cfg)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    _LOGGER.debug("%s - Time taken to train model: %s", uuid, time.perf_counter() - _start_train)
+    _LOGGER.debug(
+        "{uuid} - Time taken to train model: {time}",
+        uuid=uuid,
+        time=time.perf_counter() - _start_train,
+    )
 
     train_reconerr = trainer.predict(model, dataloaders=DataLoader(dataset, batch_size=64))
     return train_reconerr.numpy(), model
 
 
-def _preprocess(x_raw, preproc_cfg: List[ModelInfo]):
+def _preprocess(x_raw, preproc_cfg: list[ModelInfo]):
     preproc_factory = PreprocessFactory()
 
     if len(preproc_cfg) > 1:
@@ -87,19 +88,25 @@ def _is_new_request(redis_client: redis_client_t, payload: TrainerPayload) -> bo
     return True
 
 
-def train(datums: List[Datum]) -> Responses:
+def train(datums: list[Datum]) -> Responses:
     responses = Responses()
     redis_client = get_redis_client_from_conf()
 
     for _datum in datums:
         payload = TrainerPayload(**orjson.loads(_datum.value))
 
-        _LOGGER.debug("%s - Starting Training for keys: %s", payload.uuid, payload.composite_keys)
+        _LOGGER.debug(
+            "{uuid} - Starting Training for keys: {keys}",
+            uuid=payload.uuid,
+            time=payload.composite_keys,
+        )
 
         is_new = _is_new_request(redis_client, payload)
         if not is_new:
             _LOGGER.debug(
-                "%s - Skipping train request with keys: %s", payload.uuid, payload.composite_keys
+                "{uuid} - Skipping train request with keys: {keys}",
+                uuid=payload.uuid,
+                keys=payload.composite_keys,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -117,10 +124,11 @@ def train(datums: List[Datum]) -> Responses:
 
         if len(train_df) < metric_config.min_train_size:
             _LOGGER.warning(
-                "%s - Skipping training, train data less than minimum required: %s, df shape: %s",
-                payload.uuid,
-                metric_config.min_train_size,
-                train_df.shape,
+                "{uuid} - Skipping training, train data less than "
+                "minimum required: {min_train_size}, df shape: {shape}",
+                uuid=payload.uuid,
+                min_train_size=metric_config.min_train_size,
+                shape=train_df.shape,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -149,11 +157,17 @@ def train(datums: List[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             _LOGGER.exception(
-                "%s - Error while saving Model with skeys: %s, err: %r", payload.uuid, skeys, err
+                "{uuid} - Error while saving Model with skeys: {keys}, err: {err}",
+                uuid=payload.uuid,
+                keys=skeys,
+                err=err,
             )
         else:
             _LOGGER.info(
-                "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
+                "{uuid} - Model saved with skeys: {keys} with version: {version}",
+                uuid=payload.uuid,
+                keys=skeys,
+                versio=version,
             )
         # Save preproc model
         try:
@@ -165,17 +179,17 @@ def train(datums: List[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             _LOGGER.exception(
-                "%s - Error while saving Preproc model with skeys: %s, err: %r",
-                payload.uuid,
-                skeys,
-                err,
+                "{uuid} - Error while saving Preproc model with skeys: {keys}, err: {err}",
+                uuid=payload.uuid,
+                keys=skeys,
+                err=err,
             )
         else:
             _LOGGER.info(
-                "%s - Preproc model saved with skeys: %s with version: %s",
-                payload.uuid,
-                skeys,
-                version,
+                "{uuid} - Preproc model saved with skeys: {keys} with version: {version}",
+                uuid=payload.uuid,
+                keys=skeys,
+                versio=version,
             )
         # Save threshold model
         try:
@@ -187,17 +201,17 @@ def train(datums: List[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             _LOGGER.error(
-                "%s - Error while saving Threshold model with skeys: %s, err: %r",
-                payload.uuid,
-                skeys,
-                err,
+                "{uuid} - Error while saving Threshold model with skeys: {keys}, err: {err}",
+                uuid=payload.uuid,
+                keys=skeys,
+                err=err,
             )
         else:
             _LOGGER.info(
-                "%s - Threshold model saved with skeys: %s with version: %s",
-                payload.uuid,
-                skeys,
-                version,
+                "{uuid} - Threshold model saved with skeys: {keys} with version: {version}",
+                uuid=payload.uuid,
+                skeys=skeys,
+                version=version,
             )
 
         responses.append(Response.as_success(_datum.id))
