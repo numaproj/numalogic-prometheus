@@ -31,9 +31,9 @@ def __get_logger() -> logger:
 
     # define library log levels
     filter_levels = {
-        "watchdog": "ERROR",
-        "pytorch_lightning": "ERROR",
-        "pynumaflow": "ERROR",
+        "watchdog": "WARNING",
+        "pytorch_lightning": "WARNING",
+        "pynumaflow": "WARNING",
     }
     if os.getenv("DEBUG", False):
         filter_levels["numalogic"] = "DEBUG"
@@ -49,6 +49,6 @@ def __get_logger() -> logger:
 
 
 # get Logger
-_LOGGER = __get_logger()
+LOGGER = __get_logger()
 
-__all__ = ["UnifiedConf", "MetricConf", "AppConf", "DataConf", "_LOGGER"]
+__all__ = ["UnifiedConf", "MetricConf", "AppConf", "DataConf", "LOGGER"]
