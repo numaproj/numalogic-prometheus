@@ -15,7 +15,7 @@ from pynumaflow.sink import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 
-from numaprom import _LOGGER, MetricConf
+from numaprom import LOGGER, MetricConf
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import TrainerPayload
 from numaprom.tools import fetch_data
@@ -57,7 +57,7 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     trainer = AutoencoderTrainer(**trainer_cfg)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    _LOGGER.debug(
+    LOGGER.debug(
         "{uuid} - Time taken to train model: {time}} sec",
         uuid=uuid,
         time=time.perf_counter() - _start_train,
@@ -105,7 +105,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
     for _datum in datums:
         payload = TrainerPayload(**orjson.loads(_datum.value))
 
-        _LOGGER.debug(
+        LOGGER.debug(
             "{uuid} - Starting Training for keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -113,7 +113,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
 
         is_new = _is_new_request(redis_client, payload)
         if not is_new:
-            _LOGGER.debug(
+            LOGGER.debug(
                 "{uuid} - Skipping rollouts train request with keys: {keys}",
                 uuid=payload.uuid,
                 keys=payload.composite_keys,
@@ -139,7 +139,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
         try:
             train_df = clean_data(train_df, hash_label)
         except KeyError:
-            _LOGGER.error(
+            LOGGER.error(
                 "{uuid} - KeyError while data cleaning for train payload: {payload}",
                 uuid=payload.uuid,
                 payload=payload,
@@ -148,7 +148,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             continue
 
         if len(train_df) < metric_config.min_train_size:
-            _LOGGER.warning(
+            LOGGER.warning(
                 "{uuid} - Skipping training, train data less than minimum "
                 "required: {min_train_size}, df shape: {shape}",
                 uuid=payload.uuid,
@@ -196,14 +196,14 @@ def _train_and_save(
             train_size=train_df.shape[0],
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
+        LOGGER.exception(
             "{uuid} - Error while saving Model with skeys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=skeys,
             err=err,
         )
     else:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Model saved with skeys: {keys} with version: {version}",
             uuid=payload.uuid,
             keys=skeys,
@@ -218,14 +218,14 @@ def _train_and_save(
             uuid=payload.uuid,
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
+        LOGGER.exception(
             "{uuid} - Error while saving Preproc model with skeys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=skeys,
             err=err,
         )
     else:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Preproc model saved with skeys: {keys} with version: {version}",
             uuid=payload.uuid,
             keys=skeys,
@@ -240,14 +240,14 @@ def _train_and_save(
             uuid=payload.uuid,
         )
     except RedisRegistryError as err:
-        _LOGGER.error(
+        LOGGER.error(
             "{uuid} - Error while saving Threshold model with skeys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=skeys,
             err=err,
         )
     else:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Threshold model saved with skeys: {keys} with version: {version}",
             uuid=payload.uuid,
             keys=skeys,

@@ -11,7 +11,7 @@ import pytz
 from numalogic.config import PostprocessFactory
 from numalogic.models.threshold import SigmoidThreshold
 from pynumaflow.function import Messages, Message
-from numaprom import _LOGGER, MetricConf
+from numaprom import LOGGER, MetricConf
 from numaprom.clients.prometheus import Prometheus
 from numaprom.entities import TrainerPayload, StreamPayload
 from numaprom.watcher import ConfigManager
@@ -23,9 +23,9 @@ def catch_exception(func):
         try:
             return func(*args, **kwargs)
         except JSONDecodeError as err:
-            _LOGGER.exception("Error in json decode for {name}: {err}", name=func.__name__, err=err)
+            LOGGER.exception("Error in json decode for {name}: {err}", name=func.__name__, err=err)
         except Exception as ex:
-            _LOGGER.exception("Error in {name}: {err}", name=func.__name__, err=ex)
+            LOGGER.exception("Error in {name}: {err}", name=func.__name__, err=ex)
 
     return inner_function
 
@@ -102,7 +102,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
             get_ipv4_by_hostname(hostname, port)
         except socket.gaierror as ex:
             retries += 1
-            _LOGGER.warning(
+            LOGGER.warning(
                 "Failed to resolve hostname: {hostname}: error: {ex}",
                 hostname=hostname,
                 ex=ex,
@@ -111,7 +111,7 @@ def is_host_reachable(hostname: str, port=None, max_retries=5, sleep_sec=5) -> b
             time.sleep(sleep_sec)
         else:
             return True
-    _LOGGER.error("Failed to resolve hostname: {retries} even after retries!", retries=retries)
+    LOGGER.error("Failed to resolve hostname: {retries} even after retries!", retries=retries)
     return False
 
 
@@ -137,7 +137,7 @@ def fetch_data(
         end=end_dt.timestamp(),
         step=metric_config.scrape_interval,
     )
-    _LOGGER.info(
+    LOGGER.info(
         "{uuid} - Time taken to fetch data: {time}, for df shape: {shape}",
         uuid=payload.uuid,
         time=time.time() - _start_time,
@@ -194,7 +194,7 @@ class WindowScorer:
         norm_static_winscore = self.get_static_winscore(payload)
         ensemble_score = (self.static_wt * norm_static_winscore) + (self.model_wt * norm_winscore)
 
-        _LOGGER.debug(
+        LOGGER.debug(
             "{uuid} - Model score: {m_score}, Static score: {s_score}, Static wt: {wt}",
             uuid=payload.uuid,
             m_score=norm_winscore,

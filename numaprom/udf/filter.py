@@ -4,7 +4,7 @@ from typing import Optional
 
 from pynumaflow.function import Messages, Datum
 
-from numaprom import _LOGGER
+from numaprom import LOGGER
 from numaprom.tools import catch_exception, msg_forward
 
 
@@ -12,7 +12,7 @@ from numaprom.tools import catch_exception, msg_forward
 @msg_forward
 def metric_filter(_: list[str], datum: Datum) -> Optional[Messages]:
     """UDF to filter metrics by labels."""
-    _LOGGER.debug("Received Msg: {value} ", value=datum.value)
+    LOGGER.debug("Received Msg: {value} ", value=datum.value)
 
     msg = datum.value.decode("utf-8")
     data = json.loads(msg)
@@ -23,5 +23,5 @@ def metric_filter(_: list[str], datum: Datum) -> Optional[Messages]:
     if label in data["labels"] and data["labels"][label] not in label_values:
         return None
 
-    _LOGGER.info("Sending Metric: {data} ", data=data)
+    LOGGER.info("Sending Metric: {data} ", data=data)
     return msg

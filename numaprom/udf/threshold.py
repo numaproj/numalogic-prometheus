@@ -7,7 +7,7 @@ from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
 from pynumaflow.function import Datum
 
-from numaprom import _LOGGER
+from numaprom import LOGGER
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
@@ -26,7 +26,7 @@ def _get_static_thresh_payload(payload, metric_config) -> bytes:
     payload.set_status(Status.ARTIFACT_NOT_FOUND)
     payload.set_metadata("version", -1)
 
-    _LOGGER.info(
+    LOGGER.info(
         "{uuid} - Static thresholding complete for payload: {payload}",
         uuid=payload.uuid,
         payload=payload,
@@ -51,7 +51,7 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Sending to trainer and performing static thresholding. Keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -70,7 +70,7 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
             dkeys=[thresh_cfg.name],
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
+        LOGGER.exception(
             "{uuid} - Error while fetching threshold artifact, keys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -83,7 +83,7 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
             (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
         ]
     if not thresh_artifact:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Threshold artifact not found, performing static thresholding. Keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -109,8 +109,8 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
     payload.set_status(Status.THRESHOLD)
     messages.append((POSTPROC_VTX_KEY, orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)))
 
-    _LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
-    _LOGGER.debug(
+    LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
+    LOGGER.debug(
         "{uuid} - Time taken in threshold: {time} sec",
         uuid=payload.uuid,
         time=time.perf_counter() - _start_time,

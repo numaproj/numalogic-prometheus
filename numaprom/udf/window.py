@@ -9,7 +9,7 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from redis.exceptions import RedisError, RedisClusterException
 
-from numaprom import _LOGGER
+from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import StreamPayload, Status, Header
 from numaprom.tools import msg_forward, create_composite_keys
@@ -25,7 +25,7 @@ def _clean_arr(
     inf_replace: float = 1e10,
 ) -> npt.NDArray[float]:
     if not np.isfinite(arr).any():
-        _LOGGER.warning(
+        LOGGER.warning(
             "{id} - Non finite values encountered: {arr} for keys: {keys}",
             id=id_,
             arr=list(arr),
@@ -58,7 +58,7 @@ def __aggregate_window(
 @msg_forward
 def window(_: list[str], datum: Datum) -> Optional[bytes]:
     """UDF to construct windowing of the streaming input data, required by ML models."""
-    _LOGGER.debug("Received Msg: {data} ", data=datum.value)
+    LOGGER.debug("Received Msg: {data} ", data=datum.value)
 
     _start_time = time.perf_counter()
     msg = orjson.loads(datum.value)
@@ -84,9 +84,7 @@ def window(_: list[str], datum: Datum) -> Optional[bytes]:
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=False
         )
     except (RedisError, RedisClusterException) as warn:
-        _LOGGER.warning(
-            "Redis connection failed, recreating the redis client, err: {err}", err=warn
-        )
+        LOGGER.warning("Redis connection failed, recreating the redis client, err: {err}", err=warn)
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
@@ -114,8 +112,8 @@ def window(_: list[str], datum: Datum) -> Optional[bytes]:
         metadata=dict(src_labels=msg["labels"]),
     )
 
-    _LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
-    _LOGGER.debug(
+    LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
+    LOGGER.debug(
         "{uuid} - Time taken in window: {time} sec",
         uuid=payload.uuid,
         time=time.perf_counter() - _start_time,

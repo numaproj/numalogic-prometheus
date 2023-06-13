@@ -35,15 +35,18 @@ def __get_logger() -> logger:
         "pytorch_lightning": "WARNING",
         "pynumaflow": "WARNING",
     }
+    formatter = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> "
+        "| <level>{message}</level>"
+    )
     if os.getenv("DEBUG", False):
         filter_levels["numalogic"] = "DEBUG"
         filter_levels["numaprom"] = "DEBUG"
-        logger.add(sink=sink, level="DEBUG", colorize=True, filter=filter_levels)
+        logger.add(sink=sink, level="DEBUG", colorize=True, filter=filter_levels, format=formatter)
     else:
         filter_levels["numalogic"] = "INFO"
         filter_levels["numaprom"] = "INFO"
-        logger.add(sink=sink, level="INFO", colorize=True, filter=filter_levels)
-
+        logger.add(sink=sink, level="INFO", colorize=True, filter=filter_levels, format=formatter)
     logger.info("Starting Logger...")
     return logger
 

@@ -6,7 +6,7 @@ from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
 from pynumaflow.function import Datum
 
-from numaprom import _LOGGER
+from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
@@ -31,7 +31,7 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
     _in_msg = datum.value.decode("utf-8")
 
     payload = StreamPayload(**orjson.loads(_in_msg))
-    _LOGGER.info("{uuid} - Received Payload: {payload} ", uuid=payload.uuid, payload=payload)
+    LOGGER.info("{uuid} - Received Payload: {payload} ", uuid=payload.uuid, payload=payload)
 
     # Load config
     metric_config = ConfigManager.get_metric_config(payload.composite_keys)
@@ -47,7 +47,7 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
             dkeys=[_conf.name for _conf in preprocess_cfgs],
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
+        LOGGER.exception(
             "{uuid} - Error while fetching preproc artifact, keys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -58,7 +58,7 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     if not preproc_artifact:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Preprocess artifact not found, forwarding for static thresholding. Keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -76,8 +76,8 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
     payload.set_win_arr(x_scaled)
     payload.set_status(Status.PRE_PROCESSED)
 
-    _LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
-    _LOGGER.debug(
+    LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
+    LOGGER.debug(
         "{uuid} - Time taken in preprocess: {time} sec",
         uuid=payload.uuid,
         time=time.perf_counter() - _start_time,

@@ -9,7 +9,7 @@ from orjson import orjson
 from pynumaflow.function import Datum
 from torch.utils.data import DataLoader
 
-from numaprom import _LOGGER
+from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
@@ -31,12 +31,12 @@ def _run_inference(
     try:
         recon_err = trainer.predict(model, dataloaders=stream_loader)
     except Exception as err:
-        _LOGGER.exception(
+        LOGGER.exception(
             "{uuid} - Runtime error while performing inference: {err}", uuid=payload.uuid, err=err
         )
         raise RuntimeError("Failed to infer") from err
 
-    _LOGGER.info("{uuid} - Successfully inferred", uuid=payload.uuid)
+    LOGGER.info("{uuid} - Successfully inferred", uuid=payload.uuid)
 
     payload.set_win_arr(recon_err.numpy())
     payload.set_status(Status.INFERRED)
@@ -55,7 +55,7 @@ def inference(_: list[str], datum: Datum) -> bytes:
 
     # Check if payload needs static inference
     if payload.header == Header.STATIC_INFERENCE:
-        _LOGGER.debug(
+        LOGGER.debug(
             "{uuid} - Models not found in the previous steps, forwarding for "
             "static thresholding. Keys: {keys}",
             uuid=payload.uuid,
@@ -76,7 +76,7 @@ def inference(_: list[str], datum: Datum) -> bytes:
             dkeys=[numalogic_conf.model.name],
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
+        LOGGER.exception(
             "{uuid} - Error while fetching inference artifact, keys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -87,7 +87,7 @@ def inference(_: list[str], datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     if not artifact_data:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Inference artifact not found, forwarding for static thresholding. Keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -104,7 +104,7 @@ def inference(_: list[str], datum: Datum) -> bytes:
     try:
         payload = _run_inference(payload, artifact_data, numalogic_conf)
     except RuntimeError:
-        _LOGGER.info(
+        LOGGER.info(
             "{uuid} - Failed to infer, forwarding for static thresholding. Keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
@@ -113,8 +113,8 @@ def inference(_: list[str], datum: Datum) -> bytes:
         payload.set_status(Status.RUNTIME_ERROR)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
-    _LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
-    _LOGGER.debug(
+    LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
+    LOGGER.debug(
         "{uuid} - Time taken in inference: {time} sec",
         uuid=payload.uuid,
         time=time.perf_counter() - _start_time,

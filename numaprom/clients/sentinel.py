@@ -7,7 +7,7 @@ from redis.exceptions import RedisClusterException, RedisError
 from redis.retry import Retry
 from redis.sentinel import Sentinel, MasterNotFoundError
 
-from numaprom import _LOGGER
+from numaprom import LOGGER
 from numaprom._config import RedisConf
 from numaprom.watcher import ConfigManager
 
@@ -60,7 +60,7 @@ def get_redis_client(
         "decode_responses": decode_responses,
     }
 
-    _LOGGER.info("Sentinel redis params: {args}", args=sentinel_args)
+    LOGGER.info("Sentinel redis params: {args}", args=sentinel_args)
 
     sentinel = Sentinel(
         **sentinel_args, sentinel_kwargs=dict(password=password), password=password, retry=retry

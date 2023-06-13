@@ -10,7 +10,7 @@ from watchdog.events import FileSystemEventHandler
 
 from numaprom._config import PipelineConf, RedisConf, PrometheusConf, RegistryConf
 from numaprom._constants import CONFIG_DIR, DEFAULT_CONFIG_DIR
-from numaprom import DataConf, _LOGGER, AppConf, MetricConf, UnifiedConf
+from numaprom import DataConf, LOGGER, AppConf, MetricConf, UnifiedConf
 
 
 class ConfigManager:
@@ -48,7 +48,7 @@ class ConfigManager:
         cls.config["default_numalogic"] = default_numalogic
         cls.config["pipeline_config"] = pipeline_config
 
-        _LOGGER.info("Successfully updated configs - {config}", config=cls.config)
+        LOGGER.info("Successfully updated configs - {config}", config=cls.config)
         return cls.config
 
     @classmethod
@@ -136,7 +136,7 @@ class ConfigHandler(FileSystemEventHandler):
             _file = os.path.basename(event.src_path)
             _dir = os.path.basename(os.path.dirname(event.src_path))
 
-            _LOGGER.info(
+            LOGGER.info(
                 "Watchdog received {event_type} event - {dir}/{file}",
                 event_type=event.event_type,
                 dir=_dir,
@@ -157,7 +157,7 @@ class Watcher:
     def run(self):
         for directory in self.directories:
             self.observer.schedule(self.handler, directory, recursive=True)
-            _LOGGER.info(f"\nWatcher Running in {directory}/\n")
+            LOGGER.info(f"\nWatcher Running in {directory}/\n")
 
         self.observer.start()
         try:
@@ -166,4 +166,4 @@ class Watcher:
         except KeyboardInterrupt:
             self.observer.stop()
         self.observer.join()
-        _LOGGER.info("\nWatcher Terminated\n")
+        LOGGER.info("\nWatcher Terminated\n")
