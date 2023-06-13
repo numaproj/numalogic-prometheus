@@ -6,10 +6,10 @@ from redis.backoff import ExponentialBackoff
 from redis.exceptions import RedisClusterException, RedisError
 from redis.retry import Retry
 
-from numaprom import get_logger
+from numaprom import LOGGER
 from numaprom.tools import is_host_reachable
 
-_LOGGER = get_logger(__name__)
+
 redis_client: Optional[RedisCluster] = None
 
 
@@ -30,10 +30,10 @@ def get_redis_client(
         "dynamic_startup_nodes": False,
         "cluster_error_retry_attempts": 3,
     }
-    _LOGGER.info("Redis params: %s", json.dumps(redis_params, indent=4))
+    LOGGER.info("Redis params: {param}", param=json.dumps(redis_params, indent=4))
 
     if not is_host_reachable(host, port):
-        _LOGGER.error("Redis Cluster is unreachable after retries!")
+        LOGGER.error("Redis Cluster is unreachable after retries!")
 
     retry = Retry(
         ExponentialBackoff(cap=2, base=1),

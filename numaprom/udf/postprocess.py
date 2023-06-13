@@ -1,6 +1,5 @@
 import os
 import time
-from typing import List
 
 import numpy as np
 from orjson import orjson
@@ -8,13 +7,11 @@ from pynumaflow.function import Datum
 from redis.exceptions import RedisError, RedisClusterException
 from redis.sentinel import MasterNotFoundError
 
-from numaprom import get_logger, UnifiedConf
+from numaprom import LOGGER, UnifiedConf
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.tools import msgs_forward, WindowScorer
 from numaprom.watcher import ConfigManager
-
-_LOGGER = get_logger(__name__)
 
 AUTH = os.getenv("REDIS_AUTH")
 
@@ -32,12 +29,13 @@ def __save_to_redis(
 
     final_score = -1 if np.isnan(final_score) else final_score
     r.hset(r_key, mapping={metric_name: final_score})
-    _LOGGER.info(
-        "%s - Saved to redis, redis_key: %s, metric: %s, anomaly_score: %.3f",
-        payload.uuid,
-        r_key,
-        metric_name,
-        final_score,
+    LOGGER.info(
+        "{uuid} - Saved to redis, redis_key: {redis_key}, metric: {metric_name}, "
+        "anomaly_score: {final_score}",
+        uuid=payload.uuid,
+        redis_key=r_key,
+        metric_name=metric_name,
+        final_score=final_score,
     )
 
     anomalies = []
@@ -45,30 +43,31 @@ def __save_to_redis(
         if r.hexists(name=r_key, key=m):
             anomalies.append(float(r.hget(name=r_key, key=m).decode()))
         else:
-            _LOGGER.debug(
-                "%s - Unable to generate unified anomaly, missing metric: %s, redis_key: %s",
-                payload.uuid,
-                m,
-                r_key,
+            LOGGER.debug(
+                "{uuid} - Unable to generate unified anomaly, missing metric: "
+                "{metric}, redis_key: {redis_key}",
+                uuid=payload.uuid,
+                metric=m,
+                redis_key=r_key,
             )
             return -1, []
 
-    _LOGGER.debug("%s - Received all metrics, generating unified anomaly", payload.uuid)
+    LOGGER.debug("{uuid} - Received all metrics, generating unified anomaly", uuid=payload.uuid)
     unified_weights = unified_config.unified_weights
     if unified_weights:
         weighted_anomalies = np.multiply(anomalies, unified_weights)
         unified_anomaly = float(np.sum(weighted_anomalies) / np.sum(unified_weights))
-        _LOGGER.info(
-            "%s - Generating unified anomaly, using unified weights. Unified Anomaly: %s",
-            payload.uuid,
-            unified_anomaly,
+        LOGGER.info(
+            "{uuid} - Generating unified anomaly, using unified weights. Unified Anomaly: {anomaly}",
+            uuid=payload.uuid,
+            anomaly=unified_anomaly,
         )
     else:
         unified_anomaly = max(anomalies)
-        _LOGGER.info(
-            "%s - Generated unified anomaly, using max strategy. Unified Anomaly: %s",
-            payload.uuid,
-            unified_anomaly,
+        LOGGER.info(
+            "{uuid} - Generated unified anomaly, using max strategy. Unified Anomaly: {anomaly}",
+            uuid=payload.uuid,
+            anomaly=unified_anomaly,
         )
 
     r.delete(r_key)
@@ -120,15 +119,20 @@ def __construct_unified_payload(
     )
 
 
-def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
+def _publish(final_score: float, payload: StreamPayload) -> list[bytes]:
     unified_config = ConfigManager.get_unified_config(payload.composite_keys)
 
     publisher_json = __construct_publisher_payload(payload, final_score).as_json()
-    _LOGGER.info("%s - Payload sent to publisher: %s", payload.uuid, publisher_json)
+    LOGGER.info(
+        "{uuid} - Payload sent to publisher: {publisher_json}",
+        uuid=payload.uuid,
+        publisher_json=publisher_json,
+    )
 
     if not unified_config:
-        _LOGGER.debug(
-            "%s - Using default config, cannot generate a unified anomaly score", payload.uuid
+        LOGGER.debug(
+            "{uuid} - Using default config, cannot generate a unified anomaly score",
+            uuid=payload.uuid,
         )
         return [publisher_json]
 
@@ -137,8 +141,10 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
             payload=payload, final_score=final_score, recreate=False, unified_config=unified_config
         )
     except (RedisError, RedisClusterException, MasterNotFoundError) as warn:
-        _LOGGER.warning(
-            "%s - Redis connection failed, recreating the redis client; err: %r", payload.uuid, warn
+        LOGGER.warning(
+            "{uuid} - Redis connection failed, recreating the redis client; err: {warn}",
+            uuid=payload.uuid,
+            warn=warn,
         )
         unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
@@ -148,17 +154,18 @@ def _publish(final_score: float, payload: StreamPayload) -> List[bytes]:
         unified_json = __construct_unified_payload(
             payload, unified_anomaly, unified_config
         ).as_json()
-        _LOGGER.info(
-            "%s - Unified anomaly payload sent to publisher: %s", payload.uuid, unified_json
+        LOGGER.info(
+            "{uuid} - Unified anomaly payload sent to publisher: {unified_json}",
+            uuid=payload.uuid,
+            unified_json=unified_json,
         )
         return [publisher_json, unified_json]
     return [publisher_json]
 
 
 @msgs_forward
-def postprocess(_: List[str], datum: Datum) -> List[bytes]:
-    """
-    UDF for performing the following steps:
+def postprocess(_: list[str], datum: Datum) -> list[bytes]:
+    """UDF for performing the following steps:
 
     1. Postprocess the raw scores, e.g. bring the scores into a range of 0 - 10
     2. Calculate a unified anomaly score by combining multiple metrics
@@ -172,34 +179,36 @@ def postprocess(_: List[str], datum: Datum) -> List[bytes]:
     # Load config
     metric_config = ConfigManager.get_metric_config(payload.composite_keys)
 
-    _LOGGER.debug("%s - Received Payload: %r ", payload.uuid, payload)
+    LOGGER.debug("{uuid} - Received Payload: {payload} ", uuid=payload.uuid, payload=payload)
 
     winscorer = WindowScorer(metric_config)
 
     # Use only using static thresholding
     if payload.header == Header.STATIC_INFERENCE:
         final_score = winscorer.get_winscore(payload)
-        _LOGGER.info(
-            "%s - Final static threshold score: %s, keys: %s",
-            payload.uuid,
-            final_score,
-            payload.composite_keys,
+        LOGGER.info(
+            "{uuid} - Final static threshold score: {final_score}, keys: {keys}",
+            uuid=payload.uuid,
+            final_score=final_score,
+            keys=payload.composite_keys,
         )
 
     # Compute ensemble score otherwise
     else:
         final_score = winscorer.get_final_winscore(payload)
-        _LOGGER.info(
-            "%s - Final ensemble score: %s, static thresh wt: %s, keys: %s",
-            payload.uuid,
-            final_score,
-            metric_config.static_threshold_wt,
-            payload.composite_keys,
+        LOGGER.info(
+            "{uuid} - Final ensemble score: {ensemble_score}, static thresh wt: {thresh}, keys: {keys}",
+            uuid=payload.uuid,
+            ensemble_score=final_score,
+            thresh=metric_config.static_threshold_wt,
+            keys=payload.composite_keys,
         )
 
     payload.set_status(Status.POST_PROCESSED)
     messages = _publish(final_score, payload)
-    _LOGGER.debug(
-        "%s - Time taken in postprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
+    LOGGER.debug(
+        "{uuid} - Time taken in postprocess: {time} sec",
+        uuid=payload.uuid,
+        time=time.perf_counter() - _start_time,
     )
     return messages

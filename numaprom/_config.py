@@ -1,4 +1,3 @@
-from typing import List
 from omegaconf import MISSING
 from dataclasses import dataclass, field
 
@@ -8,15 +7,15 @@ from numalogic.config import NumalogicConf
 @dataclass
 class UnifiedConf:
     unified_metric_name: str
-    unified_metrics: List[str]
+    unified_metrics: list[str]
     unified_strategy: str = "max"
-    unified_weights: List[float] = field(default_factory=list)
+    unified_weights: list[float] = field(default_factory=list)
 
 
 @dataclass
 class MetricConf:
     metric: str = "default"
-    composite_keys: List[str] = field(default_factory=lambda: ["namespace", "name"])
+    composite_keys: list[str] = field(default_factory=lambda: ["namespace", "name"])
     static_threshold: int = 3
     static_threshold_wt: float = 0.0
     train_hours: int = 24 * 8  # 8 days worth of data
@@ -31,13 +30,13 @@ class MetricConf:
 class AppConf:
     app: str = "default"
     namespace: str = "default"
-    metric_configs: List[MetricConf] = field(default_factory=lambda: [MetricConf()])
-    unified_configs: List[UnifiedConf] = field(default_factory=list)
+    metric_configs: list[MetricConf] = field(default_factory=lambda: [MetricConf()])
+    unified_configs: list[UnifiedConf] = field(default_factory=list)
 
 
 @dataclass
 class DataConf:
-    configs: List[AppConf]
+    configs: list[AppConf]
 
 
 @dataclass

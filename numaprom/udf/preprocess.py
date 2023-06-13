@@ -1,19 +1,17 @@
 import os
 import time
-from typing import List
 
 import orjson
 from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
 from pynumaflow.function import Datum
 
-from numaprom import get_logger
+from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
 from numaprom.watcher import ConfigManager
 
-_LOGGER = get_logger(__name__)
 
 AUTH = os.getenv("REDIS_AUTH")
 REDIS_CONF = ConfigManager.get_redis_config()
@@ -28,12 +26,12 @@ LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 
 
 
 @msg_forward
-def preprocess(_: List[str], datum: Datum) -> bytes:
+def preprocess(_: list[str], datum: Datum) -> bytes:
     _start_time = time.perf_counter()
     _in_msg = datum.value.decode("utf-8")
 
     payload = StreamPayload(**orjson.loads(_in_msg))
-    _LOGGER.info("%s - Received Payload: %r ", payload.uuid, payload)
+    LOGGER.info("{uuid} - Received Payload: {payload} ", uuid=payload.uuid, payload=payload)
 
     # Load config
     metric_config = ConfigManager.get_metric_config(payload.composite_keys)
@@ -49,21 +47,21 @@ def preprocess(_: List[str], datum: Datum) -> bytes:
             dkeys=[_conf.name for _conf in preprocess_cfgs],
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
-            "%s - Error while fetching preproc artifact, keys: %s, err: %r",
-            payload.uuid,
-            payload.composite_keys,
-            err,
+        LOGGER.exception(
+            "{uuid} - Error while fetching preproc artifact, keys: {keys}, err: {err}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
+            err=err,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     if not preproc_artifact:
-        _LOGGER.info(
-            "%s - Preprocess artifact not found, forwarding for static thresholding. Keys: %s",
-            payload.uuid,
-            payload.composite_keys,
+        LOGGER.info(
+            "{uuid} - Preprocess artifact not found, forwarding for static thresholding. Keys: {keys}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
@@ -78,8 +76,10 @@ def preprocess(_: List[str], datum: Datum) -> bytes:
     payload.set_win_arr(x_scaled)
     payload.set_status(Status.PRE_PROCESSED)
 
-    _LOGGER.info("%s - Sending Payload: %r ", payload.uuid, payload)
-    _LOGGER.debug(
-        "%s - Time taken in preprocess: %.4f sec", payload.uuid, time.perf_counter() - _start_time
+    LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
+    LOGGER.debug(
+        "{uuid} - Time taken in preprocess: {time} sec",
+        uuid=payload.uuid,
+        time=time.perf_counter() - _start_time,
     )
     return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)

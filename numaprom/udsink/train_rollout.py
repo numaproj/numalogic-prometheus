@@ -1,6 +1,6 @@
 import os
 import time
-from typing import List, Iterator
+from collections.abc import Iterator
 
 import numpy as np
 import pandas as pd
@@ -15,15 +15,13 @@ from pynumaflow.sink import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 
-from numaprom import get_logger, MetricConf
+from numaprom import LOGGER, MetricConf
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import TrainerPayload
 from numaprom.tools import fetch_data
 from numaprom.watcher import ConfigManager
 
-_LOGGER = get_logger(__name__)
-
-REQUEST_EXPIRY = int(os.getenv("REQUEST_EXPIRY", 300))
+REQUEST_EXPIRY = int(os.getenv("REQUEST_EXPIRY", "300"))
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
@@ -59,8 +57,10 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     trainer = AutoencoderTrainer(**trainer_cfg)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
-    _LOGGER.debug(
-        "%s - Time taken to train model: %.3f sec", uuid, time.perf_counter() - _start_train
+    LOGGER.debug(
+        "{uuid} - Time taken to train model: {time}} sec",
+        uuid=uuid,
+        time=time.perf_counter() - _start_train,
     )
 
     train_reconerr = trainer.predict(model, dataloaders=DataLoader(dataset, batch_size=64))
@@ -68,7 +68,7 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     return train_reconerr.numpy(), model, trainer
 
 
-def _preprocess(x_raw, preproc_cfgs: List[ModelInfo]):
+def _preprocess(x_raw, preproc_cfgs: list[ModelInfo]):
     preproc_factory = PreprocessFactory()
     preproc_clfs = []
     for _cfg in preproc_cfgs:
@@ -105,14 +105,18 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
     for _datum in datums:
         payload = TrainerPayload(**orjson.loads(_datum.value))
 
-        _LOGGER.debug("%s - Starting Training for keys: %s", payload.uuid, payload.composite_keys)
+        LOGGER.debug(
+            "{uuid} - Starting Training for keys: {keys}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
+        )
 
         is_new = _is_new_request(redis_client, payload)
         if not is_new:
-            _LOGGER.debug(
-                "%s - Skipping rollouts train request with keys: %s",
-                payload.uuid,
-                payload.composite_keys,
+            LOGGER.debug(
+                "{uuid} - Skipping rollouts train request with keys: {keys}",
+                uuid=payload.uuid,
+                keys=payload.composite_keys,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -135,18 +139,21 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
         try:
             train_df = clean_data(train_df, hash_label)
         except KeyError:
-            _LOGGER.error(
-                "%s - KeyError while data cleaning for train payload: %s", payload.uuid, payload
+            LOGGER.error(
+                "{uuid} - KeyError while data cleaning for train payload: {payload}",
+                uuid=payload.uuid,
+                payload=payload,
             )
             responses.append(Response.as_success(_datum.id))
             continue
 
         if len(train_df) < metric_config.min_train_size:
-            _LOGGER.warning(
-                "%s - Skipping training, train data less than minimum required: %s, df shape: %s",
-                payload.uuid,
-                metric_config.min_train_size,
-                train_df.shape,
+            LOGGER.warning(
+                "{uuid} - Skipping training, train data less than minimum "
+                "required: {min_train_size}, df shape: {shape}",
+                uuid=payload.uuid,
+                min_train_size=metric_config.min_train_size,
+                shape=train_df.shape,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -189,12 +196,18 @@ def _train_and_save(
             train_size=train_df.shape[0],
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
-            "%s - Error while saving Model with skeys: %s, err: %r", payload.uuid, skeys, err
+        LOGGER.exception(
+            "{uuid} - Error while saving Model with skeys: {keys}, err: {err}",
+            uuid=payload.uuid,
+            keys=skeys,
+            err=err,
         )
     else:
-        _LOGGER.info(
-            "%s - Model saved with skeys: %s with version: %s", payload.uuid, skeys, version
+        LOGGER.info(
+            "{uuid} - Model saved with skeys: {keys} with version: {version}",
+            uuid=payload.uuid,
+            keys=skeys,
+            version=version,
         )
     # Save preproc model
     try:
@@ -205,18 +218,18 @@ def _train_and_save(
             uuid=payload.uuid,
         )
     except RedisRegistryError as err:
-        _LOGGER.exception(
-            "%s - Error while saving Preproc model with skeys: %s, err: %r",
-            payload.uuid,
-            skeys,
-            err,
+        LOGGER.exception(
+            "{uuid} - Error while saving Preproc model with skeys: {keys}, err: {err}",
+            uuid=payload.uuid,
+            keys=skeys,
+            err=err,
         )
     else:
-        _LOGGER.info(
-            "%s - Preproc model saved with skeys: %s with version: %s",
-            payload.uuid,
-            skeys,
-            version,
+        LOGGER.info(
+            "{uuid} - Preproc model saved with skeys: {keys} with version: {version}",
+            uuid=payload.uuid,
+            keys=skeys,
+            version=version,
         )
     # Save threshold model
     try:
@@ -227,16 +240,16 @@ def _train_and_save(
             uuid=payload.uuid,
         )
     except RedisRegistryError as err:
-        _LOGGER.error(
-            "%s - Error while saving Threshold model with skeys: %s, err: %r",
-            payload.uuid,
-            skeys,
-            err,
+        LOGGER.error(
+            "{uuid} - Error while saving Threshold model with skeys: {keys}, err: {err}",
+            uuid=payload.uuid,
+            keys=skeys,
+            err=err,
         )
     else:
-        _LOGGER.info(
-            "%s - Threshold model saved with skeys: %s with version: %s",
-            payload.uuid,
-            skeys,
-            version,
+        LOGGER.info(
+            "{uuid} - Threshold model saved with skeys: {keys} with version: {version}",
+            uuid=payload.uuid,
+            keys=skeys,
+            version=version,
         )
