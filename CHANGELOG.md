@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.4 (2023-06-13)
+
+ * [4966e7c](https://github.com/numaproj/numalogic-prometheus/commit/4966e7cb93e7ff86f08602023bfa25f36895ce28) feat: add loguru for logging (#143)
+ * [a40fea5](https://github.com/numaproj/numalogic-prometheus/commit/a40fea52b0a3a9a160d51cdb09c2dc5607ae528f) Fix logs (#142)
+ * [9cb56fe](https://github.com/numaproj/numalogic-prometheus/commit/9cb56fe3f914718972fb6830efc19e7f25228c91) feat: Add caching support (#141)
+
+### Contributors
+
+ * Kushal Batra
+
 ## v0.4.1 (2023-05-25)
 
  * [c0c2872](https://github.com/numaproj/numalogic-prometheus/commit/c0c28726e99ccc0c7b309323a88384fe0cd09ef6) fix: watcher run (#139)
