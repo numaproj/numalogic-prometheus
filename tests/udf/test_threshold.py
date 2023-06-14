@@ -69,19 +69,16 @@ class TestThreshold(unittest.TestCase):
 
     @patch.object(RedisRegistry, "load", Mock(side_effect=ModuleNotFoundError))
     def test_unhandled_exception(self):
-        thresh_input = get_threshold_input(STREAM_DATA_PATH, prev_clf_exists=False)
+        thresh_input = get_threshold_input(STREAM_DATA_PATH, prev_clf_exists=True)
         assert thresh_input.items(), print("input items is empty", thresh_input)
-        with self.assertRaises(Exception):
-            for msg in thresh_input.items():
-                _in = get_datum(msg.value)
-                _out = threshold("", _in)
-                train_payload = TrainerPayload(
-                    **orjson.loads(_out.items()[0].value.decode("utf-8"))
-                )
-                payload = StreamPayload(**orjson.loads(_out.items()[1].value.decode("utf-8")))
-                self.assertEqual(payload.header, Header.STATIC_INFERENCE)
-                self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
-                self.assertIsInstance(train_payload, TrainerPayload)
+        for msg in thresh_input.items():
+            _in = get_datum(msg.value)
+            _out = threshold("", _in)
+            train_payload = TrainerPayload(**orjson.loads(_out.items()[0].value.decode("utf-8")))
+            payload = StreamPayload(**orjson.loads(_out.items()[1].value.decode("utf-8")))
+            self.assertEqual(payload.header, Header.STATIC_INFERENCE)
+            self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
+            self.assertIsInstance(train_payload, TrainerPayload)
 
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(RedisRegistry, "load", Mock(return_value=None))
