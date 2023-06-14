@@ -67,10 +67,8 @@ class Prometheus:
         if data_points > 0:
             response = self.query_range_limit(query, temp_start, end)
             if results:
-                LOGGER.debug("Prometheus query returned results.")
                 results.append(response)
             else:
-                LOGGER.debug("Prometheus query has returned empty results.")
                 results = response
         return results
 
@@ -90,6 +88,7 @@ class Prometheus:
                 params={"query": query, "start": start, "end": end, "step": f"{step}s"},
             )
             results = response.json()["data"]["result"]
+            LOGGER.debug("Prometheus query has returned results for {results} metric series.", results=len(results))
         except Exception as ex:
             LOGGER.exception("Prometheus error: %r", ex)
         return results
