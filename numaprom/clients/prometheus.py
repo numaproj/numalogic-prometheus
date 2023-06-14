@@ -24,7 +24,7 @@ class Prometheus:
             label_list = [str(key + "=" + "'" + labels_map[key] + "'") for key in labels_map]
             query = metric_name + "{" + ",".join(label_list) + "}"
 
-        LOGGER.debug("Prometheus Query: %s", query)
+        LOGGER.debug("Prometheus Query: {query}", query=query)
 
         if end < start:
             raise ValueError("end_time must not be before start_time")
@@ -88,12 +88,9 @@ class Prometheus:
                 params={"query": query, "start": start, "end": end, "step": f"{step}s"},
             )
             results = response.json()["data"]["result"]
-            LOGGER.debug(
-                "Prometheus query has returned results for {results} metric series.",
-                results=len(results),
-            )
+            LOGGER.debug("Prometheus query has returned results for {results} metric series.", results=len(results))
         except Exception as ex:
-            LOGGER.exception("Prometheus error: %r", ex)
+            LOGGER.exception("Prometheus error: {err}", err=ex)
         return results
 
     def query(self, query: str) -> Optional[dict]:
@@ -107,6 +104,6 @@ class Prometheus:
             else:
                 LOGGER.debug("Prometheus query has returned empty results.")
         except Exception as ex:
-            LOGGER.exception("error: %r", ex)
+            LOGGER.exception("error: {err}", err=ex)
 
         return results
