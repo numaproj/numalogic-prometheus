@@ -24,37 +24,41 @@ class Prometheus:
             label_list = [str(key + "=" + "'" + labels_map[key] + "'") for key in labels_map]
             query = metric_name + "{" + ",".join(label_list) + "}"
 
-        LOGGER.debug("Prometheus Query: {query}", query=query)
+        LOGGER.debug("Prometheus Query: %s", query)
 
         if end < start:
             raise ValueError("end_time must not be before start_time")
 
-        result = self.query_range(query, start, end, step)
+        results = self.query_range(query, start, end, step)
 
-        arr = np.array(result["values"])
-        df = pd.DataFrame(arr, columns=["timestamp", metric_name])
-        df = df.astype(float)
+        frames = []
+        for result in results:
+            arr = np.array(result["values"])
+            _df = pd.DataFrame(arr, columns=["timestamp", metric_name])
+            _df = _df.astype(float)
 
-        data = result["metric"]
-        if return_labels:
-            for label in return_labels:
-                if label in data:
-                    df[label] = data[label]
+            data = result["metric"]
+            if return_labels:
+                for label in return_labels:
+                    if label in data:
+                        _df[label] = data[label]
+            frames.append(_df)
 
-        if not df.empty:
-            df.set_index("timestamp", inplace=True)
-            df.index = pd.to_datetime(df.index.astype(int), unit="s")
+        df = pd.concat(frames, ignore_index=True)
+        df.sort_values(by=["timestamp"], inplace=True)
+        df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
+        df.reset_index(drop=True, inplace=True)
         return df
 
-    def query_range(self, query: str, start: float, end: float, step: int = 30) -> Optional[dict]:
-        results = {}
+    def query_range(self, query: str, start: float, end: float, step: int = 30) -> Optional[list]:
+        results = []
         data_points = (end - start) / step
         temp_start = start
         while data_points > 11000:
             temp_end = temp_start + 11000 * step
             response = self.query_range_limit(query, temp_start, temp_end, step)
             if results:
-                results["values"] = results["values"] + response["values"]
+                results.append(response)
             else:
                 results = response
             temp_start = temp_end
@@ -63,11 +67,10 @@ class Prometheus:
         if data_points > 0:
             response = self.query_range_limit(query, temp_start, end)
             if results:
-                results["values"] = results["values"] + response["values"]
+                results.append(response)
             else:
                 LOGGER.debug("Prometheus query has returned empty results.")
                 results = response
-
         return results
 
     def query_range_limit(
@@ -85,9 +88,9 @@ class Prometheus:
                 self.PROMETHEUS_SERVER + "/api/v1/query_range",
                 params={"query": query, "start": start, "end": end, "step": f"{step}s"},
             )
-            results = response.json()["data"]["result"][0]
+            results = response.json()["data"]["result"]
         except Exception as ex:
-            LOGGER.exception("Prometheus error: {err}", err=ex)
+            LOGGER.exception("Prometheus error: %r", ex)
         return results
 
     def query(self, query: str) -> Optional[dict]:
@@ -101,6 +104,6 @@ class Prometheus:
             else:
                 LOGGER.debug("Prometheus query has returned empty results.")
         except Exception as ex:
-            LOGGER.exception("error: {err}", err=ex)
+            LOGGER.exception("error: %r", ex)
 
         return results
