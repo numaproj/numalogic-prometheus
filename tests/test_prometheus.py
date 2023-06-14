@@ -27,23 +27,24 @@ def mock_multiple_metrics(*_, **__):
                 "rollouts_pod_template_hash": "5b4b4f9f9d",
             },
             "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
-
-        }
+        },
     ]
 
     return result
 
 
 def mock_query_range(*_, **__):
-    result = [{
-        "metric": {
-            "__name__": "namespace_asset_pod_cpu_utilization",
-            "assetAlias": "sandbox.numalogic.demo",
-            "numalogic": "true",
-            "namespace": "sandbox-numalogic-demo",
-        },
-        "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
-    }]
+    result = [
+        {
+            "metric": {
+                "__name__": "namespace_asset_pod_cpu_utilization",
+                "assetAlias": "sandbox.numalogic.demo",
+                "numalogic": "true",
+                "namespace": "sandbox-numalogic-demo",
+            },
+            "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
+        }
+    ]
 
     return result
 
@@ -62,7 +63,10 @@ def mock_response(*_, **__):
                         "numalogic": "true",
                         "namespace": "sandbox-numalogic-demo",
                     },
-                    "values": [[1656334767.73, "14.744611739611193"], [1656334797.73, "14.73040822323633"]],
+                    "values": [
+                        [1656334767.73, "14.744611739611193"],
+                        [1656334797.73, "14.73040822323633"],
+                    ],
                 }
             ],
         },

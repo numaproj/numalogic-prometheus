@@ -88,7 +88,10 @@ class Prometheus:
                 params={"query": query, "start": start, "end": end, "step": f"{step}s"},
             )
             results = response.json()["data"]["result"]
-            LOGGER.debug("Prometheus query has returned results for {results} metric series.", results=len(results))
+            LOGGER.debug(
+                "Prometheus query has returned results for {results} metric series.",
+                results=len(results),
+            )
         except Exception as ex:
             LOGGER.exception("Prometheus error: %r", ex)
         return results
