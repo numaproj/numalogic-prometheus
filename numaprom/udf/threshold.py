@@ -76,6 +76,13 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
             keys=payload.composite_keys,
             err=err,
         )
+    except Exception as ex:
+        LOGGER.exception(
+            "{uuid} - Unhandled exception while fetching threshold artifact, keys: {keys}, err: {err}",
+            uuid=payload.uuid,
+            keys=payload.composite_keys,
+            err=ex,
+        )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
         return [
