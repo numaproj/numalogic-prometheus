@@ -42,11 +42,25 @@ def __get_logger() -> logger:
     if os.getenv("DEBUG", False):
         filter_levels["numalogic"] = "DEBUG"
         filter_levels["numaprom"] = "DEBUG"
-        logger.add(sink=sink, level="DEBUG", colorize=True, filter=filter_levels, format=formatter)
+        logger.add(
+            sink=sink,
+            level="DEBUG",
+            colorize=True,
+            filter=filter_levels,
+            format=formatter,
+            diagnose=False,
+        )
     else:
         filter_levels["numalogic"] = "INFO"
         filter_levels["numaprom"] = "INFO"
-        logger.add(sink=sink, level="INFO", colorize=True, filter=filter_levels, format=formatter)
+        logger.add(
+            sink=sink,
+            level="INFO",
+            colorize=True,
+            filter=filter_levels,
+            format=formatter,
+            diagnose=False,
+        )
     logger.info("Starting Logger...")
     return logger
 

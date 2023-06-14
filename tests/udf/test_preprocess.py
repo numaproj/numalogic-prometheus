@@ -75,6 +75,18 @@ class TestPreprocess(unittest.TestCase):
             self.assertTrue(payload.win_ts_arr)
             self.assertIsInstance(payload, StreamPayload)
 
+    @patch.object(RedisRegistry, "load", Mock(side_effect=ModuleNotFoundError))
+    def test_unhandled_exception(self):
+        with self.assertRaises(Exception):
+            for msg in self.preproc_input.items():
+                _in = get_datum(msg.value)
+                _out = preprocess("", _in)
+                out_data = _out.items()[0].value.decode("utf-8")
+                payload = StreamPayload(**orjson.loads(out_data))
+                self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
+                self.assertEqual(payload.header, Header.STATIC_INFERENCE)
+                self.assertIsInstance(payload, StreamPayload)
+
 
 if __name__ == "__main__":
     unittest.main()

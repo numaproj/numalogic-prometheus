@@ -67,6 +67,7 @@ class Prometheus:
         if data_points > 0:
             response = self.query_range_limit(query, temp_start, end)
             if results:
+                LOGGER.debug("Prometheus query returned results.")
                 results.append(response)
             else:
                 LOGGER.debug("Prometheus query has returned empty results.")
