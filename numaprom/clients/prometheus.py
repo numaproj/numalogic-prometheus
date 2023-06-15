@@ -33,9 +33,13 @@ class Prometheus:
 
         frames = []
         for result in results:
-            arr = np.array(result["values"])
+            LOGGER.debug(
+                "Prometheus query has returned {total} values for {metric}.",
+                total=len(result["values"]),
+                metric=result["metric"],
+            )
+            arr = np.array(result["values"], dtype=float)
             _df = pd.DataFrame(arr, columns=["timestamp", metric_name])
-            _df = _df.astype(float)
 
             data = result["metric"]
             if return_labels:
@@ -44,10 +48,12 @@ class Prometheus:
                         _df[label] = data[label]
             frames.append(_df)
 
-        df = pd.concat(frames, ignore_index=True)
-        df.sort_values(by=["timestamp"], inplace=True)
-        df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
-        df.reset_index(drop=True, inplace=True)
+        df = pd.DataFrame()
+        if frames:
+            df = pd.concat(frames, ignore_index=True)
+            df.sort_values(by=["timestamp"], inplace=True)
+            df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
+            df.reset_index(drop=True, inplace=True)
         return df
 
     def query_range(self, query: str, start: float, end: float, step: int = 30) -> Optional[list]:
@@ -57,31 +63,24 @@ class Prometheus:
         while data_points > 11000:
             temp_end = temp_start + 11000 * step
             response = self.query_range_limit(query, temp_start, temp_end, step)
-            if results:
-                results.append(response)
-            else:
-                results = response
+            for res in response:
+                results.append(res)
             temp_start = temp_end
             data_points = (end - temp_start) / step
 
         if data_points > 0:
             response = self.query_range_limit(query, temp_start, end)
-            if results:
-                results.append(response)
-            else:
-                results = response
+            for res in response:
+                results.append(res)
         return results
 
-    def query_range_limit(
-        self, query: str, start: float, end: float, step: int = 30
-    ) -> Optional[dict]:
+    def query_range_limit(self, query: str, start: float, end: float, step: int = 30) -> list:
+        results = []
         data_points = (end - start) / step
 
         if data_points > 11000:
             LOGGER.info("Limit query only supports 11,000 data points")
-            return None
-
-        results = None
+            return results
         try:
             response = requests.get(
                 self.PROMETHEUS_SERVER + "/api/v1/query_range",
