@@ -32,7 +32,7 @@ class Header(str, Enum):
     MODEL_STALE = "model_stale"
 
 
-@dataclass
+@dataclass(slots=True)
 class _BasePayload:
     uuid: str
     composite_keys: OrderedDict[str, str]
@@ -41,12 +41,12 @@ class _BasePayload:
 PayloadType = TypeVar("PayloadType", bound=_BasePayload)
 
 
-@dataclass
+@dataclass(slots=True)
 class TrainerPayload(_BasePayload):
     header: Header = Header.TRAIN_REQUEST
 
 
-@dataclass(repr=False)
+@dataclass(slots=True, repr=False)
 class StreamPayload(_BasePayload):
     win_raw_arr: Matrix
     win_arr: Matrix
@@ -115,7 +115,7 @@ class PayloadFactory:
         return payload_cls(**data)
 
 
-@dataclass(repr=False)
+@dataclass(slots=True, repr=False)
 class PrometheusPayload:
     timestamp_ms: int
     name: str

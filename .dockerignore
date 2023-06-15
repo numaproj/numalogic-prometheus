@@ -13,3 +13,4 @@ LICENSE
 .coveragerc
 .ruff_cache
 .hack/
+.pytest_cache
