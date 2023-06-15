@@ -65,8 +65,8 @@ class StreamPayload(_BasePayload):
 
     def get_stream_array(self, original=False) -> npt.NDArray[float]:
         if original:
-            return np.asarray(self.win_raw_arr)
-        return np.asarray(self.win_arr)
+            return np.array(self.win_raw_arr)
+        return np.array(self.win_arr)
 
     def get_metadata(self, key: str) -> dict[str, Any]:
         return copy(self.metadata[key])
