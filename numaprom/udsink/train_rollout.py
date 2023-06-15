@@ -58,7 +58,7 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
     LOGGER.debug(
-        "{uuid} - Time taken to train model: {time}} sec",
+        "{uuid} - Time taken to train model: {time} sec",
         uuid=uuid,
         time=time.perf_counter() - _start_train,
     )
