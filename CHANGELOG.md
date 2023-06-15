@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.4.8 (2023-06-15)
+
+ * [32f3a35](https://github.com/numaproj/numalogic-prometheus/commit/32f3a35158f2c2419b2d9fbc52c52f49b55fe00b) fix: create new copy of array while retrieving from payload (#148)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.4.7 (2023-06-15)
+
+ * [d34cf73](https://github.com/numaproj/numalogic-prometheus/commit/d34cf73346507e539249c9b08386cf290653852a) Fix bug (#150)
+
+### Contributors
+
+ * Kushal Batra
+
+## v0.4.6 (2023-06-14)
+
+ * [643c138](https://github.com/numaproj/numalogic-prometheus/commit/643c13821c037072704b964841056c87f7f9a7a4) fix: prometheus fetcher (#147)
+
+### Contributors
+
+ * Nandita Koppisetty
+
+## v0.4.5 (2023-06-14)
+
+ * [e414a5d](https://github.com/numaproj/numalogic-prometheus/commit/e414a5d8f916b039268e08a235426c99e629cd38) Fix exception (#145)
+
+### Contributors
+
+ * Kushal Batra
+
 ## v0.4.4 (2023-06-13)
 
  * [4966e7c](https://github.com/numaproj/numalogic-prometheus/commit/4966e7cb93e7ff86f08602023bfa25f36895ce28) feat: add loguru for logging (#143)
