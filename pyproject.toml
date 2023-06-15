@@ -25,6 +25,7 @@ numalogic = {version = "~0.4", extras = ["redis"]}
 orjson = "^3.8.4"
 omegaconf = "^2.3.0"
 watchdog = "^3.0.0"
+aiorun = "^2022.11.1"
 
 [tool.poetry.group.mlflowserver]
 optional = true
