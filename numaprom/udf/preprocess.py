@@ -53,6 +53,9 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
             keys=payload.composite_keys,
             err=err,
         )
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.RUNTIME_ERROR)
+        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     except Exception as ex:
         LOGGER.exception(
             "{uuid} - Unhandled exception while fetching preproc artifact, keys: {keys}, err: {err}",
