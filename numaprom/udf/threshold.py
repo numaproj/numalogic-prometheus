@@ -76,6 +76,12 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
             keys=payload.composite_keys,
             err=err,
         )
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.RUNTIME_ERROR)
+        return [
+            (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
+            (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
+        ]
     except Exception as ex:
         LOGGER.exception(
             "{uuid} - Unhandled exception while fetching threshold artifact, keys: {keys}, err: {err}",

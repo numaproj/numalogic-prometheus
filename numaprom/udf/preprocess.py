@@ -40,7 +40,6 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
     # Load preprocess artifact
     local_cache = LocalLRUCache(ttl=LOCAL_CACHE_TTL)
     model_registry = RedisRegistry(client=REDIS_CLIENT, cache_registry=local_cache)
-
     try:
         preproc_artifact = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],
@@ -53,6 +52,10 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
             keys=payload.composite_keys,
             err=err,
         )
+        payload.set_header(Header.STATIC_INFERENCE)
+        payload.set_status(Status.RUNTIME_ERROR)
+        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+
     except Exception as ex:
         LOGGER.exception(
             "{uuid} - Unhandled exception while fetching preproc artifact, keys: {keys}, err: {err}",
