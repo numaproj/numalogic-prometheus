@@ -184,7 +184,7 @@ def _train_and_save(
 
     skeys = [payload.composite_keys["namespace"], payload.composite_keys["name"]]
 
-    # TODO if one of the models fail to save, delete the previously saved models and transition stage
+    # TODO if one of the models fail to save, delete the previously saved models & transition stage
     # Save main model
     model_registry = RedisRegistry(client=redis_client)
     try:

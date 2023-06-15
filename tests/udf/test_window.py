@@ -19,27 +19,28 @@ class TestWindow(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.input_stream = get_stream_data(STREAM_DATA_PATH)
+        assert len(cls.input_stream), print("input items is empty", cls.input_stream)
 
     def tearDown(self) -> None:
         redis_client.flushall()
 
     def test_window(self):
         for idx, data in enumerate(self.input_stream):
-            _out = window("", get_datum(data))
-            if len(_out.items()[0].tags) > 0:
-                if not _out.items()[0].tags[0] == DROP:
-                    _out = _out.items()[0].value.decode("utf-8")
+            _out = window([""], get_datum(data))
+            if len(_out[0].tags) > 0:
+                if not _out[0].tags[0] == DROP:
+                    _out = _out[0].value.decode("utf-8")
                     payload = StreamPayload(**orjson.loads(_out))
                     self.assertTrue(payload)
 
     def test_window_duplicate_element(self):
         uuids = set()
         for idx, data in enumerate(self.input_stream[-3:]):
-            _out = window("", get_datum(data))
-            if len(_out.items()[0].tags) > 0 and _out.items()[0].tags[0] == DROP:
+            _out = window([""], get_datum(data))
+            if len(_out[0].tags) > 0 and _out[0].tags[0] == DROP:
                 continue
             else:
-                _out = _out.items()[0].value.decode("utf-8")
+                _out = _out[0].value.decode("utf-8")
                 payload = StreamPayload(**orjson.loads(_out))
                 uuids.add(payload.uuid)
                 self.assertTrue(payload)
@@ -49,12 +50,12 @@ class TestWindow(unittest.TestCase):
     def test_window_err(self):
         with self.assertRaises(ValueError):
             for data in self.input_stream:
-                window("", get_datum(data))
+                window([""], get_datum(data))
 
     def test_window_drop(self):
         for _d in self.input_stream:
-            out = window("", get_datum(_d))
-            self.assertEqual(DROP, out.items()[0].tags[0])
+            out = window([""], get_datum(_d))
+            self.assertEqual(DROP, out[0].tags[0])
             break
 
 

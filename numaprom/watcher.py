@@ -1,7 +1,6 @@
 import os
 import time
 from functools import lru_cache
-from typing import Optional
 
 from omegaconf import OmegaConf
 from watchdog.observers import Observer
@@ -53,7 +52,7 @@ class ConfigManager:
 
     @classmethod
     @lru_cache(maxsize=100)
-    def get_app_config(cls, metric: str, namespace: str) -> Optional[AppConf]:
+    def get_app_config(cls, metric: str, namespace: str) -> AppConf | None:
         if not cls.config:
             cls.update_configs()
 
@@ -82,7 +81,7 @@ class ConfigManager:
         return app_config
 
     @classmethod
-    def get_metric_config(cls, composite_keys: dict) -> Optional[MetricConf]:
+    def get_metric_config(cls, composite_keys: dict) -> MetricConf | None:
         app_config = cls.get_app_config(
             metric=composite_keys["name"], namespace=composite_keys["namespace"]
         )
@@ -94,7 +93,7 @@ class ConfigManager:
         return metric_config[0]
 
     @classmethod
-    def get_unified_config(cls, composite_keys: dict) -> Optional[UnifiedConf]:
+    def get_unified_config(cls, composite_keys: dict) -> UnifiedConf | None:
         app_config = cls.get_app_config(
             metric=composite_keys["name"], namespace=composite_keys["namespace"]
         )

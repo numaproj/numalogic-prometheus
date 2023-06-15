@@ -81,7 +81,8 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     except Exception as ex:
         LOGGER.exception(
-            "{uuid} - Unhandled exception while fetching threshold artifact, keys: {keys}, err: {err}",
+            "{uuid} - Unhandled exception while fetching threshold artifact, "
+            "keys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
             err=ex,

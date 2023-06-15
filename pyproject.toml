@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "numalogic-prometheus"
-version = "0.4.7"
+version = "0.4.8"
 description = "ML inference on numaflow using numalogic on Prometheus metrics"
 authors = ["Numalogic developers"]
 packages = [{ include = "numaprom" }]
@@ -27,12 +27,6 @@ omegaconf = "^2.3.0"
 watchdog = "^3.0.0"
 loguru = "^0.7.0"
 
-[tool.poetry.group.mlflowserver]
-optional = true
-
-[tool.poetry.group.mlflowserver.dependencies]
-mlflow = "^2.2"
-
 [tool.poetry.group.dev]
 optional = true
 
@@ -40,10 +34,11 @@ optional = true
 coverage = "^6.3"
 black = "^23.1"
 fakeredis = "^2.11"
-flake8 = "^5.0"
+ruff = "^0.0.264"
 pytest = "^7.1"
 pytest-cov = "^4.0"
 freezegun = "^1.2.2"
+pre-commit = "^3.3.1"
 
 [tool.black]
 line-length = 100
@@ -63,6 +58,19 @@ exclude = '''
   | tests/.*/setup.py
 )/
 '''
+
+[tool.ruff]
+line-length = 100
+src = ["numaprom", "tests"]
+select = ["E", "F", "UP"]
+target-version = "py310"
+show-fixes = true
+show-source = true
+extend-exclude = [
+    "*_pb2.py",
+    "*_pb2*.py",
+    "*.pyi"
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

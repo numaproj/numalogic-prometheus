@@ -58,7 +58,8 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     except Exception as ex:
         LOGGER.exception(
-            "{uuid} - Unhandled exception while fetching preproc artifact, keys: {keys}, err: {err}",
+            "{uuid} - Unhandled exception while fetching preproc artifact, "
+            "keys: {keys}, err: {err}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
             err=ex,
@@ -69,7 +70,8 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
 
     if not preproc_artifact:
         LOGGER.info(
-            "{uuid} - Preprocess artifact not found, forwarding for static thresholding. Keys: {keys}",
+            "{uuid} - Preprocess artifact not found, forwarding for static thresholding. "
+            "Keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
         )

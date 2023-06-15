@@ -88,7 +88,8 @@ def inference(_: list[str], datum: Datum) -> bytes:
 
     if not artifact_data:
         LOGGER.info(
-            "{uuid} - Inference artifact not found, forwarding for static thresholding. Keys: {keys}",
+            "{uuid} - Inference artifact not found, "
+            "forwarding for static thresholding. Keys: {keys}",
             uuid=payload.uuid,
             keys=payload.composite_keys,
         )

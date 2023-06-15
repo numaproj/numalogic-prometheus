@@ -1,7 +1,6 @@
 import os
 import time
 import uuid
-from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -56,7 +55,7 @@ def __aggregate_window(
 
 
 @msg_forward
-def window(_: list[str], datum: Datum) -> Optional[bytes]:
+def window(_: list[str], datum: Datum) -> bytes | None:
     """UDF to construct windowing of the streaming input data, required by ML models."""
     LOGGER.debug("Received Msg: {data} ", data=datum.value)
 
@@ -98,7 +97,7 @@ def window(_: list[str], datum: Datum) -> Optional[bytes]:
     win_list = [float(_val) for _val, _ in elements]
 
     # Store win_arr as a matrix with columns representing features
-    win_arr = np.asarray(win_list).reshape(-1, 1)
+    win_arr = np.array(win_list).reshape(-1, 1)
     win_arr = _clean_arr(_uuid, composite_keys, win_arr)
 
     payload = StreamPayload(

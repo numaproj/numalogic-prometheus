@@ -1,7 +1,6 @@
 import requests
 import numpy as np
 import pandas as pd
-from typing import Optional
 
 from numaprom import LOGGER
 
@@ -56,7 +55,7 @@ class Prometheus:
             df.reset_index(drop=True, inplace=True)
         return df
 
-    def query_range(self, query: str, start: float, end: float, step: int = 30) -> Optional[list]:
+    def query_range(self, query: str, start: float, end: float, step: int = 30) -> list | None:
         results = []
         data_points = (end - start) / step
         temp_start = start
@@ -95,7 +94,7 @@ class Prometheus:
             LOGGER.exception("Prometheus error: {err}", err=ex)
         return results
 
-    def query(self, query: str) -> Optional[dict]:
+    def query(self, query: str) -> dict | None:
         results = []
         try:
             response = requests.get(

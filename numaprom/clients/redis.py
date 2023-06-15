@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 
 from redis.cluster import RedisCluster
 from redis.backoff import ExponentialBackoff
@@ -10,7 +9,7 @@ from numaprom import LOGGER
 from numaprom.tools import is_host_reachable
 
 
-redis_client: Optional[RedisCluster] = None
+redis_client: RedisCluster | None = None
 
 
 def get_redis_client(

@@ -2,7 +2,6 @@ import datetime
 import json
 import os
 import sys
-from typing import Union
 from unittest import mock
 from unittest.mock import MagicMock, patch, Mock
 
@@ -41,7 +40,7 @@ def get_datum(data: str or bytes) -> Datum:
     )
 
 
-def get_stream_data(data_path: str) -> dict[str, Union[dict, str, list]]:
+def get_stream_data(data_path: str) -> dict[str, dict | str | list]:
     with open(data_path) as fp:
         data = json.load(fp)
     return data
@@ -57,29 +56,28 @@ def get_prepoc_input(data_path: str) -> Messages:
     out = Messages()
     data = get_stream_data(data_path)
     for obj in data:
-        _out = window("", get_datum(obj))
-        if len(_out.items()[0].tags) > 0:
-            if not _out.items()[0].tags[0] == DROP:
-                out.append(_out.items()[0])
+        _out = window([""], get_datum(obj))
+        if len(_out[0].tags) > 0:
+            if not _out[0].tags[0] == DROP:
+                out.append(_out[0])
         else:
-            out.append(_out.items()[0])
+            out.append(_out[0])
     return out
 
 
 def get_inference_input(data_path: str, prev_clf_exists=True) -> Messages:
     out = Messages()
     preproc_input = get_prepoc_input(data_path)
-    print("PREPROC", preproc_input, prev_clf_exists)
     _mock_return = return_preproc_clf() if prev_clf_exists else None
     with patch.object(RedisRegistry, "load", Mock(return_value=_mock_return)):
-        for msg in preproc_input.items():
+        for msg in preproc_input:
             _in = get_datum(msg.value)
-            _out = preprocess("", _in)
-            if len(_out.items()[0].tags) > 0:
-                if not _out.items()[0].tags[0] == DROP:
-                    out.append(_out.items()[0])
+            _out = preprocess([""], _in)
+            if len(_out[0].tags) > 0:
+                if not _out[0].tags[0] == DROP:
+                    out.append(_out[0])
             else:
-                out.append(_out.items()[0])
+                out.append(_out[0])
     return out
 
 
@@ -93,15 +91,15 @@ def get_threshold_input(data_path: str, prev_clf_exists=True, prev_model_stale=F
     else:
         _mock_return = None
     with patch.object(RedisRegistry, "load", Mock(return_value=_mock_return)):
-        for msg in inference_input.items():
+        for msg in inference_input:
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("inference")
             _out = handler_(None, _in)
-            if len(_out.items()[0].tags) > 0:
-                if not _out.items()[0].tags[0] == DROP:
-                    out.append(_out.items()[0])
+            if len(_out[0].tags) > 0:
+                if not _out[0].tags[0] == DROP:
+                    out.append(_out[0])
             else:
-                out.append(_out.items()[0])
+                out.append(_out[0])
     return out
 
 
@@ -110,11 +108,11 @@ def get_postproc_input(data_path: str, prev_clf_exists=True, prev_model_stale=Fa
     thresh_input = get_threshold_input(data_path, prev_model_stale=prev_model_stale)
     _mock_return = return_threshold_clf() if prev_clf_exists else None
     with patch.object(RedisRegistry, "load", Mock(return_value=_mock_return)):
-        for msg in thresh_input.items():
+        for msg in thresh_input:
             _in = get_datum(msg.value)
             handler_ = HandlerFactory.get_handler("threshold")
             _out = handler_(None, _in)
-            for _msg in _out.items():
+            for _msg in _out:
                 for tag in _msg.tags:
                     if tag == bytes(POSTPROC_VTX_KEY, "utf-8"):
                         out.append(_msg)
@@ -222,7 +220,6 @@ def mock_argocd_query_metric(*_, **__):
         os.path.join(TESTS_DIR, "resources", "data", "argocd.csv"),
         index_col="timestamp",
         parse_dates=["timestamp"],
-        infer_datetime_format=True,
     )
 
 
@@ -231,7 +228,6 @@ def mock_rollout_query_metric(*_, **__):
         os.path.join(TESTS_DIR, "resources", "data", "argorollouts.csv"),
         index_col="timestamp",
         parse_dates=["timestamp"],
-        infer_datetime_format=True,
     )
 
 
@@ -240,7 +236,6 @@ def mock_rollout_query_metric2(*_, **__):
         os.path.join(TESTS_DIR, "resources", "data", "argorollouts.csv"),
         index_col="timestamp",
         parse_dates=["timestamp"],
-        infer_datetime_format=True,
     )
     df.rename(columns={"hash_id": "rollouts_pod_template_hash"}, inplace=True)
     return df

@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Any, Union, TypeVar
+from typing import Any, TypeVar
 from collections import OrderedDict
 
 import numpy as np
@@ -10,7 +10,7 @@ import orjson
 from typing_extensions import Self
 
 Vector = list[float]
-Matrix = Union[Vector, list[Vector], npt.NDArray[float]]
+Matrix = Vector | list[Vector] | npt.NDArray[float]
 
 
 class Status(str, Enum):
@@ -32,7 +32,7 @@ class Header(str, Enum):
     MODEL_STALE = "model_stale"
 
 
-@dataclass
+@dataclass(slots=True)
 class _BasePayload:
     uuid: str
     composite_keys: OrderedDict[str, str]
@@ -41,12 +41,12 @@ class _BasePayload:
 PayloadType = TypeVar("PayloadType", bound=_BasePayload)
 
 
-@dataclass
+@dataclass(slots=True)
 class TrainerPayload(_BasePayload):
     header: Header = Header.TRAIN_REQUEST
 
 
-@dataclass(repr=False)
+@dataclass(slots=True, repr=False)
 class StreamPayload(_BasePayload):
     win_raw_arr: Matrix
     win_arr: Matrix
@@ -65,8 +65,8 @@ class StreamPayload(_BasePayload):
 
     def get_stream_array(self, original=False) -> npt.NDArray[float]:
         if original:
-            return np.asarray(self.win_raw_arr)
-        return np.asarray(self.win_arr)
+            return np.array(self.win_raw_arr)
+        return np.array(self.win_arr)
 
     def get_metadata(self, key: str) -> dict[str, Any]:
         return copy(self.metadata[key])
@@ -106,7 +106,7 @@ class PayloadFactory:
     }
 
     @classmethod
-    def from_json(cls, json_data: Union[bytes, str]) -> PayloadType:
+    def from_json(cls, json_data: bytes | str) -> PayloadType:
         data = orjson.loads(json_data)
         header = data.get("header")
         if not header:
@@ -115,12 +115,12 @@ class PayloadFactory:
         return payload_cls(**data)
 
 
-@dataclass(repr=False)
+@dataclass(slots=True, repr=False)
 class PrometheusPayload:
     timestamp_ms: int
     name: str
     namespace: str
-    subsystem: Optional[str]
+    subsystem: str | None
     type: str
     value: float
     labels: dict[str, str]
@@ -139,7 +139,7 @@ class PrometheusPayload:
         )
 
     @classmethod
-    def from_json(cls, json_obj: Union[bytes, str]) -> Self:
+    def from_json(cls, json_obj: bytes | str) -> Self:
         obj = orjson.loads(json_obj)
         return cls(
             timestamp_ms=obj["TimestampMs"],

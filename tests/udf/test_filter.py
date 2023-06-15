@@ -19,7 +19,7 @@ class TestFilter(unittest.TestCase):
     def test_filter(self):
         for data in self.input_stream:
             _out = metric_filter("", get_datum(data))
-            _out = _out.items()[0].value
+            _out = _out[0].value
             if _out:
                 data = json.loads(_out)
                 self.assertEqual(data["labels"]["numalogic"], "true")

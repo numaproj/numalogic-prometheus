@@ -30,7 +30,7 @@ class TestInference(unittest.TestCase):
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.inference_input = get_inference_input(STREAM_DATA_PATH)
-        assert cls.inference_input.items(), print("input items is empty", cls.inference_input)
+        assert len(cls.inference_input), print("input items is empty", cls.inference_input)
 
     def setUp(self) -> None:
         redis_client.flushall()
@@ -38,11 +38,11 @@ class TestInference(unittest.TestCase):
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(RedisRegistry, "load", Mock(return_value=return_mock_lstmae()))
     def test_inference(self):
-        for msg in self.inference_input.items():
+        for msg in self.inference_input:
             _in = get_datum(msg.value)
-            _out = inference("", _in)
-            for _datum in _out.items():
-                out_data = _datum.value.decode("utf-8")
+            _out = inference([""], _in)
+            for _m in _out:
+                out_data = _m.value.decode("utf-8")
                 payload = StreamPayload(**orjson.loads(out_data))
 
                 self.assertEqual(payload.status, Status.INFERRED)
@@ -54,13 +54,10 @@ class TestInference(unittest.TestCase):
     @patch.object(RedisRegistry, "load", Mock(return_value=return_mock_lstmae()))
     @patch.object(AutoencoderTrainer, "predict", Mock(side_effect=RuntimeError))
     def test_inference_err(self):
-        for msg in self.inference_input.items():
-            _in = get_datum(msg.value)
-            _out = inference("", _in)
-            for _datum in _out.items():
-                out_data = _datum.value.decode("utf-8")
-                payload = StreamPayload(**orjson.loads(out_data))
-
+        for msg in self.inference_input:
+            _out = inference([""], get_datum(msg.value))
+            for _m in _out:
+                payload = StreamPayload(**orjson.loads(_m.value))
                 self.assertEqual(payload.status, Status.RUNTIME_ERROR)
                 self.assertEqual(payload.header, Header.STATIC_INFERENCE)
                 self.assertTrue(payload.win_arr)
@@ -68,11 +65,9 @@ class TestInference(unittest.TestCase):
 
     @patch.object(RedisRegistry, "load", Mock(return_value=None))
     def test_no_model(self):
-        for msg in self.inference_input.items():
-            _in = get_datum(msg.value)
-            _out = inference("", _in)
-            out_data = _out.items()[0].value.decode("utf-8")
-            payload = StreamPayload(**orjson.loads(out_data))
+        for msg in self.inference_input:
+            _out = inference([""], get_datum(msg.value))
+            payload = StreamPayload(**orjson.loads(_out[0].value))
             self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
             self.assertEqual(payload.header, Header.STATIC_INFERENCE)
             self.assertIsInstance(payload, StreamPayload)
@@ -81,11 +76,11 @@ class TestInference(unittest.TestCase):
     @patch.object(RedisRegistry, "load", Mock(return_value=return_mock_lstmae()))
     def test_no_prev_model(self):
         inference_input = get_inference_input(STREAM_DATA_PATH, prev_clf_exists=False)
-        assert inference_input.items(), print("input items is empty", inference_input)
-        for msg in inference_input.items():
+        assert len(inference_input), print("input items is empty", inference_input)
+        for msg in inference_input:
             _in = get_datum(msg.value)
-            _out = inference("", _in)
-            out_data = _out.items()[0].value.decode("utf-8")
+            _out = inference([""], _in)
+            out_data = _out[0].value.decode("utf-8")
             payload = StreamPayload(**orjson.loads(out_data))
             self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
             self.assertEqual(payload.header, Header.STATIC_INFERENCE)
@@ -93,11 +88,11 @@ class TestInference(unittest.TestCase):
 
     @patch.object(RedisRegistry, "load", Mock(return_value=return_stale_model()))
     def test_stale_model(self):
-        for msg in self.inference_input.items():
+        for msg in self.inference_input:
             _in = get_datum(msg.value)
-            _out = inference("", _in)
-            for _datum in _out.items():
-                payload = StreamPayload(**orjson.loads(_out.items()[0].value.decode("utf-8")))
+            _out = inference([""], _in)
+            for _datum in _out:
+                payload = StreamPayload(**orjson.loads(_out[0].value))
                 self.assertTrue(payload)
                 self.assertEqual(payload.status, Status.INFERRED)
                 self.assertEqual(payload.header, Header.MODEL_STALE)

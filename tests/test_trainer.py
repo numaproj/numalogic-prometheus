@@ -2,7 +2,6 @@ import json
 import os
 import unittest
 from datetime import datetime
-from typing import Union
 from unittest.mock import patch, Mock
 
 from pynumaflow.sink import Datum
@@ -20,7 +19,7 @@ DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
+def as_datum(data: str | bytes | dict, msg_id="1") -> Datum:
     if type(data) is not bytes:
         data = json.dumps(data).encode("utf-8")
     elif type(data) == dict:
@@ -58,43 +57,43 @@ class TestTrainer(unittest.TestCase):
     def test_argocd_trainer_01(self):
         datums = [as_datum(self.train_payload)]
         _out = train(datums)
-        self.assertTrue(_out.items()[0].success)
-        self.assertEqual("1", _out.items()[0].id)
-        self.assertEqual(1, len(_out.items()))
+        self.assertTrue(_out[0].success)
+        self.assertEqual("1", _out[0].id)
+        self.assertEqual(1, len(_out))
 
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
     def test_argocd_trainer_02(self):
         datums = [as_datum(self.train_payload), as_datum(self.train_payload, msg_id="2")]
         _out = train(datums)
-        self.assertTrue(_out.items()[0].success)
-        self.assertEqual("1", _out.items()[0].id)
+        self.assertTrue(_out[0].success)
+        self.assertEqual("1", _out[0].id)
 
-        self.assertTrue(_out.items()[1].success)
-        self.assertEqual("2", _out.items()[1].id)
-        self.assertEqual(2, len(_out.items()))
+        self.assertTrue(_out[1].success)
+        self.assertEqual("2", _out[1].id)
+        self.assertEqual(2, len(_out))
 
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
     def test_argo_rollout_trainer_01(self):
-        _out = train_rollout([as_datum(self.train_payload)])
-        self.assertTrue(_out.items()[0].success)
-        self.assertEqual("1", _out.items()[0].id)
+        _out = train_rollout(iter([as_datum(self.train_payload)]))
+        self.assertTrue(_out[0].success)
+        self.assertEqual("1", _out[0].id)
 
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
     def test_argo_rollout_trainer_02(self):
         datums = [as_datum(self.train_payload), as_datum(self.train_payload, msg_id="2")]
         _out = train_rollout(datums)
-        self.assertTrue(_out.items()[0].success)
-        self.assertEqual("1", _out.items()[0].id)
+        self.assertTrue(_out[0].success)
+        self.assertEqual("1", _out[0].id)
 
-        self.assertTrue(_out.items()[1].success)
-        self.assertEqual("2", _out.items()[1].id)
-        self.assertEqual(2, len(_out.items()))
+        self.assertTrue(_out[1].success)
+        self.assertEqual("2", _out[1].id)
+        self.assertEqual(2, len(_out))
 
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric2()))
     def test_argo_rollout_trainer_03(self):
         _out = train_rollout([as_datum(self.train_payload2)])
-        self.assertTrue(_out.items()[0].success)
-        self.assertEqual("1", _out.items()[0].id)
+        self.assertTrue(_out[0].success)
+        self.assertEqual("1", _out[0].id)
 
 
 if __name__ == "__main__":
