@@ -20,7 +20,7 @@ format: clean
 	poetry run black starter.py
 
 lint: format
-	poetry run flake8 .
+	poetry run ruff check --fix .
 
 # install all dependencies
 setup:

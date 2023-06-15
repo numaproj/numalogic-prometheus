@@ -58,7 +58,8 @@ def __save_to_redis(
         weighted_anomalies = np.multiply(anomalies, unified_weights)
         unified_anomaly = float(np.sum(weighted_anomalies) / np.sum(unified_weights))
         LOGGER.info(
-            "{uuid} - Generating unified anomaly, using unified weights. Unified Anomaly: {anomaly}",
+            "{uuid} - Generating unified anomaly, using unified weights. "
+            "Unified Anomaly: {anomaly}",
             uuid=payload.uuid,
             anomaly=unified_anomaly,
         )
@@ -197,7 +198,8 @@ def postprocess(_: list[str], datum: Datum) -> list[bytes]:
     else:
         final_score = winscorer.get_final_winscore(payload)
         LOGGER.info(
-            "{uuid} - Final ensemble score: {ensemble_score}, static thresh wt: {thresh}, keys: {keys}",
+            "{uuid} - Final ensemble score: {ensemble_score}, "
+            "static thresh wt: {thresh}, keys: {keys}",
             uuid=payload.uuid,
             ensemble_score=final_score,
             thresh=metric_config.static_threshold_wt,

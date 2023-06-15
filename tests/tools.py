@@ -2,7 +2,6 @@ import datetime
 import json
 import os
 import sys
-from typing import Union
 from unittest import mock
 from unittest.mock import MagicMock, patch, Mock
 
@@ -41,7 +40,7 @@ def get_datum(data: str or bytes) -> Datum:
     )
 
 
-def get_stream_data(data_path: str) -> dict[str, Union[dict, str, list]]:
+def get_stream_data(data_path: str) -> dict[str, dict | str | list]:
     with open(data_path) as fp:
         data = json.load(fp)
     return data

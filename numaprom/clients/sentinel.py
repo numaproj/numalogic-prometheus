@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from numalogic.tools.types import redis_client_t
 from redis.backoff import ExponentialBackoff
@@ -12,7 +11,7 @@ from numaprom._config import RedisConf
 from numaprom.watcher import ConfigManager
 
 
-SENTINEL_MASTER_CLIENT: Optional[redis_client_t] = None
+SENTINEL_MASTER_CLIENT: redis_client_t | None = None
 
 
 def get_redis_client(

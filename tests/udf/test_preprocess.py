@@ -26,19 +26,18 @@ class TestPreprocess(unittest.TestCase):
     def setUpClass(cls) -> None:
         redis_client.flushall()
         cls.preproc_input = get_prepoc_input(STREAM_DATA_PATH)
-        assert cls.preproc_input.items(), print("input items is empty", cls.preproc_input)
+        assert len(cls.preproc_input), print("input items is empty", cls.preproc_input)
 
     def setUp(self) -> None:
         redis_client.flushall()
 
     @patch.object(RedisRegistry, "load", Mock(return_value=return_preproc_clf()))
     def test_preprocess(self):
-        for msg in self.preproc_input.items():
-            _in = get_datum(msg.value)
-            _out = preprocess("", _in)
-            for _datum in _out.items():
-                out_data = _datum.value.decode("utf-8")
-                payload = StreamPayload(**orjson.loads(out_data))
+        for msg in self.preproc_input:
+            _out = preprocess([""], get_datum(msg.value))
+            self.assertGreater(len(_out), 0)
+            for _m in _out:
+                payload = StreamPayload(**orjson.loads(_m.value))
 
                 self.assertEqual(payload.status, Status.PRE_PROCESSED)
                 self.assertEqual(payload.header, Header.MODEL_INFERENCE)
@@ -48,11 +47,10 @@ class TestPreprocess(unittest.TestCase):
 
     @patch.object(RedisRegistry, "load", Mock(return_value=None))
     def test_preprocess_no_clf(self):
-        for msg in self.preproc_input.items():
+        for msg in self.preproc_input:
             _in = get_datum(msg.value)
-            _out = preprocess("", _in)
-            out_data = _out.items()[0].value.decode("utf-8")
-            payload = StreamPayload(**orjson.loads(out_data))
+            _out = preprocess([""], _in)
+            payload = StreamPayload(**orjson.loads(_out[0].value))
             self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
             self.assertEqual(payload.header, Header.STATIC_INFERENCE)
             self.assertIsInstance(payload, StreamPayload)
@@ -60,15 +58,15 @@ class TestPreprocess(unittest.TestCase):
     @patch.object(RedisRegistry, "load", Mock(return_value=return_preproc_clf()))
     def test_preprocess_with_nan(self):
         preproc_input = get_prepoc_input(STREAM_NAN_DATA_PATH)
-        assert preproc_input.items(), print("input items is empty", preproc_input)
+        assert len(preproc_input), print("input items is empty", preproc_input)
 
-        for msg in preproc_input.items():
+        for msg in preproc_input:
             _in = get_datum(msg.value)
-            _out = preprocess("", _in)
-            out_data = _out.items()[0].value.decode("utf-8")
-            payload = StreamPayload(**orjson.loads(out_data))
+            _out = preprocess([""], _in)
+            payload = StreamPayload(**orjson.loads(_out[0].value))
             stream_arr = payload.get_stream_array()
 
+            self.assertNotEqual(id(stream_arr), payload.win_arr)
             self.assertEqual(payload.status, Status.PRE_PROCESSED)
             self.assertEqual(payload.header, Header.MODEL_INFERENCE)
             self.assertTrue(np.isfinite(stream_arr).all())
@@ -78,11 +76,10 @@ class TestPreprocess(unittest.TestCase):
     @patch.object(RedisRegistry, "load", Mock(side_effect=ModuleNotFoundError))
     def test_unhandled_exception(self):
         with self.assertRaises(Exception):
-            for msg in self.preproc_input.items():
+            for msg in self.preproc_input:
                 _in = get_datum(msg.value)
-                _out = preprocess("", _in)
-                out_data = _out.items()[0].value.decode("utf-8")
-                payload = StreamPayload(**orjson.loads(out_data))
+                _out = preprocess([""], _in)
+                payload = StreamPayload(**orjson.loads(_out[0].value))
                 self.assertEqual(payload.status, Status.ARTIFACT_NOT_FOUND)
                 self.assertEqual(payload.header, Header.STATIC_INFERENCE)
                 self.assertIsInstance(payload, StreamPayload)

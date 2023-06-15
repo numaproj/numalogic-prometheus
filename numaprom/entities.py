@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Any, Union, TypeVar
+from typing import Any, Union, TypeVar
 from collections import OrderedDict
 
 import numpy as np
@@ -106,7 +106,7 @@ class PayloadFactory:
     }
 
     @classmethod
-    def from_json(cls, json_data: Union[bytes, str]) -> PayloadType:
+    def from_json(cls, json_data: bytes | str) -> PayloadType:
         data = orjson.loads(json_data)
         header = data.get("header")
         if not header:
@@ -120,7 +120,7 @@ class PrometheusPayload:
     timestamp_ms: int
     name: str
     namespace: str
-    subsystem: Optional[str]
+    subsystem: str | None
     type: str
     value: float
     labels: dict[str, str]
@@ -139,7 +139,7 @@ class PrometheusPayload:
         )
 
     @classmethod
-    def from_json(cls, json_obj: Union[bytes, str]) -> Self:
+    def from_json(cls, json_obj: bytes | str) -> Self:
         obj = orjson.loads(json_obj)
         return cls(
             timestamp_ms=obj["TimestampMs"],

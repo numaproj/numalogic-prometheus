@@ -1,6 +1,5 @@
 import os
 import json
-from typing import Optional
 
 from pynumaflow.function import Messages, Datum
 
@@ -10,7 +9,7 @@ from numaprom.tools import catch_exception, msg_forward
 
 @catch_exception
 @msg_forward
-def metric_filter(_: list[str], datum: Datum) -> Optional[Messages]:
+def metric_filter(_: list[str], datum: Datum) -> Messages | None:
     """UDF to filter metrics by labels."""
     LOGGER.debug("Received Msg: {value} ", value=datum.value)
 

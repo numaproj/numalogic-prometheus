@@ -1,4 +1,4 @@
-from typing import Callable, Union
+from collections.abc import Callable
 
 from pynumaflow.function import Messages
 from pynumaflow.sink import Responses
@@ -9,7 +9,7 @@ from numaprom.udsink import train, train_rollout
 
 class HandlerFactory:
     @classmethod
-    def get_handler(cls, step: str) -> Callable[..., Union[Messages, Responses]]:
+    def get_handler(cls, step: str) -> Callable[..., Messages | Responses]:
         if step == "metric_filter":
             return metric_filter
 

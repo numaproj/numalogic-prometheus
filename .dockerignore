@@ -11,5 +11,5 @@ LICENSE
 .idea/
 .codecov.yml
 .coveragerc
-.flake8
+.ruff_cache
 .hack/

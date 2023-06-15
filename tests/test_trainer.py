@@ -2,7 +2,6 @@ import json
 import os
 import unittest
 from datetime import datetime
-from typing import Union
 from unittest.mock import patch, Mock
 
 from pynumaflow.sink import Datum
@@ -20,7 +19,7 @@ DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
-def as_datum(data: Union[str, bytes, dict], msg_id="1") -> Datum:
+def as_datum(data: str | bytes | dict, msg_id="1") -> Datum:
     if type(data) is not bytes:
         data = json.dumps(data).encode("utf-8")
     elif type(data) == dict:
