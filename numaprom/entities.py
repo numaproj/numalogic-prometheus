@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Union, TypeVar
+from typing import Any, TypeVar
 from collections import OrderedDict
 
 import numpy as np
@@ -10,7 +10,7 @@ import orjson
 from typing_extensions import Self
 
 Vector = list[float]
-Matrix = Union[Vector, list[Vector], npt.NDArray[float]]
+Matrix = Vector | list[Vector] | npt.NDArray[float]
 
 
 class Status(str, Enum):
