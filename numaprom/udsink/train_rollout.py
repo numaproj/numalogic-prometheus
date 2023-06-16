@@ -108,7 +108,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
         LOGGER.debug(
             "{uuid} - Starting Training for keys: {skeys}",
             uuid=payload.uuid,
-            keys=payload.composite_keys,
+            skeys=payload.composite_keys,
         )
 
         is_new = _is_new_request(redis_client, payload)
@@ -116,7 +116,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             LOGGER.debug(
                 "{uuid} - Skipping rollouts train request with keys: {skeys}",
                 uuid=payload.uuid,
-                keys=payload.composite_keys,
+                skeys=payload.composite_keys,
             )
             responses.append(Response.as_success(_datum.id))
             continue
