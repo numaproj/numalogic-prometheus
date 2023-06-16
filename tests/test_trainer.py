@@ -53,7 +53,7 @@ class TestTrainer(unittest.TestCase):
     def setUp(self) -> None:
         redis_client.flushall()
 
-    # @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
+    @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
     def test_argocd_trainer_01(self):
         datums = [as_datum(self.train_payload)]
         _out = train(datums)

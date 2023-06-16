@@ -160,16 +160,16 @@ def train(datums: list[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             LOGGER.exception(
-                "{uuid} - Error while saving Model with skeys: {keys}, err: {err}",
+                "{uuid} - Error while saving Model with skeys: {skeys}, err: {err}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 err=err,
             )
         else:
             LOGGER.info(
-                "{uuid} - Model saved with skeys: {keys} with version: {version}",
+                "{uuid} - Model saved with skeys: {skeys} with version: {version}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 version=version,
             )
         # Save preproc model
@@ -182,16 +182,16 @@ def train(datums: list[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             LOGGER.exception(
-                "{uuid} - Error while saving Preproc model with skeys: {keys}, err: {err}",
+                "{uuid} - Error while saving Preproc model with skeys: {skeys}, err: {err}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 err=err,
             )
         else:
             LOGGER.info(
-                "{uuid} - Preproc model saved with skeys: {keys} with version: {version}",
+                "{uuid} - Preproc model saved with skeys: {skeys} with version: {version}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 version=version,
             )
         # Save threshold model
@@ -204,16 +204,16 @@ def train(datums: list[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             LOGGER.error(
-                "{uuid} - Error while saving Threshold model with skeys: {keys}, err: {err}",
+                "{uuid} - Error while saving Threshold model with skeys: {skeys}, err: {err}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 err=err,
             )
         else:
             LOGGER.info(
-                "{uuid} - Threshold model saved with skeys: {keys} with version: {version}",
+                "{uuid} - Threshold model saved with skeys: {skeys} with version: {version}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 version=version,
             )
 
