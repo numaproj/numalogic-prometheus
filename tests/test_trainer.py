@@ -34,8 +34,8 @@ class TestTrainer(unittest.TestCase):
     train_payload = {
         "uuid": "123124543",
         "composite_keys": {
-            "namespace": "sandbox_numalogic_demo",
-            "name": "metric_1",
+            "namespace": "dev-devx-o11yfuzzygqlfederation-usw2-prd",
+            "name": "namespace_app_rollouts_http_request_error_rate",
             "hash_id": "123456789",
         },
     }
@@ -53,7 +53,7 @@ class TestTrainer(unittest.TestCase):
     def setUp(self) -> None:
         redis_client.flushall()
 
-    @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
+    # @patch.object(Prometheus, "query_metric", Mock(return_value=mock_argocd_query_metric()))
     def test_argocd_trainer_01(self):
         datums = [as_datum(self.train_payload)]
         _out = train(datums)

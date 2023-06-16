@@ -218,7 +218,7 @@ def return_threshold_clf(n_feat=1):
 def mock_argocd_query_metric(*_, **__):
     return pd.read_csv(
         os.path.join(TESTS_DIR, "resources", "data", "argocd.csv"),
-        index_col="timestamp",
+        index_col=0,
         parse_dates=["timestamp"],
     )
 
@@ -226,7 +226,7 @@ def mock_argocd_query_metric(*_, **__):
 def mock_rollout_query_metric(*_, **__):
     return pd.read_csv(
         os.path.join(TESTS_DIR, "resources", "data", "argorollouts.csv"),
-        index_col="timestamp",
+        index_col=0,
         parse_dates=["timestamp"],
     )
 
@@ -234,7 +234,7 @@ def mock_rollout_query_metric(*_, **__):
 def mock_rollout_query_metric2(*_, **__):
     df = pd.read_csv(
         os.path.join(TESTS_DIR, "resources", "data", "argorollouts.csv"),
-        index_col="timestamp",
+        index_col=0,
         parse_dates=["timestamp"],
     )
     df.rename(columns={"hash_id": "rollouts_pod_template_hash"}, inplace=True)

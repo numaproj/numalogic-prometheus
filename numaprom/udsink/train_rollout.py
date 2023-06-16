@@ -35,7 +35,7 @@ def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
 
     if df.empty:
         return pd.DataFrame()
-    df = df.reset_index()
+    df = df.reset_index(drop=True)
     df = (
         pd.merge(df, df[df.duplicated("timestamp", keep=False)], indicator=True, how="outer")
         .query('_merge=="left_only"')
