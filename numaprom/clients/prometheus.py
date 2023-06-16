@@ -53,8 +53,6 @@ class Prometheus:
             df.sort_values(by=["timestamp"], inplace=True)
             df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
 
-        print(df)
-
         return df
 
     def query_range(self, query: str, start: float, end: float, step: int = 30) -> list | None:
