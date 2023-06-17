@@ -156,6 +156,9 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             continue
 
         if train_df.shape[1] != get_model_config(metric_config).n_features:
+            LOGGER.error(
+                "Expected Shape is: {shape}", shape=get_model_config(metric_config).n_features
+            )
             raise InvalidDataShapeError(f"Train data shape error. Input shape: {train_df.shape}")
 
         if len(train_df) < metric_config.min_train_size:
