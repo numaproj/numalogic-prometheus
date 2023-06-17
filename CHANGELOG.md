@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.4.10 (2023-06-16)
+
+ * [bea884a](https://github.com/numaproj/numalogic-prometheus/commit/bea884adace8f95feaf95380a8659a241ce66de5) Bugs fix (#155)
+
+### Contributors
+
+ * Kushal Batra
+
+## v0.4.9 (2023-06-15)
+
+ * [43786b0](https://github.com/numaproj/numalogic-prometheus/commit/43786b0ef29d1c41408a753e2d051a2089c9734d) Patch 1 (#151)
+
+### Contributors
+
+ * Kushal Batra
+
 ## v0.4.8 (2023-06-15)
 
  * [32f3a35](https://github.com/numaproj/numalogic-prometheus/commit/32f3a35158f2c2419b2d9fbc52c52f49b55fe00b) fix: create new copy of array while retrieving from payload (#148)
