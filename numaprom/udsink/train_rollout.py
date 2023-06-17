@@ -3,6 +3,7 @@ import time
 from collections.abc import Iterator
 
 import numpy as np
+from numalogic.tools.exceptions import InvalidDataShapeError
 import pandas as pd
 from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
@@ -98,6 +99,13 @@ def _is_new_request(redis_client: redis_client_t, payload: TrainerPayload) -> bo
     return True
 
 
+def get_model_config(metric_config):
+    model_cfg = metric_config.numalogic_conf.model
+    model_factory = ModelFactory()
+    model = model_factory.get_instance(model_cfg)
+    return model
+
+
 def train_rollout(datums: Iterator[Datum]) -> Responses:
     responses = Responses()
     redis_client = get_redis_client_from_conf()
@@ -146,6 +154,9 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             )
             responses.append(Response.as_success(_datum.id))
             continue
+
+        if train_df.shape[1] != get_model_config(metric_config).n_features:
+            raise InvalidDataShapeError(f"Train data shape error. Input shape: {train_df.shape}")
 
         if len(train_df) < metric_config.min_train_size:
             LOGGER.warning(

@@ -5,6 +5,7 @@ from datetime import datetime
 from unittest.mock import patch, Mock
 
 from pynumaflow.sink import Datum
+from numalogic.tools.exceptions import InvalidDataShapeError
 
 from numaprom._constants import TESTS_DIR
 from numaprom.clients.prometheus import Prometheus
@@ -12,6 +13,7 @@ from tests.tools import (
     mock_argocd_query_metric,
     mock_rollout_query_metric,
     mock_rollout_query_metric2,
+    mock_rollout_query_metric3,
 )
 from tests import train, redis_client, train_rollout
 
@@ -36,7 +38,7 @@ class TestTrainer(unittest.TestCase):
         "composite_keys": {
             "namespace": "dev-devx-o11yfuzzygqlfederation-usw2-prd",
             "name": "namespace_app_rollouts_http_request_error_rate",
-            "hash_id": "123456789",
+            "rollouts_pod_template_hash": "123456789",
         },
     }
 
@@ -77,6 +79,13 @@ class TestTrainer(unittest.TestCase):
         _out = train_rollout(iter([as_datum(self.train_payload)]))
         self.assertTrue(_out[0].success)
         self.assertEqual("1", _out[0].id)
+
+    @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric3()))
+    def test_argo_rollout_trainer_raises_error(self):
+        with self.assertRaises(InvalidDataShapeError):
+            _out = train_rollout(iter([as_datum(self.train_payload)]))
+            self.assertTrue(_out[0].success)
+            self.assertEqual("1", _out[0].id)
 
     @patch.object(Prometheus, "query_metric", Mock(return_value=mock_rollout_query_metric()))
     def test_argo_rollout_trainer_02(self):
