@@ -3,6 +3,7 @@ import time
 from collections.abc import Iterator
 
 import numpy as np
+from numalogic.tools.exceptions import InvalidDataShapeError
 import pandas as pd
 from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
 from numalogic.models.autoencoder import AutoencoderTrainer
@@ -35,7 +36,7 @@ def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
 
     if df.empty:
         return pd.DataFrame()
-    df = df.reset_index()
+    df = df.reset_index(drop=True)
     df = (
         pd.merge(df, df[df.duplicated("timestamp", keep=False)], indicator=True, how="outer")
         .query('_merge=="left_only"')
@@ -98,6 +99,13 @@ def _is_new_request(redis_client: redis_client_t, payload: TrainerPayload) -> bo
     return True
 
 
+def get_model_config(metric_config):
+    model_cfg = metric_config.numalogic_conf.model
+    model_factory = ModelFactory()
+    model = model_factory.get_instance(model_cfg)
+    return model
+
+
 def train_rollout(datums: Iterator[Datum]) -> Responses:
     responses = Responses()
     redis_client = get_redis_client_from_conf()
@@ -106,17 +114,17 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
         payload = TrainerPayload(**orjson.loads(_datum.value))
 
         LOGGER.debug(
-            "{uuid} - Starting Training for keys: {keys}",
+            "{uuid} - Starting Training for keys: {skeys}",
             uuid=payload.uuid,
-            keys=payload.composite_keys,
+            skeys=payload.composite_keys,
         )
 
         is_new = _is_new_request(redis_client, payload)
         if not is_new:
             LOGGER.debug(
-                "{uuid} - Skipping rollouts train request with keys: {keys}",
+                "{uuid} - Skipping rollouts train request with keys: {skeys}",
                 uuid=payload.uuid,
-                keys=payload.composite_keys,
+                skeys=payload.composite_keys,
             )
             responses.append(Response.as_success(_datum.id))
             continue
@@ -146,6 +154,12 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             )
             responses.append(Response.as_success(_datum.id))
             continue
+
+        if train_df.shape[1] != get_model_config(metric_config).n_features:
+            LOGGER.error(
+                "Expected Shape is: {shape}", shape=get_model_config(metric_config).n_features
+            )
+            raise InvalidDataShapeError(f"Train data shape error. Input shape: {train_df.shape}")
 
         if len(train_df) < metric_config.min_train_size:
             LOGGER.warning(
@@ -197,16 +211,16 @@ def _train_and_save(
         )
     except RedisRegistryError as err:
         LOGGER.exception(
-            "{uuid} - Error while saving Model with skeys: {keys}, err: {err}",
+            "{uuid} - Error while saving Model with skeys: {skeys}, err: {err}",
             uuid=payload.uuid,
-            keys=skeys,
+            skeys=skeys,
             err=err,
         )
     else:
         LOGGER.info(
-            "{uuid} - Model saved with skeys: {keys} with version: {version}",
+            "{uuid} - Model saved with skeys: {skeys} with version: {version}",
             uuid=payload.uuid,
-            keys=skeys,
+            skeys=skeys,
             version=version,
         )
     # Save preproc model
@@ -219,16 +233,16 @@ def _train_and_save(
         )
     except RedisRegistryError as err:
         LOGGER.exception(
-            "{uuid} - Error while saving Preproc model with skeys: {keys}, err: {err}",
+            "{uuid} - Error while saving Preproc model with skeys: {skeys}, err: {err}",
             uuid=payload.uuid,
-            keys=skeys,
+            skeys=skeys,
             err=err,
         )
     else:
         LOGGER.info(
-            "{uuid} - Preproc model saved with skeys: {keys} with version: {version}",
+            "{uuid} - Preproc model saved with skeys: {skeys} with version: {version}",
             uuid=payload.uuid,
-            keys=skeys,
+            skeys=skeys,
             version=version,
         )
     # Save threshold model
@@ -241,15 +255,15 @@ def _train_and_save(
         )
     except RedisRegistryError as err:
         LOGGER.error(
-            "{uuid} - Error while saving Threshold model with skeys: {keys}, err: {err}",
+            "{uuid} - Error while saving Threshold model with skeys: {skeys}, err: {err}",
             uuid=payload.uuid,
-            keys=skeys,
+            skeys=skeys,
             err=err,
         )
     else:
         LOGGER.info(
-            "{uuid} - Threshold model saved with skeys: {keys} with version: {version}",
+            "{uuid} - Threshold model saved with skeys: {skeys} with version: {version}",
             uuid=payload.uuid,
-            keys=skeys,
+            skeys=skeys,
             version=version,
         )

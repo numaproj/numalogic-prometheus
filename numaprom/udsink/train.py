@@ -25,11 +25,14 @@ REQUEST_EXPIRY = int(os.getenv("REQUEST_EXPIRY", 300))
 
 
 def clean_data(df: pd.DataFrame, limit=12) -> pd.DataFrame:
+    df = df.reset_index(drop=True)
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df = df.fillna(method="ffill", limit=limit)
     df = df.fillna(method="bfill", limit=limit)
     if df.columns[df.isna().any()].tolist():
         df.dropna(inplace=True)
+
+    df.set_index("timestamp", inplace=True)
     return df
 
 
@@ -98,7 +101,7 @@ def train(datums: list[Datum]) -> Responses:
         LOGGER.debug(
             "{uuid} - Starting Training for keys: {keys}",
             uuid=payload.uuid,
-            time=payload.composite_keys,
+            keys=payload.composite_keys,
         )
 
         is_new = _is_new_request(redis_client, payload)
@@ -157,17 +160,17 @@ def train(datums: list[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             LOGGER.exception(
-                "{uuid} - Error while saving Model with skeys: {keys}, err: {err}",
+                "{uuid} - Error while saving Model with skeys: {skeys}, err: {err}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 err=err,
             )
         else:
             LOGGER.info(
-                "{uuid} - Model saved with skeys: {keys} with version: {version}",
+                "{uuid} - Model saved with skeys: {skeys} with version: {version}",
                 uuid=payload.uuid,
-                keys=skeys,
-                versio=version,
+                skeys=skeys,
+                version=version,
             )
         # Save preproc model
         try:
@@ -179,17 +182,17 @@ def train(datums: list[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             LOGGER.exception(
-                "{uuid} - Error while saving Preproc model with skeys: {keys}, err: {err}",
+                "{uuid} - Error while saving Preproc model with skeys: {skeys}, err: {err}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 err=err,
             )
         else:
             LOGGER.info(
-                "{uuid} - Preproc model saved with skeys: {keys} with version: {version}",
+                "{uuid} - Preproc model saved with skeys: {skeys} with version: {version}",
                 uuid=payload.uuid,
-                keys=skeys,
-                versio=version,
+                skeys=skeys,
+                version=version,
             )
         # Save threshold model
         try:
@@ -201,14 +204,14 @@ def train(datums: list[Datum]) -> Responses:
             )
         except RedisRegistryError as err:
             LOGGER.error(
-                "{uuid} - Error while saving Threshold model with skeys: {keys}, err: {err}",
+                "{uuid} - Error while saving Threshold model with skeys: {skeys}, err: {err}",
                 uuid=payload.uuid,
-                keys=skeys,
+                skeys=skeys,
                 err=err,
             )
         else:
             LOGGER.info(
-                "{uuid} - Threshold model saved with skeys: {keys} with version: {version}",
+                "{uuid} - Threshold model saved with skeys: {skeys} with version: {version}",
                 uuid=payload.uuid,
                 skeys=skeys,
                 version=version,
