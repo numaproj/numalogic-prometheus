@@ -23,7 +23,7 @@ def __save_to_redis(
 
     metric_name = payload.composite_keys["name"]
 
-    r_keys = payload.composite_keys
+    r_keys = payload.composite_keys.copy()
     r_keys.pop("name")
     r_key = f"{':'.join(r_keys.values())}:{payload.end_ts}"
 
