@@ -120,8 +120,8 @@ class TestPrometheus(unittest.TestCase):
     @patch.object(Prometheus, "query_range", Mock(return_value=mock_multiple_metrics()))
     def test_query_metric4(self):
         _out = self.prom.query_metric(
-            metric_name="namespace_app_rollouts_http_request_error_rate",
-            labels_map={"namespace": "dev-devx-o11yfuzzygqlfederation-usw2-prd"},
+            metric_name="namespace_app_pod_http_server_requests_errors",
+            labels_map={"namespace": "sandbox-numalogic-demo"},
             return_labels=["rollouts_pod_template_hash"],
             start=self.start,
             end=self.end,
