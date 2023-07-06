@@ -82,10 +82,10 @@ class TestPrometheus(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         end = datetime.datetime.now()
-        start = end - datetime.timedelta(hours=72)
+        start = end - datetime.timedelta(hours=36)
         cls.start = start.timestamp()
         cls.end = end.timestamp()
-        cls.prom = Prometheus(prometheus_server="http://localhost:8090")
+        cls.prom = Prometheus(prometheus_server="http://localhost:8490")
 
     @patch.object(Prometheus, "query_range", Mock(return_value=mock_query_range()))
     def test_query_metric1(self):
@@ -117,7 +117,7 @@ class TestPrometheus(unittest.TestCase):
         )
         self.assertEqual(_out.shape, (2, 3))
 
-    # @patch.object(Prometheus, "query_range", Mock(return_value=mock_multiple_metrics()))
+    @patch.object(Prometheus, "query_range", Mock(return_value=mock_multiple_metrics()))
     def test_query_metric4(self):
         _out = self.prom.query_metric(
             metric_name="namespace_app_rollouts_http_request_error_rate",
@@ -126,9 +126,8 @@ class TestPrometheus(unittest.TestCase):
             start=self.start,
             end=self.end,
         )
-        print(_out)
-        # self.assertEqual(_out.shape, (4, 3))
-        # self.assertEqual(_out["rollouts_pod_template_hash"].unique().shape[0], 2)
+        self.assertEqual(_out.shape, (4, 3))
+        self.assertEqual(_out["rollouts_pod_template_hash"].unique().shape[0], 2)
 
     @patch.object(requests, "get", Mock(return_value=mock_response()))
     def test_query_range(self):
