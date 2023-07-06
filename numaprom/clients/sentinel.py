@@ -19,7 +19,6 @@ def get_redis_client(
     port: int,
     password: str,
     mastername: str,
-    decode_responses: bool = False,
     recreate: bool = False,
 ) -> redis_client_t:
     """Return a master redis client for sentinel connections, with retry.
@@ -43,7 +42,7 @@ def get_redis_client(
         return SENTINEL_MASTER_CLIENT
 
     retry = Retry(
-        ExponentialBackoff(cap=2, base=1),
+        ExponentialBackoff(),
         3,
         supported_errors=(
             ConnectionError,
@@ -53,18 +52,23 @@ def get_redis_client(
             MasterNotFoundError,
         ),
     )
-    sentinel_args = {
-        "sentinels": [(host, port)],
-        "socket_timeout": 0.1,
-        "decode_responses": decode_responses,
+
+    conn_kwargs = {
+        "socket_timeout": 1,
+        "socket_connect_timeout": 1,
+        "socket_keepalive": True,
+        "health_check_interval": 10,
     }
 
-    LOGGER.info("Sentinel redis params: {args}", args=sentinel_args)
-
     sentinel = Sentinel(
-        **sentinel_args, sentinel_kwargs=dict(password=password), password=password, retry=retry
+        [(host, port)],
+        sentinel_kwargs=dict(password=password, **conn_kwargs),
+        retry=retry,
+        password=password,
+        **conn_kwargs
     )
     SENTINEL_MASTER_CLIENT = sentinel.master_for(mastername)
+    LOGGER.info("Sentinel redis params: {args}", args=conn_kwargs)
     return SENTINEL_MASTER_CLIENT
 
 

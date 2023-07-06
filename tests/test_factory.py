@@ -2,15 +2,11 @@ import unittest
 
 from numaprom.factory import HandlerFactory
 
-from numaprom.udf import metric_filter, preprocess, postprocess, inference, threshold
+from numaprom.udf import preprocess, postprocess, inference, threshold
 from numaprom.udsink import train, train_rollout
 
 
 class TestFactory(unittest.TestCase):
-    def test_metric_filter(self):
-        func = HandlerFactory.get_handler("metric_filter")
-        self.assertEqual(func, metric_filter)
-
     def test_preprocess(self):
         func = HandlerFactory.get_handler("preprocess")
         self.assertEqual(func, preprocess)

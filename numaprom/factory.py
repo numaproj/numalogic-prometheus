@@ -3,16 +3,13 @@ from collections.abc import Callable
 from pynumaflow.function import Messages
 from pynumaflow.sink import Responses
 
-from numaprom.udf import preprocess, postprocess, window, metric_filter, inference, threshold
+from numaprom.udf import preprocess, postprocess, window, inference, threshold
 from numaprom.udsink import train, train_rollout
 
 
 class HandlerFactory:
     @classmethod
     def get_handler(cls, step: str) -> Callable[..., Messages | Responses]:
-        if step == "metric_filter":
-            return metric_filter
-
         if step == "window":
             return window
 
