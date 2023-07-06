@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.4.12 (2023-07-06)
+
+ * [cdf1bbd](https://github.com/numaproj/numalogic-prometheus/commit/cdf1bbdb563e44a8f5fa0f00ac02080a50c03a7f) fix: redis connection issues; postprocess payload mutation (#158)
+
+### Contributors
+
+ * Avik Basu
+
+## v0.4.11 (2023-06-20)
+
+ * [a057cd8](https://github.com/numaproj/numalogic-prometheus/commit/a057cd896f91b04d24b01185266ae6da2a1c2c94) fix: update numalogic version (#156)
+
+### Contributors
+
+ * Kushal Batra
+
 ## v0.4.10 (2023-06-16)
 
  * [bea884a](https://github.com/numaproj/numalogic-prometheus/commit/bea884adace8f95feaf95380a8659a241ce66de5) Bugs fix (#155)
