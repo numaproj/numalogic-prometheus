@@ -16,6 +16,8 @@ preprocess:
   - name: "StandardScaler"
 threshold:
   name: "StdDevThreshold"
+  conf:
+    min_threshold: 0.01
 postprocess:
   name: "TanhNorm"
   stateful: false

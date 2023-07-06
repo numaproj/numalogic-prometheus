@@ -97,8 +97,17 @@ def inference(_: list[str], datum: Datum) -> bytes:
         payload.set_status(Status.ARTIFACT_NOT_FOUND)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
-    # Check if current model is stale
-    if RedisRegistry.is_artifact_stale(artifact_data, int(metric_config.retrain_freq_hr)):
+    LOGGER.info(
+        "{uuid} - Loaded artifact data from {source} ",
+        uuid=payload.uuid,
+        source=artifact_data.extras.get("source"),
+    )
+
+    # Check if current model is stale and source is 'registry'
+    if (
+        RedisRegistry.is_artifact_stale(artifact_data, int(metric_config.retrain_freq_hr))
+        and artifact_data.extras.get("source") == "registry"
+    ):
         payload.set_header(Header.MODEL_STALE)
 
     # Generate predictions
