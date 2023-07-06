@@ -13,7 +13,7 @@ class InterceptHandler(logging.Handler):
         except ValueError:
             level = record.levelno
 
-        frame, depth = logging.currentframe(), 2
+        frame, depth = logging.currentframe(), 100
         while frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
@@ -23,6 +23,8 @@ class InterceptHandler(logging.Handler):
 
 def __get_logger() -> logger:
     # Collect logs from logging library
+    logging.getLogger("pytorch_lightning.utilities.rank_zero").setLevel(logging.WARNING)
+    logging.getLogger("pytorch_lightning.accelerators.cuda").setLevel(logging.WARNING)
     logging.basicConfig(handlers=[InterceptHandler()], level=0)
     logger.remove()
 
