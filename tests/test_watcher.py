@@ -22,6 +22,9 @@ class TestConfigManager(unittest.TestCase):
         }
         cls.random_payload = {"name": "random", "namespace": "abc"}
 
+    def setUp(self) -> None:
+        self.cm.get_app_config.cache_clear()
+
     def test_update_configs(self):
         config = self.cm.update_configs()
         self.assertTrue(len(config), 3)
@@ -118,7 +121,7 @@ class TestConfigManager(unittest.TestCase):
         self.assertTrue(time2 <= time1)
 
     # TODO fix this testcase
-    @unittest.skip("Skipping temporarily to debug this later")
+    # @unittest.skip("Skipping temporarily to debug this later")
     def test_get_unified_config_time(self):
         _start_time = time.perf_counter()
         ConfigManager().get_unified_config(self.payload)
