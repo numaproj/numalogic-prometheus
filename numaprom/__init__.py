@@ -23,6 +23,8 @@ class InterceptHandler(logging.Handler):
 
 def __get_logger() -> logger:
     # Collect logs from logging library
+    logging.getLogger("pytorch_lightning.utilities.rank_zero").setLevel(logging.WARNING)
+    logging.getLogger("pytorch_lightning.accelerators.cuda").setLevel(logging.WARNING)
     logging.basicConfig(handlers=[InterceptHandler()], level=0)
     logger.remove()
 

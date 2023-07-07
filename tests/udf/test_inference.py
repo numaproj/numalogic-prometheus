@@ -13,9 +13,9 @@ from numaprom.entities import Status, StreamPayload, Header
 from tests import redis_client, inference
 from tests.tools import (
     get_inference_input,
-    return_stale_model,
     return_mock_lstmae,
     get_datum,
+    return_stale_model_redis,
 )
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
@@ -86,7 +86,7 @@ class TestInference(unittest.TestCase):
             self.assertEqual(payload.header, Header.STATIC_INFERENCE)
             self.assertIsInstance(payload, StreamPayload)
 
-    @patch.object(RedisRegistry, "load", Mock(return_value=return_stale_model()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_stale_model_redis()))
     def test_stale_model(self):
         for msg in self.inference_input:
             _in = get_datum(msg.value)

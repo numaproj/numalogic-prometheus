@@ -9,8 +9,12 @@ from numalogic.registry import RedisRegistry
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, TrainerPayload, Header
 from tests import redis_client, threshold
-from tests.tools import get_threshold_input, get_datum, return_threshold_clf
-
+from tests.tools import (
+    get_threshold_input,
+    get_datum,
+    return_threshold_clf,
+    return_threshold_clf_redis,
+)
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
@@ -42,7 +46,7 @@ class TestThreshold(unittest.TestCase):
                 self.assertTrue(payload.win_arr)
                 self.assertTrue(payload.win_ts_arr)
 
-    @patch.object(RedisRegistry, "load", Mock(return_value=return_threshold_clf()))
+    @patch.object(RedisRegistry, "load", Mock(return_value=return_threshold_clf_redis()))
     def test_threshold_prev_stale_model(self):
         thresh_input = get_threshold_input(STREAM_DATA_PATH, prev_model_stale=True)
         self._check_input(thresh_input)

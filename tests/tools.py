@@ -85,7 +85,7 @@ def get_threshold_input(data_path: str, prev_clf_exists=True, prev_model_stale=F
     out = Messages()
     inference_input = get_inference_input(data_path)
     if prev_model_stale:
-        _mock_return = return_stale_model()
+        _mock_return = return_stale_model_redis()
     elif prev_clf_exists:
         _mock_return = return_mock_lstmae()
     else:
@@ -165,6 +165,24 @@ def return_stale_model(*_, **__):
     )
 
 
+def return_stale_model_redis(*_, **__):
+    return ArtifactData(
+        artifact=VanillaAE(seq_len=2),
+        metadata={},
+        extras={
+            "creation_timestamp": 1653402941169,
+            "timestamp": 1653402941,
+            "current_stage": "Production",
+            "last_updated_timestamp": 1656615600000,
+            "name": "test::error",
+            "run_id": "a7c0b376530b40d7b23e6ce2081c899c",
+            "run_link": "",
+            "source": "registry",
+            "version": "5",
+        },
+    )
+
+
 def return_preproc_clf(n_feat=1):
     x = np.random.randn(100, n_feat)
     clf = MinMaxScaler()
@@ -210,6 +228,28 @@ def return_threshold_clf(n_feat=1):
             "status_message": "",
             "tags": {},
             "user_id": "",
+            "version": "1",
+        },
+    )
+
+
+def return_threshold_clf_redis(n_feat=1):
+    x = np.random.randn(100, n_feat)
+    clf = StdDevThreshold()
+    clf.fit(x)
+    return ArtifactData(
+        artifact=clf,
+        metadata={},
+        extras={
+            "creation_timestamp": 1653402941169,
+            "current_stage": "Production",
+            "description": "",
+            "last_updated_timestamp": 1656615600000,
+            "name": "test::thresh",
+            "run_id": "a7c0b376530b40d7b23e6ce2081c899c",
+            "run_link": "",
+            "source": "registry",
+            "status": "READY",
             "version": "1",
         },
     )
