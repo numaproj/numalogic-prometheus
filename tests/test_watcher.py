@@ -120,8 +120,6 @@ class TestConfigManager(unittest.TestCase):
         time2 = time.perf_counter() - _start_time
         self.assertTrue(time2 <= time1)
 
-    # TODO fix this testcase
-    # @unittest.skip("Skipping temporarily to debug this later")
     def test_get_unified_config_time(self):
         _start_time = time.perf_counter()
         ConfigManager().get_unified_config(self.payload)
