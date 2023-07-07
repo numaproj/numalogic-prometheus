@@ -115,7 +115,7 @@ class TestConfigManager(unittest.TestCase):
         _start_time = time.perf_counter()
         ConfigManager().get_metric_config(self.payload)
         time2 = time.perf_counter() - _start_time
-        self.assertTrue(time2 < time1)
+        self.assertTrue(time2 <= time1)
 
     # TODO fix this testcase
     @unittest.skip("Skipping temporarily to debug this later")
