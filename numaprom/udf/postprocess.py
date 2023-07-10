@@ -154,7 +154,7 @@ def _publish(final_score: float, payload: StreamPayload) -> list[bytes]:
         )
 
     # If the unified anomaly is -1, we don't want to publish it
-    if unified_anomaly > 0:
+    if unified_anomaly >= 0:
         unified_json = __construct_unified_payload(
             payload, unified_anomaly, unified_config
         ).as_json()
