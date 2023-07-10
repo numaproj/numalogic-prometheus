@@ -16,7 +16,7 @@ from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
 from numaprom.watcher import ConfigManager
 
-REDIS_CLIENT = get_redis_client_from_conf()
+REDIS_CLIENT = get_redis_client_from_conf(master_node=False)
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
 

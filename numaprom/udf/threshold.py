@@ -63,7 +63,9 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
 
     # load threshold artifact
     local_cache = LocalLRUCache(ttl=LOCAL_CACHE_TTL)
-    model_registry = RedisRegistry(client=get_redis_client_from_conf(), cache_registry=local_cache)
+    model_registry = RedisRegistry(
+        client=get_redis_client_from_conf(master_node=False), cache_registry=local_cache
+    )
     try:
         thresh_artifact = model_registry.load(
             skeys=[payload.composite_keys["namespace"], payload.composite_keys["name"]],

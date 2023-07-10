@@ -11,6 +11,7 @@ from typing_extensions import Self
 
 Vector = list[float]
 Matrix = Vector | list[Vector] | npt.NDArray[float]
+np.set_printoptions(precision=3, suppress=True)
 
 
 class Status(str, Enum):
@@ -135,7 +136,8 @@ class PrometheusPayload:
                 "Type": self.type,
                 "Value": self.value,
                 "Labels": self.labels,
-            }
+            },
+            option=orjson.OPT_SERIALIZE_NUMPY,
         )
 
     @classmethod
