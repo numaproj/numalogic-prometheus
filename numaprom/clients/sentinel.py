@@ -11,7 +11,7 @@ from numaprom._config import RedisConf
 from numaprom.watcher import ConfigManager
 
 
-SENTINEL_MASTER_CLIENT: redis_client_t | None = None
+SENTINEL_CLIENT: redis_client_t | None = None
 
 
 def get_redis_client(
@@ -20,6 +20,7 @@ def get_redis_client(
     password: str,
     mastername: str,
     recreate: bool = False,
+    master_node: bool = True,
 ) -> redis_client_t:
     """Return a master redis client for sentinel connections, with retry.
 
@@ -31,15 +32,16 @@ def get_redis_client(
         mastername: Redis sentinel master name
         decode_responses: Whether to decode responses
         recreate: Whether to flush and recreate the client
+        master_node: Whether to use the master node or the slave nodes
 
     Returns
     -------
         Redis client instance
     """
-    global SENTINEL_MASTER_CLIENT
+    global SENTINEL_CLIENT
 
-    if not recreate and SENTINEL_MASTER_CLIENT:
-        return SENTINEL_MASTER_CLIENT
+    if not recreate and SENTINEL_CLIENT:
+        return SENTINEL_CLIENT
 
     retry = Retry(
         ExponentialBackoff(),
@@ -67,9 +69,16 @@ def get_redis_client(
         password=password,
         **conn_kwargs
     )
-    SENTINEL_MASTER_CLIENT = sentinel.master_for(mastername)
-    LOGGER.info("Sentinel redis params: {args}", args=conn_kwargs)
-    return SENTINEL_MASTER_CLIENT
+    if master_node:
+        SENTINEL_CLIENT = sentinel.master_for(mastername)
+    else:
+        SENTINEL_CLIENT = sentinel.slave_for(mastername)
+    LOGGER.info(
+        "Sentinel redis params: {args}, master_node: {is_master}",
+        args=conn_kwargs,
+        is_master=master_node,
+    )
+    return SENTINEL_CLIENT
 
 
 def get_redis_client_from_conf(redis_conf: RedisConf = None, **kwargs) -> redis_client_t:

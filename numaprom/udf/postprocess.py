@@ -14,11 +14,13 @@ from numaprom.tools import msgs_forward, WindowScorer
 from numaprom.watcher import ConfigManager
 
 AUTH = os.getenv("REDIS_AUTH")
+SCORE_PRECISION = int(os.getenv("SCORE_PRECISION", 3))
+UNDEFINED_SCORE = -1.0
 
 
 def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
-):
+) -> tuple[float, list[float]]:
     r = get_redis_client_from_conf(recreate=recreate)
 
     metric_name = payload.composite_keys["name"]
@@ -27,7 +29,7 @@ def __save_to_redis(
     r_keys.pop("name")
     r_key = f"{':'.join(r_keys.values())}:{payload.end_ts}"
 
-    final_score = -1 if np.isnan(final_score) else final_score
+    final_score = UNDEFINED_SCORE if np.isnan(final_score) else final_score
     r.hset(r_key, mapping={metric_name: final_score})
     LOGGER.info(
         "{uuid} - Saved to redis, redis_key: {redis_key}, metric: {metric_name}, "
@@ -50,7 +52,7 @@ def __save_to_redis(
                 metric=m,
                 redis_key=r_key,
             )
-            return -1, []
+            return UNDEFINED_SCORE, []
 
     LOGGER.debug("{uuid} - Received all metrics, generating unified anomaly", uuid=payload.uuid)
     unified_weights = unified_config.unified_weights
@@ -86,14 +88,14 @@ def __construct_publisher_payload(
     for key in stream_payload.composite_keys:
         if key != "name":
             labels[key] = stream_payload.composite_keys[key]
-
+    print("here, final_score: ", final_score, round(final_score, SCORE_PRECISION))
     return PrometheusPayload(
         timestamp_ms=int(stream_payload.end_ts),
         name=f"{metric_name}_anomaly",
         namespace=namespace,
         subsystem=None,
         type="Gauge",
-        value=float(final_score),
+        value=round(final_score, SCORE_PRECISION),
         labels=labels,
     )
 
@@ -115,7 +117,7 @@ def __construct_unified_payload(
         namespace=namespace,
         subsystem=None,
         type="Gauge",
-        value=max_anomaly,
+        value=round(max_anomaly, SCORE_PRECISION),
         labels=labels,
     )
 
@@ -151,7 +153,8 @@ def _publish(final_score: float, payload: StreamPayload) -> list[bytes]:
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
 
-    if unified_anomaly > -1:
+    # If the unified anomaly is -1, we don't want to publish it
+    if unified_anomaly > 0:
         unified_json = __construct_unified_payload(
             payload, unified_anomaly, unified_config
         ).as_json()

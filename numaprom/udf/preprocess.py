@@ -21,6 +21,7 @@ REDIS_CLIENT = get_redis_client(
     password=AUTH,
     mastername=REDIS_CONF.master_name,
     recreate=False,
+    master_node=False,
 )
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
