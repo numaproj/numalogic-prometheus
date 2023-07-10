@@ -744,13 +744,13 @@ setuptools = "*"
 
 [[package]]
 name = "numalogic"
-version = "0.5.0"
+version = "0.5.0.post1"
 description = "Collection of operational Machine Learning models and tools."
 optional = false
 python-versions = ">=3.9,<3.12"
 files = [
-    {file = "numalogic-0.5.0-py3-none-any.whl", hash = "sha256:c7f82c30568e1b28aa9c070fce849233393c0f66c65f3fd2416ccc00d94db651"},
-    {file = "numalogic-0.5.0.tar.gz", hash = "sha256:c1a8a4774518dff7762993890cf399fab956bf0f75e4634eb3787bc1e43fc886"},
+    {file = "numalogic-0.5.0.post1-py3-none-any.whl", hash = "sha256:11a55aeb0581b708f721415fa0c3fbd137394ef21f970635f2a913ba49f193c7"},
+    {file = "numalogic-0.5.0.post1.tar.gz", hash = "sha256:79267c2163f44c8b1bd0508770ccf21416ff6c063adb8df0788be7ac69fe7fe2"},
 ]
 
 [package.dependencies]
