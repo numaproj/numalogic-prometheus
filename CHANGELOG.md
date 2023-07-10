@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.13 (2023-07-06)
+
+ * [620d1f3](https://github.com/numaproj/numalogic-prometheus/commit/620d1f388f542617b09fcc373d7d93baa3831388) fix: training only when model loading from registry source (#159)
+
+### Contributors
+
+ * Kushal Batra
+
 ## v0.4.12 (2023-07-06)
 
  * [cdf1bbd](https://github.com/numaproj/numalogic-prometheus/commit/cdf1bbdb563e44a8f5fa0f00ac02080a50c03a7f) fix: redis connection issues; postprocess payload mutation (#158)
