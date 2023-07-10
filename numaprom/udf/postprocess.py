@@ -88,7 +88,6 @@ def __construct_publisher_payload(
     for key in stream_payload.composite_keys:
         if key != "name":
             labels[key] = stream_payload.composite_keys[key]
-    print("here, final_score: ", final_score, round(final_score, SCORE_PRECISION))
     return PrometheusPayload(
         timestamp_ms=int(stream_payload.end_ts),
         name=f"{metric_name}_anomaly",
