@@ -12,7 +12,7 @@ INFERENCE_COUNT = Counter(
 )
 
 
-def increase_redis_conn_status(vertex: str, status: str):
+def increase_redis_conn_status(vertex: str, status: str) -> None:
     global REDIS_CONN_STATUS_COUNT
     REDIS_CONN_STATUS_COUNT.labels(vertex, status).inc()
 
@@ -21,7 +21,7 @@ inc_redis_conn_success = partial(increase_redis_conn_status, status="success")
 inc_redis_conn_failed = partial(increase_redis_conn_status, status="failed")
 
 
-def inc_inference_count(model, namespace, app, metric, status):
+def inc_inference_count(model: str, namespace: str, app: str, metric: str, status: str) -> None:
     global INFERENCE_COUNT
     INFERENCE_COUNT.labels(model, namespace, app, metric, status).inc()
 
