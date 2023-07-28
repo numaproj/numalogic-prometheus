@@ -1,5 +1,7 @@
 import os
 import time
+from typing import Final
+
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import ArtifactData, RedisRegistry, LocalLRUCache
@@ -14,10 +16,11 @@ from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
-from numaprom.udf.metrics import increase_redis_conn_status, increase_interface_count
+from numaprom.metrics import inc_redis_conn_success, inc_inference_count
 from numaprom.watcher import ConfigManager
 
 
+_VERTEX: Final[str] = "inference"
 REDIS_CLIENT = get_redis_client_from_conf(master_node=False)
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
@@ -86,10 +89,10 @@ def inference(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        increase_redis_conn_status("inference", "failed")
+        inc_redis_conn_success(_VERTEX)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
-    else:
-        increase_redis_conn_status("inference", "success")
+
+    inc_redis_conn_success(_VERTEX)
     if not artifact_data:
         LOGGER.info(
             "{uuid} - Inference artifact not found, "
@@ -127,13 +130,12 @@ def inference(_: list[str], datum: Datum) -> bytes:
         payload.set_status(Status.RUNTIME_ERROR)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
-    increase_interface_count(
-        payload.header,
-        payload.composite_keys["namespace"],
-        payload.composite_keys["app"],
-        payload.composite_keys["namespace"],
-        payload.composite_keys["name"],
-        payload.metadata["version"],
+    inc_inference_count(
+        model=payload.get_metadata("version"),
+        namespace=payload.composite_keys.get("namespace"),
+        app=payload.composite_keys.get("app"),
+        metric=payload.composite_keys.get("name"),
+        status=payload.header,
     )
     LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
     LOGGER.debug(
