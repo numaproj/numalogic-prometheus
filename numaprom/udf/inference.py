@@ -18,9 +18,9 @@ from numaprom.udf.metrics import increase_redis_conn_status
 from numaprom.watcher import ConfigManager
 
 
-
 REDIS_CLIENT = get_redis_client_from_conf(master_node=False)
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
+
 
 def _run_inference(
     payload: StreamPayload, artifact_data: ArtifactData, numalogic_conf: NumalogicConf
@@ -127,9 +127,14 @@ def inference(_: list[str], datum: Datum) -> bytes:
         payload.set_status(Status.RUNTIME_ERROR)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
-    increase_interface_count(payload.header, payload.composite_keys["namespace"], payload.composite_keys["app"],
-                             payload.composite_keys["namespace"], payload.composite_keys["name"],
-                             payload.metadata['version'])
+    increase_interface_count(
+        payload.header,
+        payload.composite_keys["namespace"],
+        payload.composite_keys["app"],
+        payload.composite_keys["namespace"],
+        payload.composite_keys["name"],
+        payload.metadata["version"],
+    )
     LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
     LOGGER.debug(
         "{uuid} - Time taken in inference: {time} sec",

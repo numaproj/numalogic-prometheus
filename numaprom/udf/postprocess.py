@@ -19,6 +19,7 @@ AUTH = os.getenv("REDIS_AUTH")
 SCORE_PRECISION = int(os.getenv("SCORE_PRECISION", 3))
 UNDEFINED_SCORE = -1.0
 
+
 def __save_to_redis(
     payload: StreamPayload, final_score: float, recreate: bool, unified_config: UnifiedConf
 ) -> tuple[float, list[float]]:
