@@ -14,7 +14,7 @@ from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
-from numaprom.udf.metrics import increase_redis_conn_status
+from numaprom.udf.metrics import increase_redis_conn_status, increase_interface_count
 from numaprom.watcher import ConfigManager
 
 
