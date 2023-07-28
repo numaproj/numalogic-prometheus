@@ -26,6 +26,7 @@ orjson = "^3.8.4"
 omegaconf = "^2.3.0"
 watchdog = "^3.0.0"
 loguru = "^0.7.0"
+prometheus-client = "^0.17"
 
 [tool.poetry.group.dev]
 optional = true

@@ -14,27 +14,13 @@ from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
+from numaprom.udf.metrics import increase_redis_conn_status
 from numaprom.watcher import ConfigManager
 
-from prometheus_client import Counter
+
 
 REDIS_CLIENT = get_redis_client_from_conf(master_node=False)
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
-
-# Metrics
-redis_conn_status_count = Counter('numaprom_redis_conn_status_count', '', ['vertex', 'status'])
-
-
-def increase_redis_conn_status(status):
-    redis_conn_status_count.labels('inference', status).inc()
-
-
-inference_count = Counter('numaprom_inference_count', '', ['model', 'namespace', 'app', 'metric', 'status'])
-
-
-def increase_interface_count(model, namespace, app, metric, status):
-    inference_count.labels(model, namespace, app, metric, status).inc()
-
 
 def _run_inference(
     payload: StreamPayload, artifact_data: ArtifactData, numalogic_conf: NumalogicConf
@@ -100,10 +86,10 @@ def inference(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        increase_redis_conn_status("failed")
+        increase_redis_conn_status("inference", "failed")
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     else:
-        increase_redis_conn_status("success")
+        increase_redis_conn_status("inference", "success")
     if not artifact_data:
         LOGGER.info(
             "{uuid} - Inference artifact not found, "

@@ -12,17 +12,8 @@ from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import StreamPayload, Status, Header
 from numaprom.tools import msg_forward, create_composite_keys
+from numaprom.udf.metrics import redis_conn_status_count
 from numaprom.watcher import ConfigManager
-
-from prometheus_client import Counter
-
-# Metrics
-redis_conn_status_count = Counter('numaprom_redis_conn_status_count', '', ['vertex', 'status'])
-
-
-def increase_redis_conn_status(status):
-    redis_conn_status_count.labels('window', status).inc()
-
 
 
 # TODO get the replacement value from config
@@ -97,9 +88,9 @@ def window(_: list[str], datum: Datum) -> bytes | None:
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
-        redis_conn_status_count("failed")
+        redis_conn_status_count("windowing", "failed")
     else:
-        redis_conn_status_count("success")
+        redis_conn_status_count("windowing", "success")
 
     # Drop message if no of elements is less than sequence length needed
     if len(elements) < win_size:

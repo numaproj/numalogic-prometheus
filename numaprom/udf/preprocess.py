@@ -10,9 +10,9 @@ from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
+from numaprom.udf.metrics import increase_redis_conn_status
 from numaprom.watcher import ConfigManager
 
-from prometheus_client import Counter
 
 AUTH = os.getenv("REDIS_AUTH")
 REDIS_CONF = ConfigManager.get_redis_config()
@@ -25,14 +25,6 @@ REDIS_CLIENT = get_redis_client(
     master_node=False,
 )
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
-
-# Metrics
-redis_conn_status_count = Counter('numaprom_redis_conn_status_count', '', ['vertex', 'status'])
-
-
-def increase_redis_conn_status(status):
-    redis_conn_status_count.labels('preprocess', status).inc()
-
 
 
 @msg_forward
@@ -65,10 +57,8 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        increase_redis_conn_status("failed")
+        increase_redis_conn_status("preprocess", "failed")
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
-    else:
-        increase_redis_conn_status("success")
     except Exception as ex:
         LOGGER.exception(
             "{uuid} - Unhandled exception while fetching preproc artifact, "
@@ -79,8 +69,10 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
+        increase_redis_conn_status("preprocess", "failed")
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
-
+    else:
+        increase_redis_conn_status("preprocess", "success")
     if not preproc_artifact:
         LOGGER.info(
             "{uuid} - Preprocess artifact not found, forwarding for static thresholding. "
