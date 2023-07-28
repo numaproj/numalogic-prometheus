@@ -13,9 +13,18 @@ from numaprom.entities import Status, PrometheusPayload, StreamPayload, Header
 from numaprom.tools import msgs_forward, WindowScorer
 from numaprom.watcher import ConfigManager
 
+from prometheus_client import Counter
+
 AUTH = os.getenv("REDIS_AUTH")
 SCORE_PRECISION = int(os.getenv("SCORE_PRECISION", 3))
 UNDEFINED_SCORE = -1.0
+
+# Metrics
+redis_conn_status_count = Counter('numaprom_redis_conn_status_count', '', ['vertex', 'status'])
+
+
+def increase_redis_conn_status(status):
+    redis_conn_status_count.labels('postprocess', status).inc()
 
 
 def __save_to_redis(
@@ -148,10 +157,12 @@ def _publish(final_score: float, payload: StreamPayload) -> list[bytes]:
             uuid=payload.uuid,
             warn=warn,
         )
+        redis_conn_status_count("failed")
         unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
-
+    else:
+        redis_conn_status_count("success")
     # If the unified anomaly is -1, we don't want to publish it
     if unified_anomaly >= 0:
         unified_json = __construct_unified_payload(

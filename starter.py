@@ -3,6 +3,7 @@ import threading
 
 from pynumaflow.function import Server
 from pynumaflow.sink import Sink
+from numaprom.metrics import metrics
 
 from numaprom._constants import CONFIG_PATHS
 from numaprom.factory import HandlerFactory
@@ -20,6 +21,7 @@ if __name__ == "__main__":
     background_thread.start()
 
     step_handler = HandlerFactory.get_handler(sys.argv[2])
+    metrics.start_metrics_server(8490)
     server_type = sys.argv[1]
 
     if server_type == "udsink":
