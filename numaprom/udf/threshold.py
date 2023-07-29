@@ -1,6 +1,7 @@
 import os
 import time
 from collections import OrderedDict
+from typing import Final
 
 from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
@@ -12,10 +13,11 @@ from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
 from numaprom.tools import conditional_forward, calculate_static_thresh
-from numaprom.udf.metrics import redis_conn_status_count
+from numaprom.metrics import inc_redis_conn_success, inc_redis_conn_failed
 from numaprom.watcher import ConfigManager
 
 
+_VERTEX: Final[str] = "threshold"
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
 
@@ -82,7 +84,7 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        redis_conn_status_count("threshold", "failed")
+        inc_redis_conn_failed(_VERTEX)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     except Exception as ex:
         LOGGER.exception(
@@ -94,13 +96,12 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        redis_conn_status_count("threshold", "failed")
         return [
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
             (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
         ]
-    else:
-        redis_conn_status_count("threshold", "success")
+
+    inc_redis_conn_success(_VERTEX)
 
     if not thresh_artifact:
         LOGGER.info(
