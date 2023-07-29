@@ -100,8 +100,8 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
             (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
         ]
-
-    inc_redis_conn_success(_VERTEX)
+    else:
+        inc_redis_conn_success(_VERTEX)
 
     if not thresh_artifact:
         LOGGER.info(

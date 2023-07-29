@@ -91,9 +91,9 @@ def window(_: list[str], datum: Datum) -> bytes | None:
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
-        inc_redis_conn_success(_VERTEX)
-    else:
         inc_redis_conn_failed(_VERTEX)
+    else:
+        inc_redis_conn_success(_VERTEX)
 
     # Drop message if no of elements is less than sequence length needed
     if len(elements) < win_size:

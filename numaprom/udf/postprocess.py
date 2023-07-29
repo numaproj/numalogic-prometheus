@@ -156,7 +156,8 @@ def _publish(final_score: float, payload: StreamPayload) -> list[bytes]:
         unified_anomaly, anomalies = __save_to_redis(
             payload=payload, final_score=final_score, recreate=True, unified_config=unified_config
         )
-    inc_redis_conn_success(_VERTEX)
+    else:
+        inc_redis_conn_success(_VERTEX)
 
     # If the unified anomaly is -1, we don't want to publish it
     if unified_anomaly >= 0:
