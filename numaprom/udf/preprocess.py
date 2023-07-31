@@ -11,7 +11,7 @@ from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
-from numaprom.metrics import inc_redis_conn_success, inc_redis_conn_failed
+from numaprom.metrics import increase_redis_conn_error
 from numaprom.watcher import ConfigManager
 
 _VERTEX: Final[str] = "preprocess"
@@ -58,7 +58,7 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        inc_redis_conn_failed(_VERTEX)
+        increase_redis_conn_error(_VERTEX)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     except Exception as ex:
         LOGGER.exception(
@@ -72,7 +72,6 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
         payload.set_status(Status.RUNTIME_ERROR)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
-    inc_redis_conn_success(_VERTEX)
     if not preproc_artifact:
         LOGGER.info(
             "{uuid} - Preprocess artifact not found, forwarding for static thresholding. "

@@ -12,8 +12,8 @@ from numaprom import LOGGER
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import Status, TrainerPayload, PayloadFactory, Header
+from numaprom.metrics import increase_redis_conn_error
 from numaprom.tools import conditional_forward, calculate_static_thresh
-from numaprom.metrics import inc_redis_conn_success, inc_redis_conn_failed
 from numaprom.watcher import ConfigManager
 
 
@@ -84,7 +84,7 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        inc_redis_conn_failed(_VERTEX)
+        increase_redis_conn_error(_VERTEX)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     except Exception as ex:
         LOGGER.exception(
@@ -100,8 +100,6 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
             (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
             (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
         ]
-    else:
-        inc_redis_conn_success(_VERTEX)
 
     if not thresh_artifact:
         LOGGER.info(

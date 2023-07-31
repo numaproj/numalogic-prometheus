@@ -12,8 +12,8 @@ from redis.exceptions import RedisError, RedisClusterException
 from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import StreamPayload, Status, Header
+from numaprom.metrics import increase_redis_conn_error
 from numaprom.tools import msg_forward, create_composite_keys
-from numaprom.metrics import inc_redis_conn_success, inc_redis_conn_failed
 from numaprom.watcher import ConfigManager
 
 _VERTEX: Final[str] = "window"
@@ -91,9 +91,7 @@ def window(_: list[str], datum: Datum) -> bytes | None:
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
-        inc_redis_conn_failed(_VERTEX)
-    else:
-        inc_redis_conn_success(_VERTEX)
+        increase_redis_conn_error(_VERTEX)
 
     # Drop message if no of elements is less than sequence length needed
     if len(elements) < win_size:

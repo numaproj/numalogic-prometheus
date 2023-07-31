@@ -15,8 +15,8 @@ from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
+from numaprom.metrics import increase_redis_conn_error, inc_inference_count
 from numaprom.tools import msg_forward
-from numaprom.metrics import inc_redis_conn_success, inc_inference_count, inc_redis_conn_failed
 from numaprom.watcher import ConfigManager
 
 
@@ -89,10 +89,9 @@ def inference(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        inc_redis_conn_failed(_VERTEX)
+        increase_redis_conn_error(_VERTEX)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
-    inc_redis_conn_success(_VERTEX)
     if not artifact_data:
         LOGGER.info(
             "{uuid} - Inference artifact not found, "
