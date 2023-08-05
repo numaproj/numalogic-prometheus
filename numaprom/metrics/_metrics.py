@@ -10,7 +10,7 @@ INFERENCE_COUNT = Counter(
 )
 
 
-def increase_redis_conn_error(vertex: str, status: str) -> None:
+def increase_redis_conn_error(vertex: str) -> None:
     global REDIS_CONN_ERROR_COUNT
     REDIS_CONN_ERROR_COUNT.labels(vertex).inc()
 
