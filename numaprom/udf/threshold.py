@@ -84,8 +84,10 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
-        increase_redis_conn_error(_VERTEX)
-        return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
+        return [
+            (TRAIN_VTX_KEY, orjson.dumps(train_payload)),
+            (POSTPROC_VTX_KEY, _get_static_thresh_payload(payload, metric_config)),
+        ]
     except Exception as ex:
         LOGGER.exception(
             "{uuid} - Unhandled exception while fetching threshold artifact, "
