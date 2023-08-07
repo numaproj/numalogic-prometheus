@@ -82,6 +82,7 @@ def threshold(_: list[str], datum: Datum) -> list[tuple[str, bytes]]:
             keys=payload.composite_keys,
             err=err,
         )
+        increase_redis_conn_error(_VERTEX)
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
         return [

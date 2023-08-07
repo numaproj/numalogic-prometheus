@@ -88,10 +88,11 @@ def window(_: list[str], datum: Datum) -> bytes | None:
         )
     except (RedisError, RedisClusterException) as warn:
         LOGGER.warning("Redis connection failed, recreating the redis client, err: {err}", err=warn)
+        increase_redis_conn_error(_VERTEX)
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
-        increase_redis_conn_error(_VERTEX)
+
 
     # Drop message if no of elements is less than sequence length needed
     if len(elements) < win_size:
