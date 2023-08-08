@@ -93,7 +93,6 @@ def window(_: list[str], datum: Datum) -> bytes | None:
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
 
-
     # Drop message if no of elements is less than sequence length needed
     if len(elements) < win_size:
         return None
