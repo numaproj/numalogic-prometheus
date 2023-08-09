@@ -28,7 +28,7 @@ def mockenv(**envvars):
 
 
 def get_datum(data: str or bytes) -> Datum:
-    if type(data) is not bytes:
+    if not isinstance(data, bytes):
         data = json.dumps(data).encode("utf-8")
 
     return Datum(
