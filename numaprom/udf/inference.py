@@ -1,5 +1,7 @@
 import os
 import time
+from typing import Final
+
 from numalogic.config import NumalogicConf
 from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import ArtifactData, RedisRegistry, LocalLRUCache
@@ -13,9 +15,12 @@ from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import PayloadFactory
 from numaprom.entities import Status, StreamPayload, Header
+from numaprom.metrics import increase_redis_conn_error, inc_inference_count
 from numaprom.tools import msg_forward
 from numaprom.watcher import ConfigManager
 
+
+_VERTEX: Final[str] = "inference"
 REDIS_CLIENT = get_redis_client_from_conf(master_node=False)
 LOCAL_CACHE_TTL = int(os.getenv("LOCAL_CACHE_TTL", 3600))  # default ttl set to 1 hour
 
@@ -84,6 +89,7 @@ def inference(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
+        increase_redis_conn_error(_VERTEX)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
     if not artifact_data:
@@ -123,6 +129,13 @@ def inference(_: list[str], datum: Datum) -> bytes:
         payload.set_status(Status.RUNTIME_ERROR)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
 
+    inc_inference_count(
+        model=payload.get_metadata("version"),
+        namespace=payload.composite_keys.get("namespace"),
+        app=payload.composite_keys.get("app"),
+        metric=payload.composite_keys.get("name"),
+        status=payload.header,
+    )
     LOGGER.info("{uuid} - Sending Payload: {payload} ", uuid=payload.uuid, payload=payload)
     LOGGER.debug(
         "{uuid} - Time taken in inference: {time} sec",

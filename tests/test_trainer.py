@@ -4,27 +4,27 @@ import unittest
 from datetime import datetime
 from unittest.mock import patch, Mock
 
-from pynumaflow.sink import Datum
 from numalogic.tools.exceptions import InvalidDataShapeError
+from pynumaflow.sink import Datum
 
 from numaprom._constants import TESTS_DIR
 from numaprom.clients.prometheus import Prometheus
+from tests import train, redis_client, train_rollout
 from tests.tools import (
     mock_argocd_query_metric,
     mock_rollout_query_metric,
     mock_rollout_query_metric2,
     mock_rollout_query_metric3,
 )
-from tests import train, redis_client, train_rollout
 
 DATA_DIR = os.path.join(TESTS_DIR, "resources", "data")
 STREAM_DATA_PATH = os.path.join(DATA_DIR, "stream.json")
 
 
 def as_datum(data: str | bytes | dict, msg_id="1") -> Datum:
-    if type(data) is not bytes:
+    if not isinstance(data, bytes):
         data = json.dumps(data).encode("utf-8")
-    elif type(data) == dict:
+    elif isinstance(data, dict):
         data = json.dumps(data)
 
     return Datum(

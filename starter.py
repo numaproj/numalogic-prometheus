@@ -7,6 +7,7 @@ from pynumaflow.sink import Sink
 from numaprom._constants import CONFIG_PATHS
 from numaprom.factory import HandlerFactory
 from numaprom.watcher import Watcher, ConfigHandler
+from numaprom.metrics import start_metrics_server
 
 
 def run_watcher():
@@ -20,6 +21,7 @@ if __name__ == "__main__":
     background_thread.start()
 
     step_handler = HandlerFactory.get_handler(sys.argv[2])
+    start_metrics_server(8490)
     server_type = sys.argv[1]
 
     if server_type == "udsink":

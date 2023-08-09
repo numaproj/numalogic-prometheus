@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Final
 
 import orjson
 from numalogic.registry import RedisRegistry, LocalLRUCache
@@ -10,9 +11,10 @@ from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client
 from numaprom.entities import Status, StreamPayload, Header
 from numaprom.tools import msg_forward
+from numaprom.metrics import increase_redis_conn_error
 from numaprom.watcher import ConfigManager
 
-
+_VERTEX: Final[str] = "preprocess"
 AUTH = os.getenv("REDIS_AUTH")
 REDIS_CONF = ConfigManager.get_redis_config()
 REDIS_CLIENT = get_redis_client(
@@ -56,6 +58,7 @@ def preprocess(_: list[str], datum: Datum) -> bytes:
         )
         payload.set_header(Header.STATIC_INFERENCE)
         payload.set_status(Status.RUNTIME_ERROR)
+        increase_redis_conn_error(_VERTEX)
         return orjson.dumps(payload, option=orjson.OPT_SERIALIZE_NUMPY)
     except Exception as ex:
         LOGGER.exception(

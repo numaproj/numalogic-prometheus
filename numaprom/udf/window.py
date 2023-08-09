@@ -1,6 +1,7 @@
 import os
 import time
 import uuid
+from typing import Final
 
 import numpy as np
 import numpy.typing as npt
@@ -11,8 +12,11 @@ from redis.exceptions import RedisError, RedisClusterException
 from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client_from_conf
 from numaprom.entities import StreamPayload, Status, Header
+from numaprom.metrics import increase_redis_conn_error
 from numaprom.tools import msg_forward, create_composite_keys
 from numaprom.watcher import ConfigManager
+
+_VERTEX: Final[str] = "window"
 
 
 # TODO get the replacement value from config
@@ -84,6 +88,7 @@ def window(_: list[str], datum: Datum) -> bytes | None:
         )
     except (RedisError, RedisClusterException) as warn:
         LOGGER.warning("Redis connection failed, recreating the redis client, err: {err}", err=warn)
+        increase_redis_conn_error(_VERTEX)
         elements = __aggregate_window(
             unique_key, msg["timestamp"], value, win_size, buff_size, recreate=True
         )
