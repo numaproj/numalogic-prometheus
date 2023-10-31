@@ -1,21 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: metrics-query-service
+  name: prometheus-query-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: metrics-query-service
+      app: prometheus-query-service
   template:
     metadata:
       labels:
-        app: metrics-query-service
+        app: prometheus-query-service
     spec:
-      serviceAccountName: metrics-query-service
       containers:
         - name: metrics-query-service
-          image: docker.intuit.com/oss-analytics/metrics-query-service/service/metrics-query-service:0.2.14
+          image: quay.io/numaio/numalogic-prometheus/prometheus-query-service:latest
           env:
             - name: CONFIG_PATH
               value: "/home/appuser/config/config.yaml"
