@@ -1,4 +1,4 @@
-name: Release SerDe
+name: Release Go modules
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.QUAYIO_USERNAME }}
           password: ${{ secrets.QUAYIO_PASSWORD }}
 
-      - name: Docker GO Build
+      - name: prometheus-serde
         env:
           QUAYIO_ORG: quay.io/numaio
           PLATFORM: linux/x86_64
@@ -35,6 +35,24 @@ jobs:
           image_name="${QUAYIO_ORG}/numalogic-prometheus/udf/prometheus-serde:${tag}"
           
           cd prometheus-serde
+          docker buildx build \
+            --output "type=image,push=true" \
+            --platform="${PLATFORM}" \
+            --tag $image_name .
+      - name: prometheus-query-service
+        env:
+          QUAYIO_ORG: quay.io/numaio
+          PLATFORM: linux/x86_64
+          TARGET: quay.io/numaio/numalogic-prometheus/prometheus-query-service
+        run: |
+          tag=$(basename $GITHUB_REF)
+          if [ $tag = "master" ]; then
+            tag="latest"
+          fi
+          
+          image_name="${QUAYIO_ORG}/${TARGET}:${tag}"
+          
+          cd prometheus-query-service
           docker buildx build \
             --output "type=image,push=true" \
             --platform="${PLATFORM}" \

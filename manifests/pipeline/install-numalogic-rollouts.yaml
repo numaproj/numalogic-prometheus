@@ -1,27 +1,12 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
-    iam.amazonaws.com/permitted: k8s-numalogic-rollouts
-    iks.intuit.com/managed: "false"
-    iks.intuit.com/project-asset-id: "5407714845444489299"
-    iks.intuit.com/service-asset-alias: Intuit.oss.analytics.numalogicprometheus
-    iks.intuit.com/service-asset-id: "4110678152882125531"
-  labels:
-    iks.intuit.com/external-contribution: "true"
   name: numalogic-rollouts
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: config-aggregator-sa
-  namespace: numalogic-rollouts
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: metrics-query-service
   namespace: numalogic-rollouts
 ---
 apiVersion: v1
@@ -72,21 +57,6 @@ rules:
   - update
   - patch
   - delete
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: metrics-query-service-role
-  namespace: numalogic-rollouts
-rules:
-- apiGroups:
-  - coordination.k8s.io
-  resources:
-  - leases
-  verbs:
-  - create
-  - get
-  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -288,20 +258,6 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: metrics-query-service-binding
-  namespace: numalogic-rollouts
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: metrics-query-service-role
-subjects:
-- kind: ServiceAccount
-  name: metrics-query-service
-  namespace: numalogic-rollouts
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
   name: numaflow-role-binding
   namespace: numalogic-rollouts
 roleRef:
@@ -339,19 +295,7 @@ subjects:
 - kind: ServiceAccount
   name: config-aggregator-sa
   namespace: numalogic-rollouts
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: numalogic-rollouts-wf-collector
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: numalogic-rollouts-wf-collector
-subjects:
-- kind: ServiceAccount
-  name: wf-collector
-  namespace: numalogic-rollouts
+
 ---
 apiVersion: v1
 data:
@@ -495,7 +439,7 @@ data:
         },
         "MetricConf": {
           "title": "MetricConf",
-          "description": "MetricConf(*, metric: str = 'default', composite_keys: List[str] = None, static_threshold: int = 3, static_threshold_wt: float = 0.0, scrape_interval: int = 30, retrain_freq_hr: int = 8, resume_training: bool = False, numalogic_conf: __main__.NumalogicConf = '???')",
+          "description": "MetricConf(*, metric: str = 'default', composite_keys: List[str] = None, static_threshold: int = 3, static_threshold_wt: float = 0.0, scrape_interval: int = 30, retrain_freq_hr: int = 24000, resume_training: bool = False, numalogic_conf: __main__.NumalogicConf = '???')",
           "type": "object",
           "properties": {
             "metric": {
@@ -527,7 +471,7 @@ data:
             },
             "retrain_freq_hr": {
               "title": "Retrain Freq Hr",
-              "default": 8,
+              "default": 24000,
               "type": "integer"
             },
             "resume_training": {
@@ -581,23 +525,11 @@ metadata:
   namespace: numalogic-rollouts
 ---
 apiVersion: v1
-data:
-  config.yaml: "general:\n  channelCapacity: \n    capacity: 20\n    dropDisabled:
-    false       \n  maxAge: 60\n  leaderElectionEnabled: true\nprometheusJobs:\n  -
-    name: \"query-1\"\n    queryConfig:\n      interval: \"30s\"\n      source: \"http://thanos.addon-metricset-ns.svc:9090\"\n
-    \     query: \"namespace_app_rollouts_http_request_error_rate {rollouts_pod_template_hash!=''}\"\n
-    \     backoff:\n        durationSeconds: 1\n        factor: 2\n        maxSteps:
-    5\n    sendConfig:\n      targets:\n        - url: \"https://numalogic-rollouts-pipeline-input-svc.numalogic-rollouts.svc.cluster.local:8443/vertices/input\"\n
-    \         insecure: true\n      backoff:\n        durationSeconds: 1\n        factor:
-    2\n        maxSteps: 5"
 kind: ConfigMap
 metadata:
-  name: metrics-query-service-config
-  namespace: numalogic-rollouts
----
-apiVersion: v1
+  name: numaflow-controller-config
 data:
-  controller-config.yaml: |
+  controller-config.yaml: |+
     isbsvc:
       redis:
         # Default Redis settings, could be overridden by InterStepBufferService specs
@@ -624,10 +556,10 @@ data:
             sentinel parallel-syncs mymaster 1
         versions:
         - version: 7.0.11
-          redisImage: docker.intuit.com/oss-analytics/dataflow/service/redis:7.0.11-debian-11-r3
-          sentinelImage: docker.intuit.com/oss-analytics/dataflow/service/redis-sentinel:7.0.11-debian-11-r3
-          redisExporterImage: docker.intuit.com/oss-analytics/dataflow/service/redis-exporter:1.50.0-debian-11-r4
-          initContainerImage: docker.intuit.com/oicp/standard/base/debian
+          redisImage: bitnami/redis:7.0.11-debian-11-r3
+          sentinelImage: bitnami/redis-sentinel:7.0.11-debian-11-r3
+          redisExporterImage: bitnami/redis-exporter:1.50.0-debian-11-r4
+          initContainerImage: debian:latest
       jetstream:
         # Default JetStream settings, could be overridden by InterStepBufferService specs
         settings: |
@@ -660,7 +592,7 @@ data:
           otBucket:
             maxValueSize: 0
             history: 1
-            ttl: 72h
+            ttl: 3h
             maxBytes: 0
             # 0: File, 1: Memory
             storage: 0
@@ -674,85 +606,61 @@ data:
             storage: 0
             replicas: 3
         versions:
-        - version: 2.9.1
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.1
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
+        - version: latest
+          natsImage: nats:2.10.3
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
           startCommand: /nats-server
-        - version: 2.9.3
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.3
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
+        - version: 2.8.1
+          natsImage: nats:2.8.1
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
           startCommand: /nats-server
+        - version: 2.8.1-alpine
+          natsImage: nats:2.8.1-alpine
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
+          startCommand: nats-server
+        - version: 2.8.3
+          natsImage: nats:2.8.3
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
+          startCommand: /nats-server
+        - version: 2.8.3-alpine
+          natsImage: nats:2.8.3-alpine
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
+          startCommand: nats-server
+        - version: 2.9.0
+          natsImage: nats:2.9.0
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
+          startCommand: /nats-server
+        - version: 2.9.0-alpine
+          natsImage: nats:2.9.0-alpine
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
+          startCommand: nats-server
         - version: 2.9.6
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.6
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: /nats-server
-        - version: 2.9.7
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.7
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
+          natsImage: nats:2.9.6
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
           startCommand: /nats-server
         - version: 2.9.8
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.8
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
+          natsImage: nats:2.9.8
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
           startCommand: /nats-server
-        - version: 2.9.8-alpine
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.8-alpine
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: nats-server
-        - version: 2.9.11-alpine
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.11-alpine
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: nats-server
-        - version: 2.9.11
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.11
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: /nats-server
-        - version: 2.9.15-alpine
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.15-alpine
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: nats-server
         - version: 2.9.15
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.15
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
+          natsImage: nats:2.9.15
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
           startCommand: /nats-server
-        - version: 2.9.16-alpine
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.16-alpine
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: nats-server
-        - version: 2.9.16
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.16
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
+        - version: 2.10.3
+          natsImage: nats:2.10.3
+          metricsExporterImage: natsio/prometheus-nats-exporter:0.9.1
+          configReloaderImage: natsio/nats-server-config-reloader:0.7.0
           startCommand: /nats-server
-        - version: 2.9.17-alpine
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.17-alpine
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: nats-server
-        - version: 2.9.17
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.17
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: /nats-server
-        - version: 2.9.19
-          natsImage: docker.intuit.com/docker-rmt/nats:2.9.19
-          configReloaderImage: docker.intuit.com/oss-analytics/dataflow/service/nats-server-config-reloader:0.7.0-patched
-          metricsExporterImage: docker.intuit.com/oss-analytics/dataflow/service/prometheus-nats-exporter:0.9.1
-          startCommand: /nats-server
-kind: ConfigMap
-metadata:
-  name: numaflow-controller-config
-  namespace: numalogic-rollouts
 ---
 apiVersion: v1
 data:
@@ -762,8 +670,8 @@ data:
         metric_configs:
           - metric: "namespace_app_rollouts_http_request_error_rate"
             composite_keys: [ "namespace", "name", "app", "rollouts_pod_template_hash" ]
-            static_threshold: 3
-            static_threshold_wt: 0.7
+            static_threshold: 1
+            static_threshold_wt: 0.3
         unified_configs:
           - unified_metric_name: "namespace_app_rollouts_unified_anomaly"
             unified_metrics: [ "namespace_app_rollouts_http_request_error_rate"]
@@ -771,7 +679,7 @@ data:
     model:
       name: "SparseVanillaAE"
       conf:
-        seq_len: 9
+        seq_len: 2
         n_features: 1
         encoder_layersizes:
           - 16
@@ -803,42 +711,6 @@ data:
 kind: ConfigMap
 metadata:
   name: numalogic-rollouts-default-configs
-  namespace: numalogic-rollouts
----
-apiVersion: v1
-data:
-  collector.yaml: |
-    clusterName: {{.Values.cluster}}
-    enableEvents: false
-    enableDiscovery: true
-    defaultCollectionInterval: 10s
-    flushInterval: 30s
-    sinks:
-    - proxyAddress: wavefront-s3-adapter.addon-wavefront-s3-adapter-ns.svc:12878
-    sources:
-      kubernetes_source:
-        url: https://kubernetes.default.svc
-    discovery:
-      disable_annotation_discovery: true
-      plugins:
-      - name: numalogic-router
-        type: prometheus
-        selectors:
-          labels:
-            numaflow.numaproj.io/pipeline-name:
-              - 'numalogic-rollouts-pipeline'
-            numaflow.numaproj.io/vertex-name:
-              - '*'
-        port: 9090
-        path: /metrics
-        scheme: http
-        prefix: custom.numalogic.rollouts.
-        filters:
-          metricDenyList:
-          - 'go_*'
-kind: ConfigMap
-metadata:
-  name: wavefront-collector-config-cm
   namespace: numalogic-rollouts
 ---
 apiVersion: v1
@@ -917,50 +789,6 @@ value: 1000000
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: metrics-query-service
-  namespace: numalogic-rollouts
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: metrics-query-service
-  template:
-    metadata:
-      labels:
-        app: metrics-query-service
-    spec:
-      containers:
-      - env:
-        - name: CONFIG_PATH
-          value: /home/appuser/config/config.yaml
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        image: docker.intuit.com/oss-analytics/metrics-query-service/service/metrics-query-service:0.2.14
-        name: metrics-query-service
-        resources:
-          requests:
-            cpu: 200m
-            memory: 200Mi
-        volumeMounts:
-        - mountPath: /home/appuser/config
-          name: metrics-query-service-config
-      serviceAccountName: metrics-query-service
-      volumes:
-      - configMap:
-          name: metrics-query-service-config
-          optional: true
-        name: metrics-query-service-config
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
   name: numaflow-controller
   namespace: numalogic-rollouts
 spec:
@@ -981,12 +809,12 @@ spec:
         - --namespaced
         env:
         - name: NUMAFLOW_IMAGE
-          value: docker.intuit.com/quay-rmt/numaproj/numaflow:v0.9.3
+          value: quay.io/numaproj/numaflow:v0.9.3
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: docker.intuit.com/quay-rmt/numaproj/numaflow:v0.9.3
+        image: quay.io/numaproj/numaflow:v0.9.3
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -1046,7 +874,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: docker.intuit.com/quay-rmt/numaproj/numaflow:v0.9.3
+        image: quay.io/numaproj/numaflow:v0.9.3
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -1073,7 +901,7 @@ spec:
       initContainers:
       - args:
         - server-init
-        image: docker.intuit.com/quay-rmt/numaproj/numaflow:v0.9.3
+        image: quay.io/numaproj/numaflow:v0.9.3
         imagePullPolicy: Always
         name: server-init
         volumeMounts:
@@ -1118,7 +946,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: docker.intuit.com/quay-rmt/numaio/numalogic-config-aggregator:v0.1.0
+        image: quay.io/numaio/numalogic-config-aggregator:v0.1.0
         name: aggregator
         resources:
           limits:
@@ -1139,92 +967,6 @@ spec:
           name: application-config-schema
         name: application-config-schema
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: wavefront-collector
-  namespace: numalogic-rollouts
-spec:
-  selector:
-    matchLabels:
-      app: wavefront-collector
-  template:
-    metadata:
-      labels:
-        app: wavefront-collector
-    spec:
-      containers:
-      - command:
-        - /wavefront-collector
-        - --config-file=/etc/collector/collector.yaml
-        image: docker.intuit.com/dev/deploy/argo-events/service/wavefront-collector:v1.3.1
-        name: wavefront-collector
-        resources:
-          requests:
-            cpu: 0.5
-            memory: 256Mi
-        volumeMounts:
-        - mountPath: /etc/collector
-          name: wavefront-collector-config
-      serviceAccountName: wf-collector
-      volumes:
-      - configMap:
-          name: wavefront-collector-config-cm
-        name: wavefront-collector-config
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: input-vertex-pdb
-  namespace: numalogic-rollouts
-spec:
-  minAvailable: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/component: vertex
-      numaflow.numaproj.io/pipeline-name: numalogic-rollouts-pipeline
-      numaflow.numaproj.io/vertex-name: input
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: isbs-pdb
-  namespace: numalogic-rollouts
-spec:
-  maxUnavailable: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/component: isbsvc
-      app.kubernetes.io/managed-by: isbsvc-controller
-      numaflow.numaproj.io/isbsvc-name: numalogic-isbs
-      numaflow.numaproj.io/isbsvc-type: jetstream
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: metrics-query-service-pdb
-  namespace: numalogic-rollouts
-spec:
-  maxUnavailable: 1
-  selector:
-    matchLabels:
-      app: metrics-query-service
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: redis-pdb
-  namespace: numalogic-rollouts
-spec:
-  maxUnavailable: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/component: isbsvc
-      app.kubernetes.io/managed-by: isbsvc-controller
-      app.kubernetes.io/part-of: numaflow
-      numaflow.numaproj.io/isbsvc-name: redis-isbs
-      numaflow.numaproj.io/isbsvc-type: redis
----
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -1244,33 +986,6 @@ spec:
     apiVersion: numaflow.numaproj.io/v1alpha1
     kind: Vertex
     name: numalogic-rollouts-pipeline-input
----
-apiVersion: iammanager.keikoproj.io/v1alpha1
-kind: Iamrole
-metadata:
-  name: iamrole
-  namespace: numalogic-rollouts
-spec:
-  PolicyDocument:
-    Statement:
-    - Action:
-      - ec2:*
-      Effect: Deny
-      Resource:
-      - '*'
-    - Action:
-      - iam:*
-      Effect: Deny
-      Resource:
-      - '*'
-    - Action:
-      - s3:*
-      Effect: Allow
-      Resource:
-      - arn:aws:s3:::aiops-prometheus-data/*
-      - arn:aws:s3:::aiops-prometheus-data
-      - arn:aws:s3:::mlflow-numalogic-argo-rollouts-ppd/*
-      - arn:aws:s3:::mlflow-numalogic-argo-rollouts-ppd
 ---
 apiVersion: numaflow.numaproj.io/v1alpha1
 kind: InterStepBufferService
@@ -1307,38 +1022,6 @@ metadata:
 spec:
   redis:
     native:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/component: isbsvc
-                  numaflow.numaproj.io/isbsvc-name: redis-isbs
-              topologyKey: topology.kubernetes.io/zone
-            weight: 100
-      containerTemplate:
-        resources:
-          limits:
-            memory: 6144Mi
-          requests:
-            cpu: 4
-            memory: 4096Mi
-      persistence:
-        accessMode: ReadWriteOnce
-        volumeSize: 20Gi
-      priorityClassName: numalogic-priority-class
-      settings:
-        redis: |
-          min-replicas-to-write 1
-          # Disable RDB persistence, AOF persistence already enabled.
-          save ""
-          # Enable AOF https://redis.io/topics/persistence#append-only-file
-          appendonly yes
-          auto-aof-rewrite-percentage 100
-          auto-aof-rewrite-min-size 64mb
-          maxmemory 4096mb
-          maxmemory-policy allkeys-lru
       version: 7.0.11
 ---
 apiVersion: numaflow.numaproj.io/v1alpha1
@@ -1409,12 +1092,8 @@ spec:
             secretKeyRef:
               key: redis-password
               name: isbsvc-redis-isbs-redis-auth
-        image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.4.15
+        image: quay.io/numaio/numalogic-prometheus/udf:v0.4.15
         imagePullPolicy: Always
-        resources:
-          request:
-            cpu: 50m
-            memory: 200Mi
         volumeMounts:
         - mountPath: /app/numaprom/configs
           name: app-configs
@@ -1448,12 +1127,8 @@ spec:
             secretKeyRef:
               key: redis-password
               name: isbsvc-redis-isbs-redis-auth
-        image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.4.15
+        image: quay.io/numaio/numalogic-prometheus/udf:v0.4.15
         imagePullPolicy: Always
-        resources:
-          request:
-            cpu: 10m
-            memory: 200Mi
         volumeMounts:
         - mountPath: /app/numaprom/configs
           name: app-configs
@@ -1485,12 +1160,8 @@ spec:
             secretKeyRef:
               key: redis-password
               name: isbsvc-redis-isbs-redis-auth
-        image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.4.15
+        image: quay.io/numaio/numalogic-prometheus/udf:v0.4.15
         imagePullPolicy: Always
-        resources:
-          request:
-            cpu: 200m
-            memory: 500Mi
         volumeMounts:
         - mountPath: /app/numaprom/configs
           name: app-configs
@@ -1522,12 +1193,8 @@ spec:
             secretKeyRef:
               key: redis-password
               name: isbsvc-redis-isbs-redis-auth
-        image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.4.15
+        image: quay.io/numaio/numalogic-prometheus/udf:v0.4.15
         imagePullPolicy: Always
-        resources:
-          request:
-            cpu: 50m
-            memory: 200Mi
         volumeMounts:
         - mountPath: /app/numaprom/configs
           name: app-configs
@@ -1559,12 +1226,8 @@ spec:
             secretKeyRef:
               key: redis-password
               name: isbsvc-redis-isbs-redis-auth
-        image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.4.15
+        image: quay.io/numaio/numalogic-prometheus/udf:v0.4.15
         imagePullPolicy: Always
-        resources:
-          request:
-            cpu: 50m
-            memory: 200Mi
         volumeMounts:
         - mountPath: /app/numaprom/configs
           name: app-configs
@@ -1597,12 +1260,8 @@ spec:
               secretKeyRef:
                 key: redis-password
                 name: isbsvc-redis-isbs-redis-auth
-          image: docker.intuit.com/quay-rmt/numaio/numalogic-prometheus/udf:v0.4.15
+          image: quay.io/numaio/numalogic-prometheus/udf:v0.4.15
           imagePullPolicy: Always
-          resources:
-            request:
-              cpu: 200m
-              memory: 300Mi
           volumeMounts:
           - mountPath: /app/numaprom/configs
             name: app-configs
@@ -1629,7 +1288,7 @@ spec:
             value: http://prometheus-pushgateway.addon-metricset-ns.svc:9091
           - name: METRICS_LABELS
             value: intuit_alert=true
-          image: docker.intuit.com/quay-rmt/numaio/numaflow-sink/prometheus-pusher:v0.1.0
+          image: quay.io/numaio/numaflow-sink/prometheus-pusher:v0.1.0
   - name: output
     scale:
       max: 1
@@ -1648,3 +1307,111 @@ spec:
       min: 1
     sink:
       log: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-query-service
+  namespace: numalogic-rollouts
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prometheus-query-service-role
+  namespace: numalogic-rollouts
+rules:
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-query-service-binding
+  namespace: numalogic-rollouts
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-query-service-role
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-query-service
+    namespace: numalogic-rollouts
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-query-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prometheus-query-service
+  template:
+    metadata:
+      labels:
+        app: prometheus-query-service
+    spec:
+      containers:
+        - name: metrics-query-service
+          image: quay.io/numaio/numalogic-prometheus/prometheus-query-service:latest
+          env:
+            - name: CONFIG_PATH
+              value: "/home/appuser/config/config.yaml"
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          volumeMounts:
+            - name: prometheus-query-service-config
+              mountPath: /home/appuser/config
+      serviceAccountName: prometheus-query-service
+      volumes:
+        - name: prometheus-query-service-config
+          configMap:
+            name: prometheus-query-service-config
+            optional: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-query-service-config
+data:
+  config.yaml: |
+    general:
+      channelCapacity: 
+        capacity: 20
+        dropDisabled: false       
+      maxAge: 60
+      leaderElectionEnabled: true
+    prometheusJobs:
+      - name: "query-1"
+        queryConfig:
+          interval: "30s"
+          source: "http://prometheus-service.monitoring.svc.cluster.local:9090"
+          query: "namespace_app_rollouts_http_request_error_rate"
+          backoff:
+            durationSeconds: 1
+            factor: 2
+            maxSteps: 5
+        sendConfig:
+          targets:
+            - url: "https://numalogic-rollouts-pipeline-input-svc.numalogic-rollouts.svc:8443/vertices/input"
+              insecure: true
+          backoff:
+            durationSeconds: 1
+            factor: 2
