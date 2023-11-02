@@ -68,6 +68,7 @@ data:
           numalogic: "true"
       - record: namespace_app_pod_http_server_requests_total
         expr: label_join((sum(rate(http_server_requests_seconds_count[1m])) by (namespace, app)), "apps_deployment", "", "app") / namespace_app_pod_count_no_alert
+      
       - record: namespace_app_pod_http_server_requests_error_rate
         expr: namespace_app_pod_http_server_requests_errors_5xx / namespace_app_pod_http_server_requests_total
         labels:
