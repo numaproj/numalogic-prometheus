@@ -5,7 +5,6 @@ metadata:
     prometheus: k8s-prometheus
     role: alert-rules
   name: deploy-better-metric-rules
-  namespace: addon-metricset-ns
 spec:
   groups:
   - name: deploy.better.metric.rules
