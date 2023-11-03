@@ -1402,7 +1402,7 @@ data:
       - name: "query-1"
         queryConfig:
           interval: "30s"
-          source: "http://prometheus-service.monitoring.svc.cluster.local:9090"
+          source: "http://prometheus-operated.monitoring.svc.cluster.local:9090"
           query: "namespace_app_rollouts_http_request_error_rate"
           backoff:
             durationSeconds: 1
