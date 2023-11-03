@@ -4,110 +4,21 @@ metadata:
   name: prometheus-server-conf
   labels:
     name: prometheus-server-conf
-  namespace: monitoring
 data:
   prometheus.rules: |-
     groups:
-    - name: deploy.better.metric.rules
+    - name: numalogic.aiops.metrics
       rules:
-      - record: namespace_asset_cpu_usage_seconds_total
+      - record: namespace_app_rollouts_http_request_errors
         expr: |
-          sum by (namespace, assetAlias) (
-                  sum(rate(container_cpu_usage_seconds_total{image!="", container!=""}[5m])) by (namespace, pod) * on (namespace, pod) group_left(assetAlias)
-                  label_replace(kube_pod_labels{job="kube-state-metrics"}, "assetAlias", "$1", "label_assetAlias","(.*)")
-          )
-      - record: namespace_asset_cpu_resource_requests
+          sum(rate(http_server_requests_seconds_count{status=~"5[0-9]+"}[1m])) by (namespace, rollouts_pod_template_hash)   
+      - record: namespace_app_rollouts_http_request_count
         expr: |
-          sum by (namespace, assetAlias) (
-                  sum(kube_pod_container_resource_requests{resource="cpu"}) by (namespace, pod) * on (namespace, pod) group_left(assetAlias)
-                  label_replace(kube_pod_labels{job="kube-state-metrics"}, "assetAlias", "$1", "label_assetAlias","(.*)")
-          )
-        labels:
-          numalogic: "true"
-      - record: namespace_asset_memory_usage_bytes
+          sum(rate(http_server_requests_seconds_count[1m])) by (namespace, rollouts_pod_template_hash) 
+      - record: namespace_app_rollouts_http_request_error_rate
         expr: |
-          sum by (namespace, assetAlias) (
-                  sum(container_memory_usage_bytes{image!="", container!=""}) by (namespace, pod)
-                  * on (namespace, pod) group_left(assetAlias)
-                  label_replace(kube_pod_labels{job="kube-state-metrics"}, "assetAlias", "$1", "label_assetAlias","(.*)")
-          )
-      - record: namespace_asset_memory_resource_requests
-        expr: |
-          sum by (namespace, assetAlias) (
-                  sum(kube_pod_container_resource_requests{resource="memory"}) by (namespace, pod) * on (namespace, pod) group_left(assetAlias)
-                  label_replace(kube_pod_labels{job="kube-state-metrics"}, "assetAlias", "$1", "label_assetAlias","(.*)")
-          )
-      - record: namespace_asset_pod_cpu_utilization
-        expr: namespace_asset_cpu_usage_seconds_total * 100 / namespace_asset_cpu_resource_requests
-        labels:
-          numalogic: "true"
-      - record: namespace_asset_pod_memory_utilization
-        expr: namespace_asset_memory_usage_bytes * 100 / namespace_asset_memory_resource_requests
-        labels:
-          numalogic: "true"
-      - record: namespace_app_pod_count
-        expr: |
-          label_join((sum(label_replace(
-                      (kube_pod_status_ready{condition="true"} * on (namespace, pod) group_left(label_app) kube_pod_labels{job="kube-state-metrics"}), "app", "$1", "label_app","(.*)")) by (namespace, app)), "apps_deployment", "", "app"
-          )
-      - record: namespace_app_pod_count_no_alert
-        expr: sum(namespace_app_pod_count) by (namespace, app, apps_deployment)
-      - record: namespace_app_pod_http_server_requests_latency
-        expr: label_join((sum(rate(http_server_requests_seconds_sum{status="200"}[1m])) by (namespace, app) / sum(rate(http_server_requests_seconds_count{status="200"}[1m])) by (namespace, app)), "apps_deployment", "", "app")
-        labels:
-          numalogic: "true"
-      - record: namespace_app_pod_http_server_requests_errors_4xx
-        expr: label_join((sum(rate(http_server_requests_seconds_count{status=~"4[0-9]+"}[1m])) by (namespace, app)), "apps_deployment", "", "app") / namespace_app_pod_count_no_alert
-      - record: namespace_app_pod_http_server_requests_errors_5xx
-        expr: label_join((sum(rate(http_server_requests_seconds_count{status=~"5[0-9]+"}[1m])) by (namespace, app)), "apps_deployment", "", "app") / namespace_app_pod_count_no_alert
-      - record: namespace_app_pod_http_server_requests_2xx
-        expr: label_join((sum(rate(http_server_requests_seconds_count{status=~"2[0-9]+"}[1m])) by (namespace, app)), "apps_deployment", "", "app") / namespace_app_pod_count_no_alert
-      - record: namespace_app_pod_http_server_requests_errors
-        expr: label_join((sum(rate(http_server_requests_seconds_count{status=~"[4-5][0-9]+"}[1m])) by (namespace, app)), "apps_deployment", "", "app") / namespace_app_pod_count_no_alert
-        labels:
-          numalogic: "true"
-      - record: namespace_app_pod_http_server_requests_total
-        expr: label_join((sum(rate(http_server_requests_seconds_count[1m])) by (namespace, app)), "apps_deployment", "", "app") / namespace_app_pod_count_no_alert
-      
-      - record: namespace_app_pod_http_server_requests_error_rate
-        expr: namespace_app_pod_http_server_requests_errors_5xx / namespace_app_pod_http_server_requests_total
-        labels:
-          numalogic: "true"
-      - record: namespace_hash_pod_count
-        expr: sum(label_replace((kube_pod_status_ready{condition="true"} * on (namespace, pod) group_left(label_rollouts_pod_template_hash) kube_pod_labels{job="kube-state-metrics"}), "hash_id", "$1", "label_rollouts_pod_template_hash","(.*)")) by (namespace, hash_id)
-      - record: namespace_hash_http_server_requests_errors_5xx
-        expr: sum(label_replace(rate(http_server_requests_seconds_count{status=~"5[0-9]+"}[1m]), "hash_id", "$1", "rollouts_pod_template_hash", "(.*)")) by (namespace, hash_id) / namespace_hash_pod_count
-      - record: namespace_hash_pod_http_server_requests_total
-        expr: sum(label_replace(rate(http_server_requests_seconds_count[1m]), "hash_id", "$1", "rollouts_pod_template_hash","(.*)")) by (namespace, hash_id) / namespace_hash_pod_count
-      - record: namespace_hash_pod_http_server_requests_error_rate
-        expr: namespace_hash_http_server_requests_errors_5xx / namespace_hash_pod_http_server_requests_total
-        labels:
-          numalogic: "true"
-      - record: namespace_hash_pod_http_server_requests_latency
-        expr: sum(label_replace(rate(http_server_requests_seconds_sum{status="200"}[1m]), "hash_id", "$1", "rollouts_pod_template_hash","(.*)")) by (namespace, hash_id) / sum(label_replace(rate(http_server_requests_seconds_count{status="200"}[1m]),"hash_id", "$1", "rollouts_pod_template_hash","(.*)")) by (namespace, hash_id)
-        labels:
-          numalogic: "true"
+          (namespace_app_rollouts_http_request_errors/namespace_app_rollouts_http_request_count)*100
   prometheus.yml: |-
-    remote_write:
-      -
-        name: prometheus
-        url: "https://numalogic-prometheus-pipeline-input.numalogic-prometheus.svc.cluster.local:8443/vertices/input"
-        remote_timeout: 1m
-        queue_config:
-          capacity: 10000
-          min_shards: 10
-          max_shards: 100
-          max_samples_per_send: 1000
-          batch_send_deadline: 10s
-          min_backoff: 30ms
-          max_backoff: 100ms
-        tls_config:
-          insecure_skip_verify: true
-        write_relabel_configs:
-        - action: keep
-          regex: true
-          source_labels:
-          - numalogic
     global:
       scrape_interval: 5s
       evaluation_interval: 5s
@@ -251,14 +162,13 @@ data:
         - source_labels: [__meta_kubernetes_service_name]
           action: replace
           target_label: kubernetes_name
-
-      - job_name: serviceMonitor/addon-metricset-ns/iks-appmonitor-actuator/0
+      - job_name: serviceMonitor/monitoring/iks-appmonitor-actuator
         honor_labels: false
         kubernetes_sd_configs:
         - role: endpoints
-        scrape_interval: 5s
+        scrape_interval: 10s
         metrics_path: /actuator/prometheus
-        scheme: https
+        scheme: http
         tls_config:
           insecure_skip_verify: true
         relabel_configs:
@@ -269,7 +179,7 @@ data:
           source_labels:
           - __meta_kubernetes_service_label_iks_metric
           - __meta_kubernetes_service_labelpresent_iks_metric
-          regex: (actuator-prometheus|https-actuator-prometheus);true
+          regex: (http-metrics|actuator-prometheus|https-actuator-prometheus);true
         - action: keep
           source_labels:
           - __meta_kubernetes_endpoint_port_name
@@ -346,8 +256,4 @@ data:
           target_label: __tmp_hash
           modulus: 1
           action: hashmod
-        - source_labels:
-          - __tmp_hash
-          regex: 0
-          action: keep
         sample_limit: 2000

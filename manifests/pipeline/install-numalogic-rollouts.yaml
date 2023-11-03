@@ -1285,7 +1285,7 @@ spec:
           - name: SKIP_VALIDATION_FAILED
             value: "true"
           - name: PROMETHEUS_SERVER
-            value: http://prometheus-pushgateway.addon-metricset-ns.svc:9091
+            value: http://pushgateway.monitoring.svc:9091
           - name: METRICS_LABELS
             value: intuit_alert=true
           image: quay.io/numaio/numaflow-sink/prometheus-pusher:v0.1.0

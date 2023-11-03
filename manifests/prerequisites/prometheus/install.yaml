@@ -188,66 +188,12 @@ subjects:
 ---
 apiVersion: v1
 data:
-  prometheus.rules: "groups:\n- name: deploy.better.metric.rules\n  rules:\n  - record:
-    namespace_asset_cpu_usage_seconds_total\n    expr: |\n      sum by (namespace,
-    assetAlias) (\n              sum(rate(container_cpu_usage_seconds_total{image!=\"\",
-    container!=\"\"}[5m])) by (namespace, pod) * on (namespace, pod) group_left(assetAlias)\n
-    \             label_replace(kube_pod_labels{job=\"kube-state-metrics\"}, \"assetAlias\",
-    \"$1\", \"label_assetAlias\",\"(.*)\")\n      )\n  - record: namespace_asset_cpu_resource_requests\n
-    \   expr: |\n      sum by (namespace, assetAlias) (\n              sum(kube_pod_container_resource_requests{resource=\"cpu\"})
-    by (namespace, pod) * on (namespace, pod) group_left(assetAlias)\n              label_replace(kube_pod_labels{job=\"kube-state-metrics\"},
-    \"assetAlias\", \"$1\", \"label_assetAlias\",\"(.*)\")\n      )\n    labels:\n
-    \     numalogic: \"true\"\n  - record: namespace_asset_memory_usage_bytes\n    expr:
-    |\n      sum by (namespace, assetAlias) (\n              sum(container_memory_usage_bytes{image!=\"\",
-    container!=\"\"}) by (namespace, pod)\n              * on (namespace, pod) group_left(assetAlias)\n
-    \             label_replace(kube_pod_labels{job=\"kube-state-metrics\"}, \"assetAlias\",
-    \"$1\", \"label_assetAlias\",\"(.*)\")\n      )\n  - record: namespace_asset_memory_resource_requests\n
-    \   expr: |\n      sum by (namespace, assetAlias) (\n              sum(kube_pod_container_resource_requests{resource=\"memory\"})
-    by (namespace, pod) * on (namespace, pod) group_left(assetAlias)\n              label_replace(kube_pod_labels{job=\"kube-state-metrics\"},
-    \"assetAlias\", \"$1\", \"label_assetAlias\",\"(.*)\")\n      )\n  - record: namespace_asset_pod_cpu_utilization\n
-    \   expr: namespace_asset_cpu_usage_seconds_total * 100 / namespace_asset_cpu_resource_requests\n
-    \   labels:\n      numalogic: \"true\"\n  - record: namespace_asset_pod_memory_utilization\n
-    \   expr: namespace_asset_memory_usage_bytes * 100 / namespace_asset_memory_resource_requests\n
-    \   labels:\n      numalogic: \"true\"\n  - record: namespace_app_pod_count\n
-    \   expr: |\n      label_join((sum(label_replace(\n                  (kube_pod_status_ready{condition=\"true\"}
-    * on (namespace, pod) group_left(label_app) kube_pod_labels{job=\"kube-state-metrics\"}),
-    \"app\", \"$1\", \"label_app\",\"(.*)\")) by (namespace, app)), \"apps_deployment\",
-    \"\", \"app\"\n      )\n  - record: namespace_app_pod_count_no_alert\n    expr:
-    sum(namespace_app_pod_count) by (namespace, app, apps_deployment)\n  - record:
-    namespace_app_pod_http_server_requests_latency\n    expr: label_join((sum(rate(http_server_requests_seconds_sum{status=\"200\"}[1m]))
-    by (namespace, app) / sum(rate(http_server_requests_seconds_count{status=\"200\"}[1m]))
-    by (namespace, app)), \"apps_deployment\", \"\", \"app\")\n    labels:\n      numalogic:
-    \"true\"\n  - record: namespace_app_pod_http_server_requests_errors_4xx\n    expr:
-    label_join((sum(rate(http_server_requests_seconds_count{status=~\"4[0-9]+\"}[1m]))
-    by (namespace, app)), \"apps_deployment\", \"\", \"app\") / namespace_app_pod_count_no_alert\n
-    \ - record: namespace_app_pod_http_server_requests_errors_5xx\n    expr: label_join((sum(rate(http_server_requests_seconds_count{status=~\"5[0-9]+\"}[1m]))
-    by (namespace, app)), \"apps_deployment\", \"\", \"app\") / namespace_app_pod_count_no_alert\n
-    \ - record: namespace_app_pod_http_server_requests_2xx\n    expr: label_join((sum(rate(http_server_requests_seconds_count{status=~\"2[0-9]+\"}[1m]))
-    by (namespace, app)), \"apps_deployment\", \"\", \"app\") / namespace_app_pod_count_no_alert\n
-    \ - record: namespace_app_pod_http_server_requests_errors\n    expr: label_join((sum(rate(http_server_requests_seconds_count{status=~\"[4-5][0-9]+\"}[1m]))
-    by (namespace, app)), \"apps_deployment\", \"\", \"app\") / namespace_app_pod_count_no_alert\n
-    \   labels:\n      numalogic: \"true\"\n  - record: namespace_app_pod_http_server_requests_total\n
-    \   expr: label_join((sum(rate(http_server_requests_seconds_count[1m])) by (namespace,
-    app)), \"apps_deployment\", \"\", \"app\") / namespace_app_pod_count_no_alert\n
-    \ \n  - record: namespace_app_pod_http_server_requests_error_rate\n    expr: namespace_app_pod_http_server_requests_errors_5xx
-    / namespace_app_pod_http_server_requests_total\n    labels:\n      numalogic:
-    \"true\"\n  - record: namespace_hash_pod_count\n    expr: sum(label_replace((kube_pod_status_ready{condition=\"true\"}
-    * on (namespace, pod) group_left(label_rollouts_pod_template_hash) kube_pod_labels{job=\"kube-state-metrics\"}),
-    \"hash_id\", \"$1\", \"label_rollouts_pod_template_hash\",\"(.*)\")) by (namespace,
-    hash_id)\n  - record: namespace_hash_http_server_requests_errors_5xx\n    expr:
-    sum(label_replace(rate(http_server_requests_seconds_count{status=~\"5[0-9]+\"}[1m]),
-    \"hash_id\", \"$1\", \"rollouts_pod_template_hash\", \"(.*)\")) by (namespace,
-    hash_id) / namespace_hash_pod_count\n  - record: namespace_hash_pod_http_server_requests_total\n
-    \   expr: sum(label_replace(rate(http_server_requests_seconds_count[1m]), \"hash_id\",
-    \"$1\", \"rollouts_pod_template_hash\",\"(.*)\")) by (namespace, hash_id) / namespace_hash_pod_count\n
-    \ - record: namespace_hash_pod_http_server_requests_error_rate\n    expr: namespace_hash_http_server_requests_errors_5xx
-    / namespace_hash_pod_http_server_requests_total\n    labels:\n      numalogic:
-    \"true\"\n  - record: namespace_hash_pod_http_server_requests_latency\n    expr:
-    sum(label_replace(rate(http_server_requests_seconds_sum{status=\"200\"}[1m]),
-    \"hash_id\", \"$1\", \"rollouts_pod_template_hash\",\"(.*)\")) by (namespace,
-    hash_id) / sum(label_replace(rate(http_server_requests_seconds_count{status=\"200\"}[1m]),\"hash_id\",
-    \"$1\", \"rollouts_pod_template_hash\",\"(.*)\")) by (namespace, hash_id)\n    labels:\n
-    \     numalogic: \"true\""
+  prometheus.rules: "groups:\n- name: numalogic.aiops.metrics\n  rules:\n  - record:
+    namespace_app_rollouts_http_request_errors\n    expr: |\n      sum(rate(http_server_requests_seconds_count{status=~\"5[0-9]+\"}[1m]))
+    by (namespace, rollouts_pod_template_hash)   \n  - record: namespace_app_rollouts_http_request_count\n
+    \   expr: |\n      sum(rate(http_server_requests_seconds_count[1m])) by (namespace,
+    rollouts_pod_template_hash) \n  - record: namespace_app_rollouts_http_request_error_rate\n
+    \   expr: |\n      (namespace_app_rollouts_http_request_errors/namespace_app_rollouts_http_request_count)*100"
   prometheus.yml: |-
     global:
       scrape_interval: 5s
@@ -392,14 +338,13 @@ data:
         - source_labels: [__meta_kubernetes_service_name]
           action: replace
           target_label: kubernetes_name
-
-      - job_name: serviceMonitor/addon-metricset-ns/iks-appmonitor-actuator/0
+      - job_name: serviceMonitor/monitoring/iks-appmonitor-actuator
         honor_labels: false
         kubernetes_sd_configs:
         - role: endpoints
-        scrape_interval: 5s
+        scrape_interval: 10s
         metrics_path: /actuator/prometheus
-        scheme: https
+        scheme: http
         tls_config:
           insecure_skip_verify: true
         relabel_configs:
@@ -410,7 +355,7 @@ data:
           source_labels:
           - __meta_kubernetes_service_label_iks_metric
           - __meta_kubernetes_service_labelpresent_iks_metric
-          regex: (actuator-prometheus|https-actuator-prometheus);true
+          regex: (http-metrics|actuator-prometheus|https-actuator-prometheus);true
         - action: keep
           source_labels:
           - __meta_kubernetes_endpoint_port_name
@@ -487,10 +432,6 @@ data:
           target_label: __tmp_hash
           modulus: 1
           action: hashmod
-        - source_labels:
-          - __tmp_hash
-          regex: 0
-          action: keep
         sample_limit: 2000
 kind: ConfigMap
 metadata:
