@@ -5,7 +5,7 @@ from unittest.mock import patch, Mock
 import numpy as np
 from numalogic.registry import RedisRegistry
 from orjson import orjson
-from pynumaflow.function import Messages
+from pynumaflow.mapper import Messages
 
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import Status, StreamPayload, Header

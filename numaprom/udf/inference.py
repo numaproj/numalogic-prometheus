@@ -8,7 +8,7 @@ from numalogic.registry import ArtifactData, RedisRegistry, LocalLRUCache
 from numalogic.tools.data import StreamingDataset
 from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
-from pynumaflow.function import Datum
+from pynumaflow.mapper import Datum
 from torch.utils.data import DataLoader
 
 from numaprom import LOGGER

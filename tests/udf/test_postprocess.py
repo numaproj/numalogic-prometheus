@@ -4,7 +4,7 @@ import unittest
 import orjson
 from freezegun import freeze_time
 
-from pynumaflow.function import Messages
+from pynumaflow.mapper import Messages
 
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import PrometheusPayload, StreamPayload, Header

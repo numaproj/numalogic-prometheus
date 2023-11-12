@@ -12,7 +12,7 @@ from numalogic.tools.data import StreamingDataset
 from numalogic.tools.exceptions import RedisRegistryError
 from numalogic.tools.types import redis_client_t
 from orjson import orjson
-from pynumaflow.sink import Datum, Responses, Response
+from pynumaflow.sinker import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 

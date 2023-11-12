@@ -11,8 +11,8 @@ import pandas as pd
 from numalogic.models.autoencoder.variants import VanillaAE, LSTMAE
 from numalogic.models.threshold import StdDevThreshold
 from numalogic.registry import ArtifactData, RedisRegistry
-from pynumaflow.function import Datum, Messages
-from pynumaflow.function._dtypes import DROP, DatumMetadata
+from pynumaflow.mapper import Datum, Messages
+from pynumaflow.mapper._dtypes import DROP
 from sklearn.preprocessing import MinMaxScaler
 
 from numaprom._constants import TESTS_DIR, POSTPROC_VTX_KEY
@@ -36,7 +36,6 @@ def get_datum(data: str or bytes) -> Datum:
         value=data,
         event_time=datetime.datetime.now(),
         watermark=datetime.datetime.now(),
-        metadata=DatumMetadata(msg_id="", num_delivered=0),
     )
 
 

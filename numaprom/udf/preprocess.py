@@ -5,7 +5,8 @@ from typing import Final
 import orjson
 from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
-from pynumaflow.function import Datum
+from pynumaflow.mapper import Datum
+
 
 from numaprom import LOGGER
 from numaprom.clients.sentinel import get_redis_client
