@@ -5,38 +5,38 @@ general:
   maxAge: 60
   leaderElectionEnabled: false
 prometheusJobs:
-# - name: "query-1"
-#   queryConfig:
-#     interval: "30s"
-#     source: "http://localhost:9090"
-#     query: "namespace_app_rollouts_http_request_error_rate"
-#     backoff:
-#       durationSeconds: 1
-#       factor: 2
-#       maxSteps: 5
-#   sendConfig:
-#     targets:
-#       - url: "https://localhost:8443/vertices/input"
-#         insecure: true
-#     backoff:
-#       durationSeconds: 1
-#       factor: 2
-#       maxSteps: 5
-   - name: "query-2"
-     metricName: "namespace_app_rollouts_cpu_utilization"
-     queryConfig:
-       interval: "30s"
-       source: "http://localhost:9090"
-       query: 'sum(namespace_app_aiops_pod_cpu_utilization{aiops_argorollouts="true"}) by (assetId, namespace, rollouts_pod_template_hash, app)'
-       backoff:
-         durationSeconds: 1
-         factor: 2
-         maxSteps: 5
-     sendConfig:
-       targets:
-         - url: "https://numalogic-rollouts-pipeline-input-svc.numalogic-rollouts-mv.svc.cluster.local:8443/vertices/input"
-           insecure: true
-       backoff:
-         durationSeconds: 1
-         factor: 2
-         maxSteps: 5
+#  - name: "query-1"
+#    queryConfig:
+#      interval: "30s"
+#      source: "http://localhost:9090"
+#      query: "namespace_app_rollouts_http_request_error_rate"
+#      backoff:
+#        durationSeconds: 1
+#        factor: 2
+#        maxSteps: 5
+#    sendConfig:
+#      targets:
+#        - url: "https://localhost:8443/vertices/input"
+#          insecure: true
+#      backoff:
+#        durationSeconds: 1
+#        factor: 2
+#        maxSteps: 5
+  - name: "query-2"
+    metricName: "namespace_app_rollouts_cpu_utilization"
+    queryConfig:
+      interval: "30s"
+      source: "http://localhost:9090"
+      query: 'sum(namespace_app_aiops_pod_cpu_utilization{aiops_argorollouts="true"}) by (assetId, namespace, rollouts_pod_template_hash, app)'
+      backoff:
+        durationSeconds: 1
+        factor: 2
+        maxSteps: 5
+    sendConfig:
+      targets:
+        - url: "https://numalogic-rollouts-pipeline-input-svc.numalogic-rollouts-mv.svc.cluster.local:8443/vertices/input"
+          insecure: true
+      backoff:
+        durationSeconds: 1
+        factor: 2
+        maxSteps: 5
