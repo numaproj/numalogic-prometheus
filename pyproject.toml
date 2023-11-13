@@ -18,7 +18,7 @@ classifiers = [
 repository = "https://github.com/numaproj/numalogic-prometheus"
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.12"
+python = "~3.10"
 redis = {extras = ["hiredis"], version = "^4.5" }
 pynumaflow = "~0.5"
 numalogic = {version = "~0.5", extras = ["redis"]}
@@ -27,16 +27,9 @@ omegaconf = "^2.3.0"
 watchdog = "^3.0.0"
 loguru = "^0.7.0"
 prometheus-client = "^0.17"
-typing-extensions = "^4.8.0"
-pytorch-lightning = "^2.1.0"
-coverage = "^6.3"
-black = "^23.1"
-fakeredis = "^2.11"
-ruff = "^0.0.264"
-pytest = "^7.1"
-pytest-cov = "^4.0"
-freezegun = "^1.2.2"
-pre-commit = "^3.3.1"
+
+[tool.poetry.group.torch.dependencies]
+pytorch-lightning = "^2.0"
 
 [tool.poetry.group.dev]
 optional = true
