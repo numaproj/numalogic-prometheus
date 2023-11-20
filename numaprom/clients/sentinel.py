@@ -40,7 +40,10 @@ def get_redis_client(
     """
     global SENTINEL_CLIENT
 
+    print(" Global SENTINEL_CLIENT: ", SENTINEL_CLIENT)
+
     if not recreate and SENTINEL_CLIENT:
+        print(" inside not recreate and SENTINEL_CLIENT ")
         return SENTINEL_CLIENT
 
     retry = Retry(
@@ -70,14 +73,25 @@ def get_redis_client(
         **conn_kwargs
     )
     if master_node:
+        print(" inside master_node ")
         SENTINEL_CLIENT = sentinel.master_for(mastername)
     else:
+        print(" inside slave_node ")
         SENTINEL_CLIENT = sentinel.slave_for(mastername)
     LOGGER.info(
-        "Sentinel redis params: {args}, master_node: {is_master}",
+        "This is in numaprom Sentinel redis params: {args}, master_node: {is_master}",
         args=conn_kwargs,
         is_master=master_node,
     )
+    print("final SENTINEL_CLIENT: ", SENTINEL_CLIENT)
+
+
+    try :
+        print("SENTINEL_CLIENT.ping(): ", SENTINEL_CLIENT.ping())
+    except Exception as e:
+        LOGGER.Exception("Exception in SENTINEL_CLIENT.ping(): ", e)
+
+
     return SENTINEL_CLIENT
 
 
