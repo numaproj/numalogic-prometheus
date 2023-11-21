@@ -26,6 +26,7 @@ REQUEST_EXPIRY = int(os.getenv("REQUEST_EXPIRY", "300"))
 # REDIS_CLIENT = get_redis_client_from_conf(master_node=True, recreate=True)
 REDIS_CLIENT_MASTER = get_redis_client_from_conf(master_node=True, reset=True)
 
+
 # TODO: extract all good hashes, including when there are 2 hashes at a time
 # TODO avoid filling inf with nan, or at least throw warning
 def clean_data(df: pd.DataFrame, hash_col: str, limit=12) -> pd.DataFrame:
