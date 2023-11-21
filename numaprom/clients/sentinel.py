@@ -42,12 +42,11 @@ def get_redis_client(
     global SENTINEL_CLIENT
 
     if reset:
-        LOGGER.info("Current Global Sentinel Client: ", SENTINEL_CLIENT)
-        SENTINEL_CLIENT = None
         LOGGER.info("Reset Sentinel Client to None")
+        SENTINEL_CLIENT = None
 
     if not recreate and SENTINEL_CLIENT:
-        LOGGER.info(" Reusing Existing Sentinel Client")
+        LOGGER.info("Reusing Existing Sentinel Client")
         return SENTINEL_CLIENT
 
     retry = Retry(
@@ -87,7 +86,6 @@ def get_redis_client(
         args=conn_kwargs,
         is_master=master_node,
     )
-    LOGGER.info("Returning Sentinel_Client: ", SENTINEL_CLIENT)
 
     return SENTINEL_CLIENT
 
