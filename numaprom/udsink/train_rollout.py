@@ -12,7 +12,7 @@ from numalogic.tools.data import StreamingDataset
 from numalogic.tools.exceptions import RedisRegistryError
 from numalogic.tools.types import redis_client_t
 from orjson import orjson
-from pynumaflow.sink import Datum, Responses, Response
+from pynumaflow.sinker import Datum, Responses, Response
 from sklearn.pipeline import make_pipeline
 from torch.utils.data import DataLoader
 
@@ -23,6 +23,8 @@ from numaprom.tools import fetch_data
 from numaprom.watcher import ConfigManager
 
 REQUEST_EXPIRY = int(os.getenv("REQUEST_EXPIRY", "300"))
+# REDIS_CLIENT = get_redis_client_from_conf(master_node=True, recreate=True)
+REDIS_CLIENT_MASTER = get_redis_client_from_conf(master_node=True, reset=True)
 
 
 # TODO: extract all good hashes, including when there are 2 hashes at a time
@@ -107,8 +109,9 @@ def get_model_config(metric_config):
 
 
 def train_rollout(datums: Iterator[Datum]) -> Responses:
+    global REDIS_CLIENT_MASTER
+    redis_client = REDIS_CLIENT_MASTER
     responses = Responses()
-    redis_client = get_redis_client_from_conf()
 
     for _datum in datums:
         payload = TrainerPayload(**orjson.loads(_datum.value))

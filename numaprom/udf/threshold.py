@@ -6,7 +6,7 @@ from typing import Final
 from numalogic.registry import RedisRegistry, LocalLRUCache
 from numalogic.tools.exceptions import RedisRegistryError
 from orjson import orjson
-from pynumaflow.function import Datum
+from pynumaflow.mapper import Datum
 
 from numaprom import LOGGER
 from numaprom._constants import TRAIN_VTX_KEY, POSTPROC_VTX_KEY

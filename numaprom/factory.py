@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
-from pynumaflow.function import Messages
-from pynumaflow.sink import Responses
+from pynumaflow.mapper import Messages
+from pynumaflow.sinker import Responses
 
 from numaprom.udf import preprocess, postprocess, window, inference, threshold
 from numaprom.udsink import train, train_rollout

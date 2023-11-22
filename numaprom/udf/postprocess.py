@@ -4,7 +4,7 @@ from typing import Final
 
 import numpy as np
 from orjson import orjson
-from pynumaflow.function import Datum
+from pynumaflow.mapper import Datum
 from redis.exceptions import RedisError, RedisClusterException
 from redis.sentinel import MasterNotFoundError
 

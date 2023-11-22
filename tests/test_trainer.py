@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest.mock import patch, Mock
 
 from numalogic.tools.exceptions import InvalidDataShapeError
-from pynumaflow.sink import Datum
+from pynumaflow.sinker import Datum
 
 from numaprom._constants import TESTS_DIR
 from numaprom.clients.prometheus import Prometheus

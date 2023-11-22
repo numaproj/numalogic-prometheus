@@ -21,6 +21,7 @@ def get_redis_client(
     mastername: str,
     recreate: bool = False,
     master_node: bool = True,
+    reset: bool = False,
 ) -> redis_client_t:
     """Return a master redis client for sentinel connections, with retry.
 
@@ -40,7 +41,12 @@ def get_redis_client(
     """
     global SENTINEL_CLIENT
 
+    if reset:
+        LOGGER.info("Reset Sentinel Client to None")
+        SENTINEL_CLIENT = None
+
     if not recreate and SENTINEL_CLIENT:
+        LOGGER.info("Reusing Existing Sentinel Client")
         return SENTINEL_CLIENT
 
     retry = Retry(
@@ -70,14 +76,17 @@ def get_redis_client(
         **conn_kwargs
     )
     if master_node:
+        LOGGER.info("Creating Master Sentinel Redis Client")
         SENTINEL_CLIENT = sentinel.master_for(mastername)
     else:
+        LOGGER.info("Creating Slave Sentinel Redis Client")
         SENTINEL_CLIENT = sentinel.slave_for(mastername)
     LOGGER.info(
         "Sentinel redis params: {args}, master_node: {is_master}",
         args=conn_kwargs,
         is_master=master_node,
     )
+
     return SENTINEL_CLIENT
 
 

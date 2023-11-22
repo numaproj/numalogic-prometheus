@@ -2,7 +2,7 @@ import os
 import orjson
 import unittest
 
-from pynumaflow.function._dtypes import DROP
+from pynumaflow.mapper._dtypes import DROP
 
 from numaprom._constants import TESTS_DIR
 from numaprom.entities import StreamPayload

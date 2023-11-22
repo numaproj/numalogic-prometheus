@@ -10,7 +10,7 @@ import pandas as pd
 import pytz
 from numalogic.config import PostprocessFactory
 from numalogic.models.threshold import SigmoidThreshold
-from pynumaflow.function import Messages, Message
+from pynumaflow.mapper import Messages, Message
 from numaprom import LOGGER, MetricConf
 from numaprom.clients.prometheus import Prometheus
 from numaprom.entities import TrainerPayload, StreamPayload

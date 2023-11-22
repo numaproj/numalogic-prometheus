@@ -6,7 +6,7 @@ from typing import Final
 import numpy as np
 import numpy.typing as npt
 from orjson import orjson
-from pynumaflow.function import Datum
+from pynumaflow.mapper import Datum
 from redis.exceptions import RedisError, RedisClusterException
 
 from numaprom import LOGGER
