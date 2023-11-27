@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.6.0 (2023-11-27)
+
+ * [56bcac4](https://github.com/numaproj/numalogic-prometheus/commit/56bcac43f7152b4e5b32169da53deb40094bfb92) Enable custom metrics
+ * [e8c600b](https://github.com/numaproj/numalogic-prometheus/commit/e8c600bbdacf78b9986150579de850b798bd5bee) update prometheus port (#172)
+ * [fe8865a](https://github.com/numaproj/numalogic-prometheus/commit/fe8865a57837923df5b660610628b6ab81877d49) Update manifest (#171)
+ * [d90b1bb](https://github.com/numaproj/numalogic-prometheus/commit/d90b1bb4160bb315e675dad0378a8514884ab042) Manifest 1 (#170)
+ * [e0d349b](https://github.com/numaproj/numalogic-prometheus/commit/e0d349bfba0272989e303be16361ff4788e1b14f) Update prometheus install.yaml (#169)
+ * [bd28871](https://github.com/numaproj/numalogic-prometheus/commit/bd288714b33e2ae999745d7928b2452978c77abc) Prometheus Query Service (#168)
+
+### Contributors
+
+ * Saravanan Balasubramanian
+
+## v0.5.0 (2023-09-12)
+
+ * [e922195](https://github.com/numaproj/numalogic-prometheus/commit/e9221950b4b30aead56045c6e8f5efe5a9718216) Enable custom metrics (#162)
+ * [5653128](https://github.com/numaproj/numalogic-prometheus/commit/56531285f414e06cc6eec72f55850bd58e305b9e) fix: thresh bug when there is RedisRegistryError (#164)
+
+### Contributors
+
+ * Kushal Batra
+ * Saravanan Balasubramanian
+
+## v0.4.15 (2023-08-07)
+
+
+### Contributors
+
+
 ## v0.4.13 (2023-07-06)
 
  * [620d1f3](https://github.com/numaproj/numalogic-prometheus/commit/620d1f388f542617b09fcc373d7d93baa3831388) fix: training only when model loading from registry source (#159)
