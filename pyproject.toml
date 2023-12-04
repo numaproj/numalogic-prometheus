@@ -21,7 +21,7 @@ repository = "https://github.com/numaproj/numalogic-prometheus"
 python = "~3.10"
 redis = {extras = ["hiredis"], version = "^5.0.1" }
 pynumaflow = "~0.5"
-numalogic = {version = "0.6.1.dev5", extras = ["redis", "druid"]}
+numalogic = {version = "0.6.1.dev5", extras = ["redis"]}
 orjson = "^3.8.4"
 omegaconf = "^2.3.0"
 watchdog = "^3.0.0"

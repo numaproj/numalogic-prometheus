@@ -563,13 +563,13 @@ woff = ["brotli (>=1.0.1)", "brotlicffi (>=0.8.0)", "zopfli (>=0.1.4)"]
 
 [[package]]
 name = "freezegun"
-version = "1.3.0"
+version = "1.3.1"
 description = "Let your Python tests travel through time"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "freezegun-1.3.0-py3-none-any.whl", hash = "sha256:fc21de00b8e7f3dfb91414f876afe7f74b2f29ce9907bd81013bdbc7e8a632d0"},
-    {file = "freezegun-1.3.0.tar.gz", hash = "sha256:56cc5dc34de38fe28a4d19bea65bbd3af6fd66020df8141b92bdb45c9be9f503"},
+    {file = "freezegun-1.3.1-py3-none-any.whl", hash = "sha256:065e77a12624d05531afa87ade12a0b9bdb53495c4573893252a055b545ce3ea"},
+    {file = "freezegun-1.3.1.tar.gz", hash = "sha256:48984397b3b58ef5dfc645d6a304b0060f612bcecfdaaf45ce8aff0077a6cb6a"},
 ]
 
 [package.dependencies]
@@ -1182,7 +1182,6 @@ numpy = ">=1.23,<2.0"
 omegaconf = ">=2.3.0,<3.0.0"
 orjson = ">=3.9.5,<4.0.0"
 pandas = {version = ">=2.0,<3.0", extras = ["performance"]}
-pydruid = {version = ">=0.6,<0.7", optional = true, markers = "extra == \"druid\""}
 pynumaflow = ">=0.5,<0.6"
 redis = {version = ">=5.0,<6.0", extras = ["hiredis"], optional = true, markers = "extra == \"redis\""}
 scikit-learn = ">=1.2,<2.0"
@@ -1650,25 +1649,6 @@ files = [
 
 [package.dependencies]
 pyasn1 = ">=0.4.6,<0.6.0"
-
-[[package]]
-name = "pydruid"
-version = "0.6.6"
-description = "A Python connector for Druid."
-optional = false
-python-versions = "*"
-files = [
-    {file = "pydruid-0.6.6.tar.gz", hash = "sha256:d175ba103fc8361f643075301dc9bc43a6dcefdaa8293dc47136082d307fa3c2"},
-]
-
-[package.dependencies]
-requests = "*"
-
-[package.extras]
-async = ["tornado"]
-cli = ["prompt_toolkit (>=2.0.0)", "pygments", "tabulate"]
-pandas = ["pandas"]
-sqlalchemy = ["sqlalchemy"]
 
 [[package]]
 name = "pynumaflow"
@@ -2191,4 +2171,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "85e4c2e5cb0a200836c5325afed3ccbae48856eaa6ed9224acd1429abf6ed2b6"
+content-hash = "ef82be342bf63385fe8689c07810945249c2bbcbd8100815f0077e0cb7f67557"
