@@ -3,10 +3,10 @@ import time
 from typing import Final
 
 from numalogic.config import NumalogicConf
-from numalogic.models.autoencoder import AutoencoderTrainer
 from numalogic.registry import ArtifactData, RedisRegistry, LocalLRUCache
 from numalogic.tools.data import StreamingDataset
 from numalogic.tools.exceptions import RedisRegistryError
+from numalogic.tools.trainer import TimeseriesTrainer
 from orjson import orjson
 from pynumaflow.mapper import Datum
 from torch.utils.data import DataLoader
@@ -32,7 +32,7 @@ def _run_inference(
     stream_data = payload.get_stream_array()
     stream_loader = DataLoader(StreamingDataset(stream_data, numalogic_conf.model.conf["seq_len"]))
 
-    trainer = AutoencoderTrainer()
+    trainer = TimeseriesTrainer()
     try:
         recon_err = trainer.predict(model, dataloaders=stream_loader)
     except Exception as err:

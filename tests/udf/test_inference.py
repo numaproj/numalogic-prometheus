@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch, Mock
 
 from freezegun import freeze_time
-from numalogic.models.autoencoder import AutoencoderTrainer
+from numalogic.models.autoencoder import TimeseriesTrainer
 from numalogic.registry import RedisRegistry
 from orjson import orjson
 from pynumaflow.mapper import Messages
@@ -52,7 +52,7 @@ class TestInference(unittest.TestCase):
 
     @freeze_time("2022-02-20 12:00:00")
     @patch.object(RedisRegistry, "load", Mock(return_value=return_mock_lstmae()))
-    @patch.object(AutoencoderTrainer, "predict", Mock(side_effect=RuntimeError))
+    @patch.object(TimeseriesTrainer, "predict", Mock(side_effect=RuntimeError))
     def test_inference_err(self):
         for msg in self.inference_input:
             _out = inference([""], get_datum(msg.value))

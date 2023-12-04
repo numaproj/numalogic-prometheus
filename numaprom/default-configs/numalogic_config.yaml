@@ -11,7 +11,8 @@ model:
       - 16
     dropout_p: 0.25
 trainer:
-  max_epochs: 30
+  pltrainer_conf:
+    max_epochs: 30
 preprocess:
   - name: "StandardScaler"
 threshold:
