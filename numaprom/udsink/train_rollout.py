@@ -6,7 +6,7 @@ import numpy as np
 from numalogic.tools.exceptions import InvalidDataShapeError
 import pandas as pd
 from numalogic.config import PreprocessFactory, ModelInfo, ThresholdFactory, ModelFactory
-from numalogic.models.autoencoder import AutoencoderTrainer
+from numalogic.models.autoencoder import TimeseriesTrainer
 from numalogic.registry import RedisRegistry
 from numalogic.tools.data import StreamingDataset
 from numalogic.tools.exceptions import RedisRegistryError
@@ -57,7 +57,7 @@ def _train_model(uuid, x, model_cfg, trainer_cfg):
     model = model_factory.get_instance(model_cfg)
     dataset = StreamingDataset(x, model.seq_len)
 
-    trainer = AutoencoderTrainer(**trainer_cfg)
+    trainer = TimeseriesTrainer(**trainer_cfg.pltrainer_conf)
     trainer.fit(model, train_dataloaders=DataLoader(dataset, batch_size=64))
 
     LOGGER.debug(
@@ -145,7 +145,7 @@ def train_rollout(datums: Iterator[Datum]) -> Responses:
             metric_config,
             {"namespace": payload.composite_keys["namespace"]},
             return_labels=[hash_label],
-            hours=metric_config.train_hours,
+            hours=metric_config.numalogic_conf.trainer.train_hours,
         )
         try:
             train_df = clean_data(train_df, hash_label)
