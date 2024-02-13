@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.7.0 (2024-02-12)
+
+ * [091deb0](https://github.com/numaproj/numalogic-prometheus/commit/091deb032b236cb1c10aba4ce2b9d63b4e572f36) library version updates (#174)
+
+### Contributors
+
+ * Kushal Batra
+
 ## v0.6.0 (2023-11-27)
 
  * [56bcac4](https://github.com/numaproj/numalogic-prometheus/commit/56bcac43f7152b4e5b32169da53deb40094bfb92) Enable custom metrics
