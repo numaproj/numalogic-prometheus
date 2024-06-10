@@ -8,10 +8,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from prometheus_client import start_http_server
+
+from numaprom import LOGGER
 
 
-import logging
+def start_metrics_server(port: int) -> None:
+    """
+    Starts the Prometheus monitoring server.
 
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.NullHandler())
+    Args:
+        port: Port number
+    """
+    LOGGER.info("Starting Prometheus monitoring server on port: %s", port)
+    start_http_server(port)

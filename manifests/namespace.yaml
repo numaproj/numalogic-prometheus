@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  annotations:
-    iam.amazonaws.com/permitted: .*
-    iks.image-policy.k8s.io/allowed-registries: gcr.io,k8s.gcr.io,quay.io,docker.io
-  labels:
-    kubernetes.io/metadata.name: numalogic-prometheus
-  name: numalogic-prometheus
