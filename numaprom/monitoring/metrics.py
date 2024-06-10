@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 from collections.abc import Sequence
 
 from prometheus_client import Counter, Info, Summary, Gauge, Histogram
@@ -19,18 +18,18 @@ class _BaseMetric:
         labels: List of labels
     """
 
-    def __init__(self, name: str, description: str, labels: Optional[Sequence[str]]) -> None:
+    def __init__(self, name: str, description: str, labels: Sequence[str] | None) -> None:
         self.name = name
         self.description = description
         self.labels = labels
 
-    def add_info(self, labels: Optional[dict], data: dict) -> None:
+    def add_info(self, labels: dict | None, data: dict) -> None:
         pass
 
-    def add_observation(self, labels: Optional[dict], value: float) -> None:
+    def add_observation(self, labels: dict | None, value: float) -> None:
         pass
 
-    def increment_counter(self, labels: Optional[dict], amount: int = 1) -> None:
+    def increment_counter(self, labels: dict | None, amount: int = 1) -> None:
         pass
 
     def set_gauge(self, labels: dict, data: float) -> None:
@@ -53,7 +52,7 @@ class PromCounterMetric(_BaseMetric):
         self.counter = Counter(name, description, [*label_pairs.keys(), *static_label_pairs.keys()])
         self.static_label_pairs = dict(static_label_pairs)  # converting DictConfig to dict type
 
-    def increment_counter(self, labels: Optional[dict], amount: int = 1) -> None:
+    def increment_counter(self, labels: dict | None, amount: int = 1) -> None:
         _new_labels = self.static_label_pairs | labels
         self.counter.labels(**_new_labels).inc(amount=amount)
 
@@ -76,7 +75,7 @@ class PromInfoMetric(_BaseMetric):
 
     def add_info(
         self,
-        labels: Optional[dict],
+        labels: dict | None,
         data: dict,
     ) -> None:
         _new_labels = self.static_label_pairs | labels
@@ -97,7 +96,7 @@ class PromSummaryMetric(_BaseMetric):
         self.summary = Summary(name, description, [*label_pairs.keys(), *static_label_pairs.keys()])
         self.static_label_pairs = dict(static_label_pairs)  # converting DictConfig to dict type
 
-    def add_observation(self, labels: Optional[dict], value: float) -> None:
+    def add_observation(self, labels: dict | None, value: float) -> None:
         _new_labels = self.static_label_pairs | labels
         self.summary.labels(**_new_labels).observe(amount=value)
 
@@ -141,6 +140,6 @@ class PromHistogramMetric(_BaseMetric):
         )
         self.static_label_pairs = dict(static_label_pairs)  # converting DictConfig to dict type
 
-    def add_observation(self, labels: Optional[dict], value: float) -> None:
+    def add_observation(self, labels: dict | None, value: float) -> None:
         _new_labels = self.static_label_pairs | labels
         self.histogram.labels(**_new_labels).observe(amount=value)

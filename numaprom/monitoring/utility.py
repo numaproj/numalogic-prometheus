@@ -11,23 +11,28 @@
 
 
 import logging
-from typing import Optional
 
 from omegaconf import OmegaConf
 
-from numaprom.monitoring.metrics import PromCounterMetric, PromInfoMetric, PromSummaryMetric, PromGaugeMetric, \
-    PromHistogramMetric
+from numaprom.monitoring.metrics import (
+    PromCounterMetric,
+    PromInfoMetric,
+    PromSummaryMetric,
+    PromGaugeMetric,
+    PromHistogramMetric,
+    _BaseMetric,
+)
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.addHandler(logging.NullHandler())
 
 
 def _get_metric(
-        metric_type: str,
-        name: str,
-        description: str,
-        label_pairs: Optional[dict[str, str]],
-        static_label_pairs: Optional[dict[str, str]],
+    metric_type: str,
+    name: str,
+    description: str,
+    label_pairs: dict[str, str] | None,
+    static_label_pairs: dict[str, str] | None,
 ) -> PromCounterMetric | PromInfoMetric | PromSummaryMetric | PromGaugeMetric | PromHistogramMetric:
     if metric_type == "Counter":
         return PromCounterMetric(name, description, label_pairs, static_label_pairs)

@@ -1,16 +1,15 @@
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
-class NumalogicMetric:
+class PromMetric:
     name: str
     description: str
-    static_labels_pair: Optional[dict[str, str]] = None
-    labels_pair: Optional[dict[str, str]] = None
+    static_labels_pair: dict[str, str] | None = None
+    labels_pair: dict[str, str] | None = None
 
 
 @dataclass
-class NumalogicMetricTypeConfig:
+class PromMetricList:
     type: str
-    metrics: list[NumalogicMetric]
+    metrics: list[PromMetric]
