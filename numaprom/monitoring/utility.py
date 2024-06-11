@@ -12,7 +12,6 @@
 
 import logging
 
-from omegaconf import OmegaConf
 
 from numaprom.monitoring.metrics import (
     PromCounterMetric,
@@ -20,20 +19,30 @@ from numaprom.monitoring.metrics import (
     PromSummaryMetric,
     PromGaugeMetric,
     PromHistogramMetric,
-    _BaseMetric,
 )
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.addHandler(logging.NullHandler())
 
 
-def _get_metric(
+def get_metric(
     metric_type: str,
     name: str,
     description: str,
     label_pairs: dict[str, str] | None,
     static_label_pairs: dict[str, str] | None,
 ) -> PromCounterMetric | PromInfoMetric | PromSummaryMetric | PromGaugeMetric | PromHistogramMetric:
+    """
+    Returns a Prometheus metric object based on the metric type.
+    Args:
+        metric_type: metric type
+        name: metric name
+        description: metric description
+        label_pairs: label pairs
+        static_label_pairs: static label pairs
+
+    Returns: _BaseMetric type
+    """
     if metric_type == "Counter":
         return PromCounterMetric(name, description, label_pairs, static_label_pairs)
     if metric_type == "Info":

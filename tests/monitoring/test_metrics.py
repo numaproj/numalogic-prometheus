@@ -1,10 +1,4 @@
-import os
-import unittest
-from unittest import TestCase
-
-import pytest
-
-from numaprom.monitoring.utility import _get_metric
+from numaprom.monitoring.utility import get_metric
 
 
 def test_get_metric():
@@ -22,10 +16,14 @@ def test_get_metric():
 
     label_pairs = {"label1": "value1"}
     static_label_pairs = {"label2": "value2"}
-    metric = _get_metric("Counter", name, description, label_pairs, static_label_pairs)
-    metric_info = _get_metric("Info", name_info, description_info, label_pairs, static_label_pairs)
-    metric_summary = _get_metric("Summary", name_summary, description_summary, label_pairs, static_label_pairs)
-    metric_gauge = _get_metric("Gauge", name_gauge, description_gauge, label_pairs, static_label_pairs)
+    metric = get_metric("Counter", name, description, label_pairs, static_label_pairs)
+    metric_info = get_metric("Info", name_info, description_info, label_pairs, static_label_pairs)
+    metric_summary = get_metric(
+        "Summary", name_summary, description_summary, label_pairs, static_label_pairs
+    )
+    metric_gauge = get_metric(
+        "Gauge", name_gauge, description_gauge, label_pairs, static_label_pairs
+    )
 
     assert metric.name == name
     assert metric.description == description

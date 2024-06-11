@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Sequence
 
 from black import Optional
 from prometheus_client import Counter, Info, Summary, Gauge, Histogram
@@ -19,7 +18,13 @@ class _BaseMetric:
         labels: List of labels
     """
 
-    def __init__(self, name: str, description: str, static_label_pairs: Optional[dict[str, str]], label_pairs: Optional[dict[str,str]]) -> None:
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        static_label_pairs: Optional[dict[str, str]],
+        label_pairs: Optional[dict[str, str]],
+    ) -> None:
         self.label_pairs = label_pairs
         self.static_label_pairs = dict(static_label_pairs)  # converting DictConfig to dict type
         self.name = name
@@ -44,11 +49,11 @@ class PromCounterMetric(_BaseMetric):
     __slots__ = ("counter", "static_label_pairs")
 
     def __init__(
-            self,
-            name: str,
-            description: str,
-            label_pairs: dict[str, str],
-            static_label_pairs: dict[str, str],
+        self,
+        name: str,
+        description: str,
+        label_pairs: dict[str, str],
+        static_label_pairs: dict[str, str],
     ) -> None:
         """
         Args:
@@ -57,7 +62,7 @@ class PromCounterMetric(_BaseMetric):
             label_pairs: dict of labels with their default value
             static_label_pairs: dict of static labels with the default value
         """
-        super().__init__(name, description, static_label_pairs,label_pairs)
+        super().__init__(name, description, static_label_pairs, label_pairs)
         self.counter = Counter(name, description, [*label_pairs.keys(), *static_label_pairs.keys()])
 
     def increment_counter(self, labels: dict | None, amount: int = 1) -> None:
@@ -71,11 +76,11 @@ class PromInfoMetric(_BaseMetric):
     __slots__ = ("info", "static_label_pairs")
 
     def __init__(
-            self,
-            name: str,
-            description: str,
-            label_pairs: dict[str, str],
-            static_label_pairs: dict[str, str],
+        self,
+        name: str,
+        description: str,
+        label_pairs: dict[str, str],
+        static_label_pairs: dict[str, str],
     ) -> None:
         """
         Args:
@@ -84,13 +89,13 @@ class PromInfoMetric(_BaseMetric):
             label_pairs: dict of labels with their default value
             static_label_pairs: dict of static labels with the default value
         """
-        super().__init__(name, description, static_label_pairs,label_pairs)
+        super().__init__(name, description, static_label_pairs, label_pairs)
         self.info = Info(name, description, [*label_pairs.keys(), *static_label_pairs.keys()])
 
     def add_info(
-            self,
-            labels: dict | None,
-            data: dict,
+        self,
+        labels: dict | None,
+        data: dict,
     ) -> None:
         _new_labels = self.static_label_pairs | labels
         self.info.labels(**_new_labels).info(data)
@@ -100,11 +105,11 @@ class PromSummaryMetric(_BaseMetric):
     __slots__ = ("summary", "static_label_pairs")
 
     def __init__(
-            self,
-            name: str,
-            description: str,
-            label_pairs: dict[str, str],
-            static_label_pairs: dict[str, str],
+        self,
+        name: str,
+        description: str,
+        label_pairs: dict[str, str],
+        static_label_pairs: dict[str, str],
     ) -> None:
         """
         Args:
@@ -125,11 +130,11 @@ class PromGaugeMetric(_BaseMetric):
     __slots__ = ("info", "static_label_pairs")
 
     def __init__(
-            self,
-            name: str,
-            description: str,
-            label_pairs: dict[str, str],
-            static_label_pairs: dict[str, str],
+        self,
+        name: str,
+        description: str,
+        label_pairs: dict[str, str],
+        static_label_pairs: dict[str, str],
     ) -> None:
         """
         Args:
@@ -138,13 +143,13 @@ class PromGaugeMetric(_BaseMetric):
             label_pairs: dict of labels with their default value
             static_label_pairs: dict of static labels with the default value
         """
-        super().__init__(name, description, static_label_pairs,label_pairs)
+        super().__init__(name, description, static_label_pairs, label_pairs)
         self.info = Gauge(name, description, [*label_pairs.keys(), *static_label_pairs.keys()])
 
     def set_gauge(
-            self,
-            labels: dict,
-            data: float,
+        self,
+        labels: dict,
+        data: float,
     ) -> None:
         _new_labels = self.static_label_pairs | labels
         self.info.labels(**_new_labels).set(data)
@@ -154,11 +159,11 @@ class PromHistogramMetric(_BaseMetric):
     __slots__ = ("histogram", "static_label_pairs")
 
     def __init__(
-            self,
-            name: str,
-            description: str,
-            label_pairs: dict[str, str],
-            static_label_pairs: dict[str, str],
+        self,
+        name: str,
+        description: str,
+        label_pairs: dict[str, str],
+        static_label_pairs: dict[str, str],
     ) -> None:
         """
         Args:
@@ -167,7 +172,7 @@ class PromHistogramMetric(_BaseMetric):
             label_pairs: dict of labels with their default value
             static_label_pairs: dict of static labels with the default value
         """
-        super().__init__(name, description, static_label_pairs,label_pairs)
+        super().__init__(name, description, static_label_pairs, label_pairs)
         self.histogram = Histogram(
             name, description, [*label_pairs.keys(), *static_label_pairs.keys()]
         )
