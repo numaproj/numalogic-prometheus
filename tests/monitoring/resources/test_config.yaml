@@ -1,0 +1,15 @@
+metric1:
+  name: metric1
+  description: description1
+  label_pairs:
+    label2: value2
+  static_label_pairs:
+    label1: value1
+
+metric2:
+  name: metric2
+  description: description2
+  label_pairs:
+    label4: value4
+  static_label_pairs:
+    label3: value3
