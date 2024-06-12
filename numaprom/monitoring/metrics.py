@@ -6,7 +6,7 @@ from prometheus_client import Counter, Info, Summary, Gauge, Histogram
 _LOGGER = logging.getLogger(__name__)
 
 
-class _BaseMetric:
+class BaseMetric:
     __slots__ = ("name", "description", "static_label_pairs", "label_pairs")
 
     """
@@ -43,7 +43,7 @@ class _BaseMetric:
         pass
 
 
-class PromCounterMetric(_BaseMetric):
+class PromCounterMetric(BaseMetric):
     """Class is used to create a counter object and increment it."""
 
     __slots__ = ("counter", "static_label_pairs")
@@ -70,7 +70,7 @@ class PromCounterMetric(_BaseMetric):
         self.counter.labels(**_new_labels).inc(amount=amount)
 
 
-class PromInfoMetric(_BaseMetric):
+class PromInfoMetric(BaseMetric):
     """Class is used to create an info object and increment it."""
 
     __slots__ = ("info", "static_label_pairs")
@@ -101,7 +101,7 @@ class PromInfoMetric(_BaseMetric):
         self.info.labels(**_new_labels).info(data)
 
 
-class PromSummaryMetric(_BaseMetric):
+class PromSummaryMetric(BaseMetric):
     __slots__ = ("summary", "static_label_pairs")
 
     def __init__(
@@ -126,7 +126,7 @@ class PromSummaryMetric(_BaseMetric):
         self.summary.labels(**_new_labels).observe(amount=value)
 
 
-class PromGaugeMetric(_BaseMetric):
+class PromGaugeMetric(BaseMetric):
     __slots__ = ("info", "static_label_pairs")
 
     def __init__(
@@ -155,7 +155,7 @@ class PromGaugeMetric(_BaseMetric):
         self.info.labels(**_new_labels).set(data)
 
 
-class PromHistogramMetric(_BaseMetric):
+class PromHistogramMetric(BaseMetric):
     __slots__ = ("histogram", "static_label_pairs")
 
     def __init__(
