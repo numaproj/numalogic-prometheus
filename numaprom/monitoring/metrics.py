@@ -1,6 +1,6 @@
 import logging
+from typing import Optional
 
-from black import Optional
 from prometheus_client import Counter, Info, Summary, Gauge, Histogram
 
 _LOGGER = logging.getLogger(__name__)
