@@ -1,8 +1,9 @@
 name: PyPi Publish
 
 on:
-  pull_request:
-    branches: [ "main" ]
+  push:
+    tags:
+      - v*
 jobs:
   pypi_publish:
     if: github.repository == 'numaproj/numalogic-prometheus'
