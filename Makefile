@@ -17,7 +17,6 @@ clean:
 
 format: clean
 	poetry run black numaprom/ tests/
-	poetry run black starter.py
 
 lint: format
 	poetry run ruff check --fix .

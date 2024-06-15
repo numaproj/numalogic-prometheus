@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from prometheus_client import Counter, Info, Summary, Gauge, Histogram
 
@@ -22,8 +21,8 @@ class BaseMetric:
         self,
         name: str,
         description: str,
-        static_label_pairs: Optional[dict[str, str]],
-        label_pairs: Optional[dict[str, str]],
+        static_label_pairs: dict[str, str] | None,
+        label_pairs: dict[str, str] | None,
     ) -> None:
         self.label_pairs = label_pairs
         self.static_label_pairs = dict(static_label_pairs)  # converting DictConfig to dict type
