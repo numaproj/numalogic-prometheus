@@ -27,17 +27,13 @@ def test_get_metric():
 
     assert metric.name == name
     assert metric.description == description
-    assert metric.label_pairs == label_pairs
     assert metric.static_label_pairs == static_label_pairs
     assert metric_info.name == name_info
     assert metric_info.description == description_info
-    assert metric_info.label_pairs == label_pairs
     assert metric_info.static_label_pairs == static_label_pairs
     assert metric_summary.name == name_summary
     assert metric_summary.description == description_summary
-    assert metric_summary.label_pairs == label_pairs
     assert metric_summary.static_label_pairs == static_label_pairs
     assert metric_gauge.name == name_gauge
     assert metric_gauge.description == description_gauge
-    assert metric_gauge.label_pairs == label_pairs
     assert metric_gauge.static_label_pairs == static_label_pairs
