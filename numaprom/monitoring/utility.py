@@ -30,7 +30,6 @@ def get_metric(
     name: str,
     description: str,
     label_pairs: dict[str, str] | None,
-    static_label_pairs: dict[str, str] | None,
 ) -> PromCounterMetric | PromInfoMetric | PromSummaryMetric | PromGaugeMetric | PromHistogramMetric:
     """
     Returns a Prometheus metric object based on the metric type.
@@ -39,18 +38,16 @@ def get_metric(
         name: metric name
         description: metric description
         label_pairs: label pairs
-        static_label_pairs: static label pairs
-
     Returns: _BaseMetric type
     """
     if metric_type == "Counter":
-        return PromCounterMetric(name, description, label_pairs, static_label_pairs)
+        return PromCounterMetric(name, description, label_pairs)
     if metric_type == "Info":
-        return PromInfoMetric(name, description, label_pairs, static_label_pairs)
+        return PromInfoMetric(name, description, label_pairs)
     if metric_type == "Summary":
-        return PromSummaryMetric(name, description, label_pairs, static_label_pairs)
+        return PromSummaryMetric(name, description, label_pairs)
     if metric_type == "Gauge":
-        return PromGaugeMetric(name, description, label_pairs, static_label_pairs)
+        return PromGaugeMetric(name, description, label_pairs)
     if metric_type == "Histogram":
-        return PromHistogramMetric(name, description, label_pairs, static_label_pairs)
+        return PromHistogramMetric(name, description, label_pairs)
     raise ValueError(f"Unknown metric type: {metric_type}")
