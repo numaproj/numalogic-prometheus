@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "numalogic-prometheus"
-version = "0.8.0"
+version = "0.8.1"
 description = "Numalogic Prometheus based tools"
 authors = ["Numalogic developers"]
 packages = [{ include = "numaprom" }]

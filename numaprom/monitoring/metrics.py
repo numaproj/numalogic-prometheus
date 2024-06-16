@@ -118,7 +118,7 @@ class PromSummaryMetric(BaseMetric):
 
 
 class PromGaugeMetric(BaseMetric):
-    __slots__ = "info"
+    __slots__ = "gauge"
 
     def __init__(
         self,
@@ -132,7 +132,7 @@ class PromGaugeMetric(BaseMetric):
             description: Description of the metric
             label_pairs: dict of labels with their default value"""
         super().__init__(name, description, label_pairs)
-        self.info = Gauge(name, description, [*label_pairs.keys()])
+        self.gauge = Gauge(name, description, [*label_pairs.keys()])
 
     def set_gauge(
         self,
@@ -140,7 +140,7 @@ class PromGaugeMetric(BaseMetric):
         data: float,
     ) -> None:
         _new_labels = self.label_pairs | labels
-        self.info.labels(**_new_labels).set(data)
+        self.gauge.labels(**_new_labels).set(data)
 
 
 class PromHistogramMetric(BaseMetric):
