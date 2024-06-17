@@ -11,7 +11,7 @@
 
 
 import logging
-
+from typing import Union, Optional
 
 from numaprom.monitoring.metrics import (
     PromCounterMetric,
@@ -29,8 +29,10 @@ def get_metric(
     metric_type: str,
     name: str,
     description: str,
-    label_pairs: dict[str, str] | None,
-) -> PromCounterMetric | PromInfoMetric | PromSummaryMetric | PromGaugeMetric | PromHistogramMetric:
+    label_pairs: Optional[dict[str, str]],
+) -> Union[
+    PromCounterMetric, PromInfoMetric, PromSummaryMetric, PromGaugeMetric, PromHistogramMetric
+]:
     """
     Returns a Prometheus metric object based on the metric type.
     Args:
@@ -38,7 +40,7 @@ def get_metric(
         name: metric name
         description: metric description
         label_pairs: label pairs
-    Returns: _BaseMetric type
+    Returns: _BaseMetric covariant type
     """
     if metric_type == "Counter":
         return PromCounterMetric(name, description, label_pairs)
