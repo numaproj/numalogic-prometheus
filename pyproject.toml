@@ -1,12 +1,13 @@
 [tool.poetry]
 name = "numalogic-prometheus"
-version = "0.8.1"
+version = "0.8.1a1"
 description = "Numalogic Prometheus based tools"
 authors = ["Numalogic developers"]
 packages = [{ include = "numaprom" }]
 maintainers = [
     "Avik Basu <avikbasu93@gmail.com>",
     "Nandita Koppisetty <nandita.iitkgp@gmail.com>",
+    "Kushal Batra <i.kushalbatra@gmail.com>"
 ]
 classifiers = [
     "Topic :: Software Development :: Libraries",
